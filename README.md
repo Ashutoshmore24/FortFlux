@@ -372,10 +372,11 @@ graph LR
 
 | Member | Role |
 |---|---|
-| **Ashutosh More** | Lead Developer |
-| | |
-| | |
-| | |
+| **Ashutosh More** | - |
+| **Utkarsh Patkotwar** | - |
+| **Mohit Sojal** | - |
+| **Prachi Gorle** | - |
+| **Rahul Gadekar** | - |
 
 ---
 
