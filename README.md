@@ -1,4 +1,4 @@
-# Heritage Eco-Monitor 🏔️
+# FortFlux 🏔️
 ### A Micro-Climate Resilience Platform for the Sahyadri Forts
 
 > **Track:** Biodiversity, Ecosystem Conservation & Climate Awareness
@@ -17,7 +17,7 @@ Today, conservation decisions on these trails are reactive — a landslide happe
 
 ## 2. The Solution
 
-**Heritage Eco-Monitor** is an end-to-end platform that turns each fort's trail network into a living, risk-aware digital twin — predicting erosion, mudslips, and structural degradation *before* they happen, and rerouting people away from danger in real time.
+**FortFlux** is an end-to-end platform that turns each fort's trail network into a living, risk-aware digital twin — predicting erosion, mudslips, and structural degradation *before* they happen, and rerouting people away from danger in real time.
 
 It combines four things nobody currently connects:
 1. Live weather data
