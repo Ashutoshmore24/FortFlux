@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import connectDB from './lib/db.js';
 import authRoutes from './routes/auth.route.js';
+import fortRoutes from './routes/fort.route.js';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/forts", fortRoutes);
 
 // Catch-all for unknown API routes
 app.all("/api/*path", (req, res) => {
