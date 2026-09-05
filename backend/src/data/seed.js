@@ -315,7 +315,7 @@ const seedData = async () => {
         const purandar = await Fort.create({
             name: "Purandar Fort",
             slug: "purandar",
-            location: { type: "Point", coordinates: [73.9830, 18.2765] },
+            location: { type: "Point", coordinates: [73.9705, 18.2773] },
             elevation: 1387,
             region: "Sahyadri — Deccan",
             district: "Pune",
@@ -332,9 +332,9 @@ const seedData = async () => {
         const purandarTrails = await Trail.create([
             {
                 fort: purandar._id, name: "Narayanpur to Dilli Darwaja", slug: "narayanpur-to-dilli-darwaja",
-                startPoint: { name: "Narayanpur Village", coordinates: [73.9810, 18.2700] },
-                endPoint: { name: "Dilli Darwaja Gate", coordinates: [73.9825, 18.2740] },
-                path: [[73.9810, 18.2700], [73.9818, 18.2720], [73.9825, 18.2740]],
+                startPoint: { name: "Narayanpur Village", coordinates: [73.9650, 18.2790] },
+                endPoint: { name: "Dilli Darwaja Gate", coordinates: [73.9685, 18.2782] },
+                path: [[73.9650, 18.2790], [73.9668, 18.2785], [73.9685, 18.2782]],
                 baselineDifficulty: 1.3, slopeGradient: 1.4, maxSafeFootfall: 500,
                 currentFootfall: 85, currentRiskScore: 20, status: "open",
                 distanceKm: 2.5, difficulty: "moderate",
@@ -342,9 +342,9 @@ const seedData = async () => {
             },
             {
                 fort: purandar._id, name: "Purandar Machi to Kedareshwar", slug: "purandar-machi-to-kedareshwar",
-                startPoint: { name: "Purandar Machi Plateau", coordinates: [73.9830, 18.2760] },
-                endPoint: { name: "Kedareshwar Temple Summit", coordinates: [73.9835, 18.2790] },
-                path: [[73.9830, 18.2760], [73.9832, 18.2775], [73.9835, 18.2790]],
+                startPoint: { name: "Purandar Machi Plateau", coordinates: [73.9690, 18.2778] },
+                endPoint: { name: "Kedareshwar Temple Summit", coordinates: [73.9705, 18.2773] },
+                path: [[73.9690, 18.2778], [73.9698, 18.2775], [73.9705, 18.2773]],
                 baselineDifficulty: 1.5, slopeGradient: 1.6, maxSafeFootfall: 300,
                 currentFootfall: 40, currentRiskScore: 22, status: "open",
                 distanceKm: 1.0, difficulty: "moderate",
@@ -352,9 +352,9 @@ const seedData = async () => {
             },
             {
                 fort: purandar._id, name: "Purandar to Vajragad Saddle", slug: "purandar-to-vajragad-saddle",
-                startPoint: { name: "Purandar South Bastion", coordinates: [73.9828, 18.2755] },
-                endPoint: { name: "Vajragad Entrance", coordinates: [73.9850, 18.2735] },
-                path: [[73.9828, 18.2755], [73.9840, 18.2745], [73.9850, 18.2735]],
+                startPoint: { name: "Purandar South Bastion", coordinates: [73.9705, 18.2773] },
+                endPoint: { name: "Vajragad Entrance", coordinates: [73.9740, 18.2750] },
+                path: [[73.9705, 18.2773], [73.9722, 18.2762], [73.9740, 18.2750]],
                 baselineDifficulty: 1.6, slopeGradient: 1.5, maxSafeFootfall: 200,
                 currentFootfall: 25, currentRiskScore: 30, status: "open",
                 distanceKm: 0.8, difficulty: "hard",
@@ -365,7 +365,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: purandar._id, name: "Purandar Machi Tank",
-                location: { name: "Central Machi", coordinates: [73.9831, 18.2762] },
+                location: { name: "Central Machi", coordinates: [73.9698, 18.2776] },
                 capacityLiters: 35000, currentLevelPct: 58, overflowThreshold: 85, status: "normal",
                 nearestTrail: purandarTrails[1]._id,
                 description: "Main water supply tank on the fortified machi, historically sustaining the garrison during sieges.",
@@ -378,7 +378,7 @@ const seedData = async () => {
         const lohagad = await Fort.create({
             name: "Lohagad Fort",
             slug: "lohagad",
-            location: { type: "Point", coordinates: [73.4730, 18.7090] },
+            location: { type: "Point", coordinates: [73.4760, 18.7099] },
             elevation: 1033,
             region: "Sahyadri — Deccan",
             district: "Pune",
@@ -395,9 +395,9 @@ const seedData = async () => {
         const lohagadTrails = await Trail.create([
             {
                 fort: lohagad._id, name: "Malavli Station to Lohagad Entrance", slug: "malavli-to-lohagad-entrance",
-                startPoint: { name: "Malavli Railway Station", coordinates: [73.4680, 18.7120] },
-                endPoint: { name: "Ganesh Darwaja Base", coordinates: [73.4710, 18.7100] },
-                path: [[73.4680, 18.7120], [73.4695, 18.7110], [73.4710, 18.7100]],
+                startPoint: { name: "Malavli Railway Station", coordinates: [73.4830, 18.7445] },
+                endPoint: { name: "Ganesh Darwaja Base", coordinates: [73.4785, 18.7075] },
+                path: [[73.4830, 18.7445], [73.4815, 18.7300], [73.4795, 18.7180], [73.4785, 18.7075]],
                 baselineDifficulty: 1.1, slopeGradient: 1.2, maxSafeFootfall: 700,
                 currentFootfall: 250, currentRiskScore: 18, status: "open",
                 distanceKm: 3.5, difficulty: "easy",
@@ -405,9 +405,9 @@ const seedData = async () => {
             },
             {
                 fort: lohagad._id, name: "Four Gates Ascent", slug: "four-gates-ascent",
-                startPoint: { name: "Ganesh Darwaja", coordinates: [73.4710, 18.7100] },
-                endPoint: { name: "Maha Darwaja (Top)", coordinates: [73.4730, 18.7088] },
-                path: [[73.4710, 18.7100], [73.4720, 18.7094], [73.4730, 18.7088]],
+                startPoint: { name: "Ganesh Darwaja Base", coordinates: [73.4785, 18.7075] },
+                endPoint: { name: "Maha Darwaja (Top)", coordinates: [73.4760, 18.7098] },
+                path: [[73.4785, 18.7075], [73.4776, 18.7083], [73.4768, 18.7091], [73.4760, 18.7098]],
                 baselineDifficulty: 1.4, slopeGradient: 1.5, maxSafeFootfall: 500,
                 currentFootfall: 200, currentRiskScore: 28, status: "open",
                 distanceKm: 0.9, difficulty: "moderate",
@@ -415,9 +415,9 @@ const seedData = async () => {
             },
             {
                 fort: lohagad._id, name: "Main Fort to Vinchukata", slug: "main-fort-to-vinchukata",
-                startPoint: { name: "Laxmi Kothi Area", coordinates: [73.4730, 18.7088] },
-                endPoint: { name: "Vinchukata Tip", coordinates: [73.4755, 18.7115] },
-                path: [[73.4730, 18.7088], [73.4742, 18.7100], [73.4755, 18.7115]],
+                startPoint: { name: "Laxmi Kothi Area", coordinates: [73.4760, 18.7098] },
+                endPoint: { name: "Vinchukata Tip", coordinates: [73.4695, 18.7166] },
+                path: [[73.4760, 18.7098], [73.4745, 18.7115], [73.4730, 18.7132], [73.4712, 18.7150], [73.4695, 18.7166]],
                 baselineDifficulty: 1.7, slopeGradient: 1.6, maxSafeFootfall: 150,
                 currentFootfall: 40, currentRiskScore: 45, status: "caution",
                 distanceKm: 0.6, difficulty: "hard",
@@ -428,7 +428,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: lohagad._id, name: "Lohagad Plateau Cistern",
-                location: { name: "Near Laxmi Kothi", coordinates: [73.4732, 18.7090] },
+                location: { name: "Near Laxmi Kothi", coordinates: [73.4755, 18.7095] },
                 capacityLiters: 28000, currentLevelPct: 72, overflowThreshold: 85, status: "normal",
                 nearestTrail: lohagadTrails[1]._id,
                 description: "Rock-cut cistern on the main plateau providing water to the garrison quarters.",
@@ -441,7 +441,7 @@ const seedData = async () => {
         const visapur = await Fort.create({
             name: "Visapur Fort",
             slug: "visapur",
-            location: { type: "Point", coordinates: [73.4907, 18.7195] },
+            location: { type: "Point", coordinates: [73.4890, 18.7208] },
             elevation: 1084,
             region: "Sahyadri — Deccan",
             district: "Pune",
@@ -457,9 +457,9 @@ const seedData = async () => {
         const visapurTrails = await Trail.create([
             {
                 fort: visapur._id, name: "Malavli to Visapur via Peth", slug: "malavli-to-visapur-via-peth",
-                startPoint: { name: "Malavli Crossroads", coordinates: [73.4680, 18.7120] },
-                endPoint: { name: "Visapur Peth Gate", coordinates: [73.4890, 18.7180] },
-                path: [[73.4680, 18.7120], [73.4780, 18.7150], [73.4890, 18.7180]],
+                startPoint: { name: "Malavli Crossroads", coordinates: [73.4830, 18.7445] },
+                endPoint: { name: "Visapur Peth Gate", coordinates: [73.4875, 18.7190] },
+                path: [[73.4830, 18.7445], [73.4855, 18.7310], [73.4870, 18.7220], [73.4875, 18.7190]],
                 baselineDifficulty: 1.5, slopeGradient: 1.6, maxSafeFootfall: 400,
                 currentFootfall: 90, currentRiskScore: 30, status: "open",
                 distanceKm: 4.0, difficulty: "hard",
@@ -467,9 +467,9 @@ const seedData = async () => {
             },
             {
                 fort: visapur._id, name: "Peth Gate to Summit Plateau", slug: "peth-gate-to-summit-plateau",
-                startPoint: { name: "Visapur Peth Gate", coordinates: [73.4890, 18.7180] },
-                endPoint: { name: "Summit Cistern Area", coordinates: [73.4907, 18.7195] },
-                path: [[73.4890, 18.7180], [73.4898, 18.7188], [73.4907, 18.7195]],
+                startPoint: { name: "Visapur Peth Gate", coordinates: [73.4875, 18.7190] },
+                endPoint: { name: "Summit Cistern Area", coordinates: [73.4890, 18.7208] },
+                path: [[73.4875, 18.7190], [73.4882, 18.7200], [73.4890, 18.7208]],
                 baselineDifficulty: 1.3, slopeGradient: 1.3, maxSafeFootfall: 500,
                 currentFootfall: 65, currentRiskScore: 15, status: "open",
                 distanceKm: 0.7, difficulty: "moderate",
@@ -480,7 +480,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: visapur._id, name: "Visapur Summit Tank",
-                location: { name: "Upper Plateau", coordinates: [73.4905, 18.7193] },
+                location: { name: "Upper Plateau", coordinates: [73.4895, 18.7212] },
                 capacityLiters: 45000, currentLevelPct: 78, overflowThreshold: 85, status: "normal",
                 nearestTrail: visapurTrails[1]._id,
                 description: "Large rock-cut rainwater harvesting cistern on the open summit. One of the largest on any Sahyadri fort.",
@@ -493,7 +493,7 @@ const seedData = async () => {
         const tikona = await Fort.create({
             name: "Tikona Fort",
             slug: "tikona",
-            location: { type: "Point", coordinates: [73.4970, 18.6523] },
+            location: { type: "Point", coordinates: [73.5128, 18.6317] },
             elevation: 1066,
             region: "Sahyadri — Deccan",
             district: "Pune",
@@ -509,9 +509,9 @@ const seedData = async () => {
         const tikonaTrails = await Trail.create([
             {
                 fort: tikona._id, name: "Tikona Peth to Summit", slug: "tikona-peth-to-summit",
-                startPoint: { name: "Tikona Peth Base", coordinates: [73.4950, 18.6490] },
-                endPoint: { name: "Tikona Summit Gate", coordinates: [73.4970, 18.6523] },
-                path: [[73.4950, 18.6490], [73.4960, 18.6505], [73.4970, 18.6523]],
+                startPoint: { name: "Tikona Peth Base", coordinates: [73.5180, 18.6280] },
+                endPoint: { name: "Tikona Summit Gate", coordinates: [73.5128, 18.6317] },
+                path: [[73.5180, 18.6280], [73.5160, 18.6295], [73.5142, 18.6308], [73.5128, 18.6317]],
                 baselineDifficulty: 1.5, slopeGradient: 1.7, maxSafeFootfall: 350,
                 currentFootfall: 110, currentRiskScore: 35, status: "open",
                 distanceKm: 1.8, difficulty: "hard",
@@ -522,7 +522,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: tikona._id, name: "Tikona Summit Water Tank",
-                location: { name: "Near Trimbakeshwar Temple", coordinates: [73.4968, 18.6520] },
+                location: { name: "Near Trimbakeshwar Temple", coordinates: [73.5125, 18.6319] },
                 capacityLiters: 18000, currentLevelPct: 65, overflowThreshold: 80, status: "normal",
                 nearestTrail: tikonaTrails[0]._id,
                 description: "Rock-cut rainwater cistern supplying the summit temple complex.",
@@ -668,7 +668,7 @@ const seedData = async () => {
         const ajinkyatara = await Fort.create({
             name: "Ajinkyatara Fort",
             slug: "ajinkyatara",
-            location: { type: "Point", coordinates: [73.8534, 17.6783] },
+            location: { type: "Point", coordinates: [73.9937, 17.6722] },
             elevation: 975,
             region: "Sahyadri — Deccan",
             district: "Satara",
@@ -684,9 +684,9 @@ const seedData = async () => {
         const ajinkyataraTrails = await Trail.create([
             {
                 fort: ajinkyatara._id, name: "Satara City to Ajinkyatara Summit", slug: "satara-to-ajinkyatara-summit",
-                startPoint: { name: "Ajinkyatara Base Road", coordinates: [73.8520, 17.6750] },
-                endPoint: { name: "Ajinkyatara Summit Gate", coordinates: [73.8534, 17.6783] },
-                path: [[73.8520, 17.6750], [73.8527, 17.6766], [73.8534, 17.6783]],
+                startPoint: { name: "Ajinkyatara Base Road", coordinates: [73.9912, 17.6752] },
+                endPoint: { name: "Ajinkyatara Summit Gate", coordinates: [73.9935, 17.6725] },
+                path: [[73.9912, 17.6752], [73.9918, 17.6743], [73.9926, 17.6734], [73.9935, 17.6725], [73.9945, 17.6715]],
                 baselineDifficulty: 1.3, slopeGradient: 1.4, maxSafeFootfall: 500,
                 currentFootfall: 130, currentRiskScore: 20, status: "open",
                 distanceKm: 2.0, difficulty: "moderate",
@@ -697,7 +697,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: ajinkyatara._id, name: "Ajinkyatara Summit Tank",
-                location: { name: "Fort Plateau", coordinates: [73.8533, 17.6781] },
+                location: { name: "Fort Plateau", coordinates: [73.9942, 17.6715] },
                 capacityLiters: 22000, currentLevelPct: 50, overflowThreshold: 80, status: "normal",
                 nearestTrail: ajinkyataraTrails[0]._id,
                 description: "Rock-cut cistern at the summit, historically the main water source for the fort garrison.",
@@ -771,7 +771,7 @@ const seedData = async () => {
         const shivneri = await Fort.create({
             name: "Shivneri Fort",
             slug: "shivneri",
-            location: { type: "Point", coordinates: [73.8538, 19.2026] },
+            location: { type: "Point", coordinates: [73.8596, 19.1984] },
             elevation: 1000,
             region: "Sahyadri — Deccan",
             district: "Pune (Junnar)",
@@ -788,9 +788,9 @@ const seedData = async () => {
         const shivneriTrails = await Trail.create([
             {
                 fort: shivneri._id, name: "Junnar to Shivneri Seven Gates", slug: "junnar-to-shivneri-gates",
-                startPoint: { name: "Junnar Town Base", coordinates: [73.8520, 19.1990] },
-                endPoint: { name: "Shivneri Main Gate (7th Gate)", coordinates: [73.8535, 19.2020] },
-                path: [[73.8520, 19.1990], [73.8528, 19.2005], [73.8535, 19.2020]],
+                startPoint: { name: "Junnar Town Base", coordinates: [73.8640, 19.1960] },
+                endPoint: { name: "Shivneri Main Gate (7th Gate)", coordinates: [73.8610, 19.1975] },
+                path: [[73.8640, 19.1960], [73.8625, 19.1968], [73.8610, 19.1975]],
                 baselineDifficulty: 1.3, slopeGradient: 1.4, maxSafeFootfall: 600,
                 currentFootfall: 200, currentRiskScore: 20, status: "open",
                 distanceKm: 2.5, difficulty: "moderate",
@@ -798,9 +798,9 @@ const seedData = async () => {
             },
             {
                 fort: shivneri._id, name: "Main Gate to Birth Chamber", slug: "main-gate-to-birth-chamber",
-                startPoint: { name: "7th Gate Entrance", coordinates: [73.8535, 19.2020] },
-                endPoint: { name: "Shivaji Birth Memorial", coordinates: [73.8538, 19.2030] },
-                path: [[73.8535, 19.2020], [73.8537, 19.2025], [73.8538, 19.2030]],
+                startPoint: { name: "7th Gate Entrance", coordinates: [73.8610, 19.1975] },
+                endPoint: { name: "Shivaji Birth Memorial", coordinates: [73.8596, 19.1984] },
+                path: [[73.8610, 19.1975], [73.8602, 19.1980], [73.8596, 19.1984]],
                 baselineDifficulty: 1.1, slopeGradient: 1.1, maxSafeFootfall: 700,
                 currentFootfall: 250, currentRiskScore: 10, status: "open",
                 distanceKm: 0.4, difficulty: "easy",
@@ -811,7 +811,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: shivneri._id, name: "Badami Talav",
-                location: { name: "Shivneri Fort Plateau", coordinates: [73.8540, 19.2028] },
+                location: { name: "Shivneri Fort Plateau", coordinates: [73.8598, 19.1982] },
                 capacityLiters: 55000, currentLevelPct: 80, overflowThreshold: 90, status: "normal",
                 nearestTrail: shivneriTrails[1]._id,
                 description: "Famous almond-shaped natural reservoir with sweet mineral water. One of the most remarkable water systems on any Sahyadri fort.",
@@ -824,7 +824,7 @@ const seedData = async () => {
         const harishchandragad = await Fort.create({
             name: "Harishchandragad",
             slug: "harishchandragad",
-            location: { type: "Point", coordinates: [73.7792, 19.3918] },
+            location: { type: "Point", coordinates: [73.7759, 19.3882] },
             elevation: 1424,
             region: "Sahyadri — Deccan",
             district: "Ahmednagar",
@@ -843,8 +843,8 @@ const seedData = async () => {
             {
                 fort: harishchandragad._id, name: "Khireshwar to Tolar Khind", slug: "khireshwar-to-tolar-khind",
                 startPoint: { name: "Khireshwar Village", coordinates: [73.7720, 19.3850] },
-                endPoint: { name: "Tolar Khind Saddle", coordinates: [73.7760, 19.3890] },
-                path: [[73.7720, 19.3850], [73.7740, 19.3870], [73.7760, 19.3890]],
+                endPoint: { name: "Tolar Khind Saddle", coordinates: [73.7755, 19.3875] },
+                path: [[73.7720, 19.3850], [73.7738, 19.3862], [73.7755, 19.3875]],
                 baselineDifficulty: 1.5, slopeGradient: 1.6, maxSafeFootfall: 300,
                 currentFootfall: 60, currentRiskScore: 35, status: "open",
                 distanceKm: 4.5, difficulty: "hard",
@@ -852,9 +852,9 @@ const seedData = async () => {
             },
             {
                 fort: harishchandragad._id, name: "Tolar Khind to Kokankada", slug: "tolar-khind-to-kokankada",
-                startPoint: { name: "Tolar Khind Junction", coordinates: [73.7760, 19.3890] },
-                endPoint: { name: "Kokankada Cliff Edge", coordinates: [73.7800, 19.3925] },
-                path: [[73.7760, 19.3890], [73.7780, 19.3908], [73.7800, 19.3925]],
+                startPoint: { name: "Tolar Khind Junction", coordinates: [73.7755, 19.3875] },
+                endPoint: { name: "Kokankada Cliff Edge", coordinates: [73.7713, 19.3922] },
+                path: [[73.7755, 19.3875], [73.7745, 19.3895], [73.7730, 19.3910], [73.7713, 19.3922]],
                 baselineDifficulty: 1.6, slopeGradient: 1.5, maxSafeFootfall: 250,
                 currentFootfall: 45, currentRiskScore: 40, status: "caution",
                 distanceKm: 2.0, difficulty: "hard",
@@ -863,8 +863,8 @@ const seedData = async () => {
             {
                 fort: harishchandragad._id, name: "Nalichi Vaat (Rock Climb Route)", slug: "nalichi-vaat-rock-climb",
                 startPoint: { name: "Belpada Village", coordinates: [73.7850, 19.3800] },
-                endPoint: { name: "Harishchandreshwar Temple", coordinates: [73.7790, 19.3915] },
-                path: [[73.7850, 19.3800], [73.7820, 19.3860], [73.7790, 19.3915]],
+                endPoint: { name: "Harishchandreshwar Temple", coordinates: [73.7759, 19.3882] },
+                path: [[73.7850, 19.3800], [73.7800, 19.3840], [73.7759, 19.3882]],
                 baselineDifficulty: 1.9, slopeGradient: 2.0, maxSafeFootfall: 100,
                 currentFootfall: 12, currentRiskScore: 65, status: "caution",
                 distanceKm: 3.5, difficulty: "extreme",
@@ -875,14 +875,14 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: harishchandragad._id, name: "Saptatirtha Pushkarini",
-                location: { name: "Near Harishchandra Temple", coordinates: [73.7788, 19.3912] },
+                location: { name: "Near Harishchandra Temple", coordinates: [73.7760, 19.3880] },
                 capacityLiters: 40000, currentLevelPct: 85, overflowThreshold: 90, status: "elevated",
                 nearestTrail: harishchandragadTrails[2]._id,
                 description: "Seven sacred rock-cut water tanks near the ancient temple. Perennially filled by underground springs.",
             },
             {
                 fort: harishchandragad._id, name: "Kedareshwar Cave Pool",
-                location: { name: "Kedareshwar Temple Cave", coordinates: [73.7795, 19.3920] },
+                location: { name: "Kedareshwar Temple Cave", coordinates: [73.7755, 19.3885] },
                 capacityLiters: 15000, currentLevelPct: 90, overflowThreshold: 95, status: "normal",
                 nearestTrail: harishchandragadTrails[1]._id,
                 description: "Natural underground spring-fed pool surrounding the Shiva lingam inside the cave temple.",
@@ -895,7 +895,7 @@ const seedData = async () => {
         const rajmachi = await Fort.create({
             name: "Rajmachi Fort",
             slug: "rajmachi",
-            location: { type: "Point", coordinates: [73.4050, 18.8371] },
+            location: { type: "Point", coordinates: [73.3974, 18.8297] },
             elevation: 838,
             region: "Sahyadri — Konkan",
             district: "Pune",
@@ -912,9 +912,9 @@ const seedData = async () => {
         const rajmachiTrails = await Trail.create([
             {
                 fort: rajmachi._id, name: "Lonavala to Rajmachi via Tunnel Road", slug: "lonavala-to-rajmachi-tunnel",
-                startPoint: { name: "Lonavala Railway Colony", coordinates: [73.4020, 18.7580] },
-                endPoint: { name: "Udhewadi Village Gate", coordinates: [73.4045, 18.8360] },
-                path: [[73.4020, 18.7580], [73.4030, 18.7960], [73.4045, 18.8360]],
+                startPoint: { name: "Lonavala Railway Colony", coordinates: [73.4150, 18.7750] },
+                endPoint: { name: "Udhewadi Village Gate", coordinates: [73.3974, 18.8297] },
+                path: [[73.4150, 18.7750], [73.4080, 18.7950], [73.4020, 18.8150], [73.3974, 18.8297]],
                 baselineDifficulty: 1.2, slopeGradient: 1.2, maxSafeFootfall: 500,
                 currentFootfall: 140, currentRiskScore: 15, status: "open",
                 distanceKm: 15.0, difficulty: "moderate",
@@ -922,9 +922,9 @@ const seedData = async () => {
             },
             {
                 fort: rajmachi._id, name: "Udhewadi to Shrivardhan Peak", slug: "udhewadi-to-shrivardhan",
-                startPoint: { name: "Udhewadi Village", coordinates: [73.4045, 18.8360] },
-                endPoint: { name: "Shrivardhan Summit Temple", coordinates: [73.4040, 18.8380] },
-                path: [[73.4045, 18.8360], [73.4042, 18.8370], [73.4040, 18.8380]],
+                startPoint: { name: "Udhewadi Village", coordinates: [73.3974, 18.8297] },
+                endPoint: { name: "Shrivardhan Summit Temple", coordinates: [73.4000, 18.8272] },
+                path: [[73.3974, 18.8297], [73.3988, 18.8284], [73.4000, 18.8272]],
                 baselineDifficulty: 1.6, slopeGradient: 1.7, maxSafeFootfall: 200,
                 currentFootfall: 30, currentRiskScore: 35, status: "open",
                 distanceKm: 0.5, difficulty: "hard",
@@ -935,7 +935,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: rajmachi._id, name: "Udhewadi Village Well",
-                location: { name: "Udhewadi Central", coordinates: [73.4046, 18.8362] },
+                location: { name: "Udhewadi Central", coordinates: [73.3976, 18.8295] },
                 capacityLiters: 25000, currentLevelPct: 60, overflowThreshold: 80, status: "normal",
                 nearestTrail: rajmachiTrails[0]._id,
                 description: "The village well serving the inhabited fort settlement of Udhewadi. Recharged by monsoon rains.",
@@ -952,7 +952,7 @@ const seedData = async () => {
         const sindhudurg = await Fort.create({
             name: "Sindhudurg Fort",
             slug: "sindhudurg",
-            location: { type: "Point", coordinates: [73.4612, 16.0377] },
+            location: { type: "Point", coordinates: [73.4601, 16.0428] },
             elevation: 5,
             region: "Konkan Coast",
             district: "Sindhudurg",
@@ -969,9 +969,9 @@ const seedData = async () => {
         const sindhudurgTrails = await Trail.create([
             {
                 fort: sindhudurg._id, name: "Malvan Jetty to Fort Landing", slug: "malvan-jetty-to-fort-landing",
-                startPoint: { name: "Malvan Boat Jetty", coordinates: [73.4640, 16.0350] },
-                endPoint: { name: "Sindhudurg Landing Steps", coordinates: [73.4618, 16.0370] },
-                path: [[73.4640, 16.0350], [73.4630, 16.0360], [73.4618, 16.0370]],
+                startPoint: { name: "Malvan Boat Jetty", coordinates: [73.4675, 16.0505] },
+                endPoint: { name: "Sindhudurg Landing Steps", coordinates: [73.4610, 16.0440] },
+                path: [[73.4675, 16.0505], [73.4645, 16.0470], [73.4610, 16.0440]],
                 baselineDifficulty: 1.0, slopeGradient: 1.0, maxSafeFootfall: 500,
                 currentFootfall: 180, currentRiskScore: 10, status: "open",
                 distanceKm: 0.5, difficulty: "easy",
@@ -979,9 +979,9 @@ const seedData = async () => {
             },
             {
                 fort: sindhudurg._id, name: "Fort Perimeter Rampart Walk", slug: "sindhudurg-rampart-walk",
-                startPoint: { name: "Landing Steps Inner", coordinates: [73.4618, 16.0370] },
-                endPoint: { name: "Dandi Bastion", coordinates: [73.4605, 16.0390] },
-                path: [[73.4618, 16.0370], [73.4612, 16.0380], [73.4605, 16.0390]],
+                startPoint: { name: "Landing Steps Inner", coordinates: [73.4610, 16.0440] },
+                endPoint: { name: "Dandi Bastion", coordinates: [73.4590, 16.0415] },
+                path: [[73.4610, 16.0440], [73.4600, 16.0430], [73.4590, 16.0415]],
                 baselineDifficulty: 1.1, slopeGradient: 1.0, maxSafeFootfall: 400,
                 currentFootfall: 130, currentRiskScore: 8, status: "open",
                 distanceKm: 2.0, difficulty: "easy",
@@ -992,7 +992,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: sindhudurg._id, name: "Sindhudurg Freshwater Well",
-                location: { name: "Fort Interior", coordinates: [73.4610, 16.0378] },
+                location: { name: "Fort Interior", coordinates: [73.4600, 16.0425] },
                 capacityLiters: 30000, currentLevelPct: 75, overflowThreshold: 85, status: "normal",
                 nearestTrail: sindhudurgTrails[1]._id,
                 description: "Remarkable engineering feat — a freshwater well on a sea island, sourcing from an underground freshwater lens.",
@@ -1005,7 +1005,7 @@ const seedData = async () => {
         const vijaydurg = await Fort.create({
             name: "Vijaydurg Fort",
             slug: "vijaydurg",
-            location: { type: "Point", coordinates: [73.3365, 16.5626] },
+            location: { type: "Point", coordinates: [73.3334, 16.5606] },
             elevation: 10,
             region: "Konkan Coast",
             district: "Sindhudurg",
@@ -1022,9 +1022,9 @@ const seedData = async () => {
         const vijaydurgTrails = await Trail.create([
             {
                 fort: vijaydurg._id, name: "Village Road to Fort Gate", slug: "vijaydurg-village-to-gate",
-                startPoint: { name: "Vijaydurg Village", coordinates: [73.3380, 16.5610] },
-                endPoint: { name: "Vijaydurg Main Gate", coordinates: [73.3368, 16.5622] },
-                path: [[73.3380, 16.5610], [73.3374, 16.5616], [73.3368, 16.5622]],
+                startPoint: { name: "Vijaydurg Village", coordinates: [73.3360, 16.5595] },
+                endPoint: { name: "Vijaydurg Main Gate", coordinates: [73.3345, 16.5602] },
+                path: [[73.3360, 16.5595], [73.3352, 16.5598], [73.3345, 16.5602]],
                 baselineDifficulty: 1.0, slopeGradient: 1.0, maxSafeFootfall: 600,
                 currentFootfall: 100, currentRiskScore: 5, status: "open",
                 distanceKm: 0.8, difficulty: "easy",
@@ -1032,9 +1032,9 @@ const seedData = async () => {
             },
             {
                 fort: vijaydurg._id, name: "Triple Wall Circuit", slug: "vijaydurg-triple-wall-circuit",
-                startPoint: { name: "Main Gate Inner Court", coordinates: [73.3368, 16.5622] },
-                endPoint: { name: "Outermost Bastion", coordinates: [73.3355, 16.5635] },
-                path: [[73.3368, 16.5622], [73.3360, 16.5628], [73.3355, 16.5635]],
+                startPoint: { name: "Main Gate Inner Court", coordinates: [73.3345, 16.5602] },
+                endPoint: { name: "Outermost Bastion", coordinates: [73.3325, 16.5615] },
+                path: [[73.3345, 16.5602], [73.3335, 16.5608], [73.3325, 16.5615]],
                 baselineDifficulty: 1.2, slopeGradient: 1.1, maxSafeFootfall: 400,
                 currentFootfall: 75, currentRiskScore: 10, status: "open",
                 distanceKm: 1.5, difficulty: "easy",
@@ -1045,7 +1045,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: vijaydurg._id, name: "Vijaydurg Garrison Well",
-                location: { name: "Inner Fort Courtyard", coordinates: [73.3366, 16.5625] },
+                location: { name: "Inner Fort Courtyard", coordinates: [73.3330, 16.5608] },
                 capacityLiters: 35000, currentLevelPct: 68, overflowThreshold: 85, status: "normal",
                 nearestTrail: vijaydurgTrails[0]._id,
                 description: "Large garrison well providing fresh water to the naval headquarters and dockyard workers.",
@@ -1058,7 +1058,7 @@ const seedData = async () => {
         const janjira = await Fort.create({
             name: "Murud-Janjira Fort",
             slug: "murud-janjira",
-            location: { type: "Point", coordinates: [72.9632, 18.2936] },
+            location: { type: "Point", coordinates: [72.9644, 18.2999] },
             elevation: 8,
             region: "Konkan Coast",
             district: "Raigad",
@@ -1075,9 +1075,9 @@ const seedData = async () => {
         const janjiraTrails = await Trail.create([
             {
                 fort: janjira._id, name: "Rajapuri Jetty to Janjira Landing", slug: "rajapuri-to-janjira-landing",
-                startPoint: { name: "Rajapuri Boat Jetty", coordinates: [72.9660, 18.2920] },
-                endPoint: { name: "Janjira Fort Landing", coordinates: [72.9638, 18.2932] },
-                path: [[72.9660, 18.2920], [72.9650, 18.2926], [72.9638, 18.2932]],
+                startPoint: { name: "Rajapuri Boat Jetty", coordinates: [72.9730, 18.2992] },
+                endPoint: { name: "Janjira Fort Landing", coordinates: [72.9650, 18.2999] },
+                path: [[72.9730, 18.2992], [72.9690, 18.2995], [72.9650, 18.2999]],
                 baselineDifficulty: 1.0, slopeGradient: 1.0, maxSafeFootfall: 400,
                 currentFootfall: 120, currentRiskScore: 8, status: "open",
                 distanceKm: 0.3, difficulty: "easy",
@@ -1085,9 +1085,9 @@ const seedData = async () => {
             },
             {
                 fort: janjira._id, name: "Janjira Fort Interior Tour", slug: "janjira-fort-interior-tour",
-                startPoint: { name: "Main Entrance Arch", coordinates: [72.9638, 18.2932] },
-                endPoint: { name: "Freshwater Lake", coordinates: [72.9630, 18.2940] },
-                path: [[72.9638, 18.2932], [72.9634, 18.2936], [72.9630, 18.2940]],
+                startPoint: { name: "Main Entrance Arch", coordinates: [72.9650, 18.2999] },
+                endPoint: { name: "Freshwater Lake", coordinates: [72.9642, 18.3000] },
+                path: [[72.9650, 18.2999], [72.9646, 18.3000], [72.9642, 18.3000]],
                 baselineDifficulty: 1.1, slopeGradient: 1.0, maxSafeFootfall: 300,
                 currentFootfall: 90, currentRiskScore: 10, status: "open",
                 distanceKm: 0.8, difficulty: "easy",
@@ -1098,7 +1098,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: janjira._id, name: "Janjira Freshwater Lake",
-                location: { name: "Fort Interior", coordinates: [72.9630, 18.2940] },
+                location: { name: "Fort Interior", coordinates: [72.9642, 18.3000] },
                 capacityLiters: 100000, currentLevelPct: 80, overflowThreshold: 90, status: "normal",
                 nearestTrail: janjiraTrails[1]._id,
                 description: "Engineering marvel — a large freshwater lake inside a sea fort, fed by underground freshwater springs from the seabed.",
@@ -1111,7 +1111,7 @@ const seedData = async () => {
         const korigad = await Fort.create({
             name: "Korigad Fort",
             slug: "korigad",
-            location: { type: "Point", coordinates: [73.5140, 18.6373] },
+            location: { type: "Point", coordinates: [73.3856, 18.6203] },
             elevation: 929,
             region: "Sahyadri — Konkan",
             district: "Pune",
@@ -1127,9 +1127,9 @@ const seedData = async () => {
         const korigadTrails = await Trail.create([
             {
                 fort: korigad._id, name: "Peth Shahpur to Korigad Summit", slug: "peth-shahpur-to-korigad",
-                startPoint: { name: "Peth Shahpur Village", coordinates: [73.5120, 18.6350] },
-                endPoint: { name: "Korigad Main Gate", coordinates: [73.5138, 18.6370] },
-                path: [[73.5120, 18.6350], [73.5130, 18.6360], [73.5138, 18.6370]],
+                startPoint: { name: "Peth Shahpur Village", coordinates: [73.3885, 18.6175] },
+                endPoint: { name: "Korigad Main Gate", coordinates: [73.3860, 18.6200] },
+                path: [[73.3885, 18.6175], [73.3875, 18.6188], [73.3865, 18.6195], [73.3856, 18.6203]],
                 baselineDifficulty: 1.2, slopeGradient: 1.3, maxSafeFootfall: 500,
                 currentFootfall: 100, currentRiskScore: 15, status: "open",
                 distanceKm: 1.5, difficulty: "easy",
@@ -1140,7 +1140,7 @@ const seedData = async () => {
         await Cistern.create([
             {
                 fort: korigad._id, name: "Korigad Summit Tank",
-                location: { name: "Near Koraidevi Temple", coordinates: [73.5139, 18.6372] },
+                location: { name: "Near Koraidevi Temple", coordinates: [73.3852, 18.6208] },
                 capacityLiters: 18000, currentLevelPct: 55, overflowThreshold: 80, status: "normal",
                 nearestTrail: korigadTrails[0]._id,
                 description: "Rock-cut water tank on the summit plateau, historically serving the temple complex.",

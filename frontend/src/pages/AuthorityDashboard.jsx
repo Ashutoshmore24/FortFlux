@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useFortStore } from "../store/useFortStore";
 import { useWeatherStore } from "../store/useWeatherStore";
+import { useRiskStore } from "../store/useRiskStore";
 import FortMap from "../components/map/FortMap";
 import {
   Shield,
@@ -12,11 +13,14 @@ import {
   CheckCircle2,
   RefreshCw,
   ChevronDown,
-  Map,
+  Map as MapIcon,
   XCircle,
   RotateCcw,
   Navigation,
   Loader2,
+  Zap,
+  Database,
+  Activity,
 } from "lucide-react";
 
 export const AuthorityDashboard = () => {
@@ -41,9 +45,20 @@ export const AuthorityDashboard = () => {
     isLoadingForts,
   } = useWeatherStore();
 
+  const {
+    riskData: liveRiskData,
+    isLoading: isLoadingRisk,
+    isApplying,
+    fetchRisk,
+    applyRisk,
+    error: riskError,
+    lastComputed,
+  } = useRiskStore();
+
   const [rainfall, setRainfall] = useState(65);
   const [footfall, setFootfall] = useState(450);
   const [updatingTrailId, setUpdatingTrailId] = useState(null);
+  const [applySuccess, setApplySuccess] = useState(false);
 
   // Fetch forts on mount
   useEffect(() => {
@@ -63,6 +78,28 @@ export const AuthorityDashboard = () => {
     setWeatherFort(slug);
     const mapFort = forts.find((f) => f.slug === slug);
     if (mapFort) selectFort(mapFort);
+    setApplySuccess(false);
+  };
+
+  // Compute live risk from weather API
+  const handleComputeLiveRisk = async () => {
+    if (selectedFortSlug) {
+      setApplySuccess(false);
+      await fetchRisk(selectedFortSlug);
+    }
+  };
+
+  // Apply computed risk to DB + auto-set trail statuses
+  const handleApplyRisk = async () => {
+    if (selectedFortSlug) {
+      const result = await applyRisk(selectedFortSlug);
+      if (result.success) {
+        setApplySuccess(true);
+        // Refresh fort detail to reflect updated trail statuses on the map
+        await fetchFortDetail(selectedFortSlug);
+        setTimeout(() => setApplySuccess(false), 4000);
+      }
+    }
   };
 
   // Ensure a fort is selected on initial load
@@ -109,6 +146,11 @@ export const AuthorityDashboard = () => {
         )
       : 0;
   const isCritical = aggregateSimRisk >= 75;
+
+  // Live risk data from the API
+  const liveAggregate = liveRiskData?.aggregate;
+  const liveTrailRisks = liveRiskData?.trails || [];
+  const isLiveCritical = (liveAggregate?.averageRisk || 0) >= 75;
 
   // Find cisterns above overflow threshold
   const alertCisterns = cisterns.filter(
@@ -325,57 +367,163 @@ export const AuthorityDashboard = () => {
         {/* Dynamic Risk Gauge & Actions */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-white text-base mb-1">
-              Dynamic Risk Evaluation
-            </h3>
-            <p className="text-xs text-slate-400 mb-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-bold text-white text-base">
+                Dynamic Risk Evaluation
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleComputeLiveRisk}
+                  disabled={isLoadingRisk}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 rounded-lg text-[11px] font-semibold transition disabled:opacity-50"
+                >
+                  {isLoadingRisk ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Zap className="w-3 h-3" />
+                  )}
+                  Compute Live Risk
+                </button>
+                <button
+                  onClick={handleApplyRisk}
+                  disabled={isApplying || !liveRiskData}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-semibold transition disabled:opacity-50"
+                  title={!liveRiskData ? "Compute live risk first" : "Apply computed risk scores to database"}
+                >
+                  {isApplying ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Database className="w-3 h-3" />
+                  )}
+                  Apply to DB
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 mb-4">
               Formula: Traversal Difficulty × Soil Saturation × Slope × (Density
               / Max Safe Footfall)
             </p>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80 mb-6">
-              <div className="flex items-center justify-between mb-2 text-xs">
-                <span className="text-slate-400">Simulated Erosion Index:</span>
-                <span
-                  className={`font-bold ${
-                    isCritical ? "text-rose-400" : "text-amber-400"
-                  }`}
-                >
-                  {aggregateSimRisk} / 100
-                </span>
+            {/* Success banner */}
+            {applySuccess && (
+              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-xs text-emerald-300 font-semibold">
+                <CheckCircle2 className="w-4 h-4" />
+                Risk scores applied to database. Trail statuses updated automatically.
               </div>
-              <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden mb-2">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    isCritical
-                      ? "bg-rose-500"
-                      : aggregateSimRisk > 50
-                      ? "bg-amber-500"
-                      : "bg-emerald-500"
-                  }`}
-                  style={{ width: `${aggregateSimRisk}%` }}
-                />
+            )}
+
+            {/* Risk error */}
+            {riskError && (
+              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 font-semibold">
+                ⚠️ {riskError}
               </div>
-              <div className="text-[11px] text-slate-400">
-                {isCritical ? (
-                  <span className="text-rose-400 font-semibold">
-                    🚨 Warning: Threshold exceeded! Trail segments are
-                    experiencing simulated soil rutting at current parameters.
+            )}
+
+            {/* Dual gauge: Simulated vs Live */}
+            <div className="grid grid-cols-1 gap-3 mb-4">
+              {/* Simulated Risk Gauge */}
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80">
+                <div className="flex items-center justify-between mb-2 text-xs">
+                  <span className="text-slate-400 flex items-center gap-1.5">
+                    <Sliders className="w-3 h-3" /> Simulated Erosion Index
                   </span>
-                ) : (
-                  <span className="text-emerald-400 font-semibold">
-                    ✅ Safe Operational Parameters. No automatic diversion
-                    required.
+                  <span
+                    className={`font-bold ${
+                      isCritical ? "text-rose-400" : "text-amber-400"
+                    }`}
+                  >
+                    {aggregateSimRisk} / 100
                   </span>
-                )}
+                </div>
+                <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mb-2">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      isCritical
+                        ? "bg-rose-500"
+                        : aggregateSimRisk > 50
+                        ? "bg-amber-500"
+                        : "bg-emerald-500"
+                    }`}
+                    style={{ width: `${aggregateSimRisk}%` }}
+                  />
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  {isCritical ? (
+                    <span className="text-rose-400 font-semibold">
+                      🚨 Threshold exceeded at current slider parameters.
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400 font-semibold">
+                      ✅ Safe Operational Parameters.
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Live Risk Gauge (only shown after computation) */}
+              {liveRiskData && liveAggregate && (
+                <div className={`p-4 rounded-2xl border ${
+                  isLiveCritical
+                    ? "bg-rose-500/5 border-rose-500/30"
+                    : "bg-cyan-500/5 border-cyan-500/30"
+                }`}>
+                  <div className="flex items-center justify-between mb-2 text-xs">
+                    <span className="text-slate-400 flex items-center gap-1.5">
+                      <Activity className="w-3 h-3 text-cyan-400" /> Live Weather Risk
+                      {liveRiskData.weather && (
+                        <span className="ml-1">{liveRiskData.weather.weatherIcon} {liveRiskData.weather.precipitation}mm</span>
+                      )}
+                    </span>
+                    <span
+                      className={`font-bold ${
+                        isLiveCritical ? "text-rose-400" : "text-cyan-400"
+                      }`}
+                    >
+                      {liveAggregate.averageRisk} / 100
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mb-2">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        isLiveCritical
+                          ? "bg-rose-500"
+                          : liveAggregate.averageRisk > 50
+                          ? "bg-amber-500"
+                          : "bg-cyan-500"
+                      }`}
+                      style={{ width: `${liveAggregate.averageRisk}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">
+                      {liveAggregate.criticalCount > 0 ? (
+                        <span className="text-rose-400 font-semibold">
+                          🚨 {liveAggregate.criticalCount} critical segment{liveAggregate.criticalCount !== 1 ? "s" : ""}
+                        </span>
+                      ) : liveAggregate.cautionCount > 0 ? (
+                        <span className="text-amber-400 font-semibold">
+                          ⚠️ {liveAggregate.cautionCount} caution segment{liveAggregate.cautionCount !== 1 ? "s" : ""}
+                        </span>
+                      ) : (
+                        <span className="text-emerald-400 font-semibold">✅ All segments safe</span>
+                      )}
+                    </span>
+                    {lastComputed && (
+                      <span className="text-slate-500">
+                        {new Date(lastComputed).toLocaleTimeString("en-IN")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Per-trail breakdown */}
             {trails.length > 0 && (
-              <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                 {trails.map((trail) => {
                   const simRisk = riskOverrides.get(trail._id) || 0;
+                  const liveTrail = liveTrailRisks.find((t) => t.trailId === trail._id);
                   return (
                     <div
                       key={trail._id}
@@ -388,7 +536,7 @@ export const AuthorityDashboard = () => {
                         <span className="text-slate-500">
                           DB: {trail.currentRiskScore}%
                         </span>
-                        <span className="text-slate-600">→</span>
+                        <span className="text-slate-600">·</span>
                         <span
                           className={`font-bold ${
                             simRisk >= 75
@@ -400,6 +548,22 @@ export const AuthorityDashboard = () => {
                         >
                           Sim: {simRisk}%
                         </span>
+                        {liveTrail && (
+                          <>
+                            <span className="text-slate-600">·</span>
+                            <span
+                              className={`font-bold ${
+                                liveTrail.liveRiskScore >= 75
+                                  ? "text-rose-400"
+                                  : liveTrail.liveRiskScore >= 50
+                                  ? "text-amber-400"
+                                  : "text-cyan-400"
+                              }`}
+                            >
+                              Live: {liveTrail.liveRiskScore}%
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -412,9 +576,8 @@ export const AuthorityDashboard = () => {
             <span className="font-semibold text-slate-300">
               Authority Note:
             </span>{" "}
-            Simulation uses each trail's actual <em>baselineDifficulty</em>,{" "}
-            <em>slopeGradient</em>, and <em>maxSafeFootfall</em> from the
-            database — not hardcoded constants.
+            <strong>Sim</strong> uses slider parameters. <strong>Live</strong> uses real Open-Meteo weather.
+            "Apply to DB" persists live scores and auto-sets trail statuses (≥75% → closed, ≥30% → caution).
           </div>
         </div>
       </div>
@@ -425,7 +588,7 @@ export const AuthorityDashboard = () => {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-white text-lg flex items-center gap-2">
-              <Map className="w-5 h-5 text-amber-400" />
+              <MapIcon className="w-5 h-5 text-amber-400" />
               Authority Map — Live Trail Network
             </h2>
             <span className="text-[11px] bg-amber-500/10 text-amber-300 font-semibold px-3 py-1 rounded-full border border-amber-500/30">

@@ -10,6 +10,9 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
   server: {
     proxy: {
       '/api': {
