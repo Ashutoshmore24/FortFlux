@@ -35,7 +35,7 @@ export const TrekkerDashboard = () => {
     isLoadingForts,
   } = useWeatherStore();
 
-  const { selectFort: setMapFort, forts } = useFortStore();
+  const { selectFort: setMapFort, forts, fortDetail, fetchFortDetail } = useFortStore();
 
   // Fetch forts list + weather on mount & start auto-refresh
   useEffect(() => {
@@ -45,11 +45,35 @@ export const TrekkerDashboard = () => {
     return () => stopAutoRefresh();
   }, []);
 
+  // Fetch fort detail when selected fort changes
+  useEffect(() => {
+    if (selectedFortSlug) {
+      fetchFortDetail(selectedFortSlug);
+    }
+  }, [selectedFortSlug]);
+
   const handleFortChange = (slug) => {
     setSelectedFort(slug);
     const mapFort = forts.find(f => f.slug === slug);
     if (mapFort) setMapFort(mapFort);
   };
+
+  // Dynamic trail data from selected fort
+  const liveTrails = fortDetail?.trails || [];
+
+  // Compute aggregate erosion risk from trail data
+  const aggregateRisk = liveTrails.length > 0
+    ? Math.round(liveTrails.reduce((sum, t) => sum + t.currentRiskScore, 0) / liveTrails.length)
+    : 0;
+  const riskLevel = aggregateRisk >= 75 ? 4 : aggregateRisk >= 50 ? 3 : aggregateRisk >= 30 ? 2 : aggregateRisk >= 10 ? 1 : 0;
+  const riskLabels = ["Level 0 - Safe", "Level 1 - Low", "Level 2 - Elevated", "Level 3 - High", "Level 4 - Critical"];
+  const riskBadgeColors = [
+    "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+    "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+    "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    "bg-orange-500/15 text-orange-300 border-orange-500/30",
+    "bg-rose-500/15 text-rose-300 border-rose-500/30",
+  ];
 
   const weather = weatherData?.weather;
   const fortInfo = weatherData?.fort;
@@ -316,7 +340,7 @@ export const TrekkerDashboard = () => {
 
       {/* Grid of Key Features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Trail Status Card */}
+        {/* Trail Status Card — Dynamic from API */}
         <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
@@ -324,62 +348,67 @@ export const TrekkerDashboard = () => {
               Active Trail Status
             </h3>
             <span className="text-[11px] bg-emerald-500/15 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">
-              Live
+              {liveTrails.length} Trail{liveTrails.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between p-2.5 bg-slate-950/50 rounded-xl border border-slate-800/80">
-              <div>
-                <div className="font-semibold text-slate-200">Gunjawane to Chor Darwaja</div>
-                <div className="text-slate-400 text-[10px]">Rajgad Main Ascent</div>
-              </div>
-              <span className="text-emerald-400 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Open
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 bg-slate-950/50 rounded-xl border border-slate-800/80">
-              <div>
-                <div className="font-semibold text-slate-200">Suvela Machi Ridge Path</div>
-                <div className="text-slate-400 text-[10px]">High wind & slick rock</div>
-              </div>
-              <span className="text-amber-400 font-bold flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5" /> Caution
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 bg-slate-950/50 rounded-xl border border-slate-800/80">
-              <div>
-                <div className="font-semibold text-slate-200">Pali Gate Stairway</div>
-                <div className="text-slate-400 text-[10px]">Cistern Runoff Alert</div>
-              </div>
-              <span className="text-rose-400 font-bold flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5" /> Diversion Active
-              </span>
-            </div>
+          <div className="space-y-3 text-xs max-h-[280px] overflow-y-auto pr-1">
+            {liveTrails.length === 0 ? (
+              <p className="text-slate-500 text-xs italic">Select a fort to view trail status</p>
+            ) : (
+              liveTrails.slice(0, 6).map((trail) => (
+                <div key={trail._id} className="flex items-center justify-between p-2.5 bg-slate-950/50 rounded-xl border border-slate-800/80">
+                  <div className="min-w-0 mr-2">
+                    <div className="font-semibold text-slate-200 truncate">{trail.name}</div>
+                    <div className="text-slate-400 text-[10px]">{trail.distanceKm} km · {trail.difficulty}</div>
+                  </div>
+                  {trail.status === "open" && trail.currentRiskScore < 50 ? (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Open
+                    </span>
+                  ) : trail.status === "caution" || trail.currentRiskScore >= 50 ? (
+                    <span className="text-amber-400 font-bold flex items-center gap-1 shrink-0">
+                      <AlertTriangle className="w-3.5 h-3.5" /> Caution
+                    </span>
+                  ) : trail.status === "closed" || trail.status === "diverted" ? (
+                    <span className="text-rose-400 font-bold flex items-center gap-1 shrink-0">
+                      <AlertTriangle className="w-3.5 h-3.5" /> {trail.status === "diverted" ? "Diverted" : "Closed"}
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Open
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Erosion Risk Index */}
+        {/* Erosion Risk Index — Dynamic from trail data */}
         <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
               <CloudRain className="w-4 h-4 text-cyan-400" />
               Erosion Risk Index
             </h3>
-            <span className="text-[11px] bg-amber-500/15 text-amber-300 font-semibold px-2 py-0.5 rounded-full border border-amber-500/30">
-              Level 2 - Elevated
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${riskBadgeColors[riskLevel]}`}>
+              {riskLabels[riskLevel]}
             </span>
           </div>
           <p className="text-xs text-slate-400 mb-4">
-            Calculated from real-time precipitation, slope gradient, and saturation of volcanic rock mortar joints.
+            Aggregated from {liveTrails.length} trail segment{liveTrails.length !== 1 ? "s" : ""} — precipitation, slope gradient, and volcanic rock mortar saturation.
           </p>
           <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden mb-2">
-            <div className="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 h-full w-[58%]" />
+            <div
+              className="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 h-full transition-all duration-500"
+              style={{ width: `${aggregateRisk}%` }}
+            />
           </div>
           <div className="flex justify-between text-[10px] text-slate-400">
             <span>Low (0%)</span>
-            <span className="font-semibold text-amber-400">58% Saturation</span>
+            <span className={`font-semibold ${
+              aggregateRisk >= 75 ? "text-rose-400" : aggregateRisk >= 50 ? "text-amber-400" : "text-emerald-400"
+            }`}>{aggregateRisk}% Avg Risk</span>
             <span>Critical (100%)</span>
           </div>
         </div>

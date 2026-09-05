@@ -1,20 +1,127 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Shield, AlertOctagon, Sliders, Users, Droplets, CheckCircle2, RefreshCw } from "lucide-react";
+import { useFortStore } from "../store/useFortStore";
+import { useWeatherStore } from "../store/useWeatherStore";
+import FortMap from "../components/map/FortMap";
+import {
+  Shield,
+  AlertOctagon,
+  Sliders,
+  Users,
+  Droplets,
+  CheckCircle2,
+  RefreshCw,
+  ChevronDown,
+  Map,
+  XCircle,
+  RotateCcw,
+  Navigation,
+  Loader2,
+} from "lucide-react";
 
 export const AuthorityDashboard = () => {
   const { authUser } = useAuthStore();
+  const {
+    forts,
+    selectedFort,
+    fortDetail,
+    fetchForts,
+    fetchFortDetail,
+    selectFort,
+    updateTrailStatus,
+    isLoadingDetail,
+  } = useFortStore();
+  const {
+    availableForts,
+    fetchForts: fetchWeatherForts,
+    selectedFortSlug,
+    setSelectedFort: setWeatherFort,
+    weatherData,
+    fetchWeather,
+    isLoadingForts,
+  } = useWeatherStore();
 
   const [rainfall, setRainfall] = useState(65);
   const [footfall, setFootfall] = useState(450);
-  const [pathSevered, setPathSevered] = useState(false);
+  const [updatingTrailId, setUpdatingTrailId] = useState(null);
 
-  // Dynamic Risk Weight calculation based on README formula
-  // Risk = Baseline(1.2) * Soil Saturation * Slope(1.4) * (Footfall / MaxSafe(500))
-  const maxSafeFootfall = 500;
-  const soilSaturation = rainfall / 100;
-  const riskScore = Math.min(100, Math.round(1.2 * soilSaturation * 1.4 * (footfall / maxSafeFootfall) * 100));
-  const isCritical = riskScore >= 75;
+  // Fetch forts on mount
+  useEffect(() => {
+    fetchForts();
+    fetchWeatherForts();
+  }, []);
+
+  // Fetch fort detail when weather fort slug changes
+  useEffect(() => {
+    if (selectedFortSlug) {
+      fetchFortDetail(selectedFortSlug);
+      fetchWeather(selectedFortSlug);
+    }
+  }, [selectedFortSlug]);
+
+  const handleFortChange = (slug) => {
+    setWeatherFort(slug);
+    const mapFort = forts.find((f) => f.slug === slug);
+    if (mapFort) selectFort(mapFort);
+  };
+
+  // Ensure a fort is selected on initial load
+  useEffect(() => {
+    if (forts.length > 0 && !selectedFort) {
+      const defaultFort = forts.find((f) => f.slug === selectedFortSlug) || forts[0];
+      selectFort(defaultFort);
+    }
+  }, [forts]);
+
+  const trails = fortDetail?.trails || [];
+  const cisterns = fortDetail?.cisterns || [];
+
+  // Dynamic Risk Weight calculation using ACTUAL trail parameters from DB
+  // Risk = BaselineDifficulty × Soil Saturation × SlopeGradient × (Footfall / MaxSafe)
+  const maxRainfall = 150;
+  const soilSaturation = Math.min(rainfall / maxRainfall, 1);
+
+  // Compute per-trail simulated risk scores based on slider values
+  const riskOverrides = useMemo(() => {
+    const overrides = new Map();
+    trails.forEach((trail) => {
+      const simRisk = Math.min(
+        100,
+        Math.round(
+          trail.baselineDifficulty *
+            soilSaturation *
+            trail.slopeGradient *
+            (footfall / trail.maxSafeFootfall) *
+            100
+        )
+      );
+      overrides.set(trail._id, simRisk);
+    });
+    return overrides;
+  }, [trails, soilSaturation, footfall]);
+
+  // Aggregate simulated risk score
+  const aggregateSimRisk =
+    trails.length > 0
+      ? Math.round(
+          [...riskOverrides.values()].reduce((a, b) => a + b, 0) /
+            riskOverrides.size
+        )
+      : 0;
+  const isCritical = aggregateSimRisk >= 75;
+
+  // Find cisterns above overflow threshold
+  const alertCisterns = cisterns.filter(
+    (c) => c.currentLevelPct >= c.overflowThreshold
+  );
+
+  // Handle trail status toggle (close/reopen)
+  const handleTrailToggle = async (trail) => {
+    setUpdatingTrailId(trail._id);
+    const newStatus = trail.status === "closed" || trail.status === "diverted" ? "open" : "closed";
+    await updateTrailStatus(trail._id, { status: newStatus });
+    setUpdatingTrailId(null);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -40,53 +147,95 @@ export const AuthorityDashboard = () => {
           </div>
 
           <div className="flex items-center gap-3 bg-slate-950/80 border border-amber-500/30 p-4 rounded-2xl">
-            <AlertOctagon className={`w-8 h-8 shrink-0 ${isCritical ? "text-rose-500 animate-pulse" : "text-amber-400"}`} />
+            <AlertOctagon
+              className={`w-8 h-8 shrink-0 ${
+                isCritical ? "text-rose-500 animate-pulse" : "text-amber-400"
+              }`}
+            />
             <div>
-              <div className="text-xs text-slate-400">Erosion Risk Index</div>
-              <div className="text-lg font-black text-white">{riskScore}% {isCritical ? "(CRITICAL)" : "(MONITORED)"}</div>
-              <div className="text-[11px] text-amber-300">Rajgad - Torna Sector</div>
+              <div className="text-xs text-slate-400">Simulated Erosion Index</div>
+              <div className="text-lg font-black text-white">
+                {aggregateSimRisk}%{" "}
+                {isCritical ? "(CRITICAL)" : "(MONITORED)"}
+              </div>
+              <div className="text-[11px] text-amber-300">
+                {selectedFort?.name || "Select a Fort"}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Critical Alert Box */}
-      <div className="mb-8 p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5">
-          <div className="p-2.5 bg-rose-500/20 rounded-xl text-rose-400 shrink-0">
-            <AlertOctagon className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-rose-200">
-              Hydrological Warning: Rock-Cut Cistern #3 Overcapacity
-            </h3>
-            <p className="text-xs text-rose-300/80 mt-0.5 max-w-2xl">
-              Surface water velocity is projected to scour the lower masonry steps on the Pali Gate ascent within 90 minutes.
-            </p>
-          </div>
+      {/* Fort Selector */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="relative">
+          <select
+            value={selectedFortSlug}
+            onChange={(e) => handleFortChange(e.target.value)}
+            className="appearance-none bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium rounded-xl px-4 py-2.5 pr-8 focus:outline-none focus:border-amber-500 transition cursor-pointer"
+          >
+            {availableForts.map((f) => (
+              <option key={f.slug} value={f.slug}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
-
-        <button
-          onClick={() => setPathSevered(!pathSevered)}
-          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-2 ${
-            pathSevered
-              ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-              : "bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950"
-          }`}
-        >
-          {pathSevered ? (
-            <>
-              <CheckCircle2 className="w-4 h-4" />
-              Diversion Active (Reopen Trail)
-            </>
-          ) : (
-            <>
-              <AlertOctagon className="w-4 h-4" />
-              Sever Path & Broadcast Diversion
-            </>
-          )}
-        </button>
+        <span className="text-[11px] text-slate-500">
+          {trails.length} trail segment{trails.length !== 1 ? "s" : ""} ·{" "}
+          {cisterns.length} cistern{cisterns.length !== 1 ? "s" : ""}
+        </span>
       </div>
+
+      {/* Dynamic Cistern Overflow Alerts */}
+      {alertCisterns.length > 0 && (
+        <div className="mb-8 space-y-3">
+          {alertCisterns.map((cistern) => (
+            <div
+              key={cistern._id}
+              className="p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 bg-rose-500/20 rounded-xl text-rose-400 shrink-0">
+                  <Droplets className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-rose-200">
+                    Hydrological Warning: {cistern.name} —{" "}
+                    {cistern.status === "overflow"
+                      ? "Overflow Active"
+                      : "Nearing Overflow"}
+                  </h3>
+                  <p className="text-xs text-rose-300/80 mt-0.5 max-w-2xl">
+                    Water level at{" "}
+                    <strong>{cistern.currentLevelPct}%</strong> capacity (
+                    {cistern.capacityLiters.toLocaleString()}L). Overflow
+                    threshold: {cistern.overflowThreshold}%.
+                    {cistern.nearestTrail && (
+                      <span>
+                        {" "}
+                        Nearest trail:{" "}
+                        <strong>{cistern.nearestTrail.name}</strong> (
+                        {cistern.nearestTrail.status}).
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 ${
+                  cistern.status === "overflow"
+                    ? "bg-rose-600 text-white"
+                    : "bg-amber-600 text-white"
+                }`}
+              >
+                {cistern.currentLevelPct}% Full
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Carrying-Capacity Throttle & Simulation Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -98,12 +247,19 @@ export const AuthorityDashboard = () => {
                 <Sliders className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-base">Carrying-Capacity Throttle</h3>
-                <p className="text-xs text-slate-400">Live stress-test simulation parameters</p>
+                <h3 className="font-bold text-white text-base">
+                  Carrying-Capacity Throttle
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Live stress-test simulation parameters
+                </p>
               </div>
             </div>
             <button
-              onClick={() => { setRainfall(65); setFootfall(450); }}
+              onClick={() => {
+                setRainfall(65);
+                setFootfall(450);
+              }}
               className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 transition"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Reset
@@ -118,7 +274,9 @@ export const AuthorityDashboard = () => {
                   <Droplets className="w-4 h-4 text-cyan-400" />
                   Monsoon Rainfall Surge
                 </span>
-                <span className="text-xs font-bold text-cyan-400">{rainfall} mm/hr</span>
+                <span className="text-xs font-bold text-cyan-400">
+                  {rainfall} mm/hr
+                </span>
               </div>
               <input
                 type="range"
@@ -142,7 +300,9 @@ export const AuthorityDashboard = () => {
                   <Users className="w-4 h-4 text-emerald-400" />
                   Live Trekker Footfall Density
                 </span>
-                <span className="text-xs font-bold text-emerald-400">{footfall} trekkers / km</span>
+                <span className="text-xs font-bold text-emerald-400">
+                  {footfall} trekkers / km
+                </span>
               </div>
               <input
                 type="range"
@@ -165,16 +325,23 @@ export const AuthorityDashboard = () => {
         {/* Dynamic Risk Gauge & Actions */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-white text-base mb-1">Dynamic Risk Evaluation</h3>
+            <h3 className="font-bold text-white text-base mb-1">
+              Dynamic Risk Evaluation
+            </h3>
             <p className="text-xs text-slate-400 mb-6">
-              Formula: Traversal Difficulty × Soil Saturation × Slope × (Density / Max Safe Footfall)
+              Formula: Traversal Difficulty × Soil Saturation × Slope × (Density
+              / Max Safe Footfall)
             </p>
 
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800/80 mb-6">
               <div className="flex items-center justify-between mb-2 text-xs">
-                <span className="text-slate-400">Erosion Index:</span>
-                <span className={`font-bold ${isCritical ? "text-rose-400" : "text-amber-400"}`}>
-                  {riskScore} / 100
+                <span className="text-slate-400">Simulated Erosion Index:</span>
+                <span
+                  className={`font-bold ${
+                    isCritical ? "text-rose-400" : "text-amber-400"
+                  }`}
+                >
+                  {aggregateSimRisk} / 100
                 </span>
               </div>
               <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden mb-2">
@@ -182,30 +349,187 @@ export const AuthorityDashboard = () => {
                   className={`h-full transition-all duration-300 ${
                     isCritical
                       ? "bg-rose-500"
-                      : riskScore > 50
+                      : aggregateSimRisk > 50
                       ? "bg-amber-500"
                       : "bg-emerald-500"
                   }`}
-                  style={{ width: `${riskScore}%` }}
+                  style={{ width: `${aggregateSimRisk}%` }}
                 />
               </div>
               <div className="text-[11px] text-slate-400">
                 {isCritical ? (
                   <span className="text-rose-400 font-semibold">
-                    🚨 Warning: Threshold exceeded! Trail segments near Suvela Machi are experiencing soil rutting.
+                    🚨 Warning: Threshold exceeded! Trail segments are
+                    experiencing simulated soil rutting at current parameters.
                   </span>
                 ) : (
                   <span className="text-emerald-400 font-semibold">
-                    ✅ Safe Operational Parameters. No automatic diversion required.
+                    ✅ Safe Operational Parameters. No automatic diversion
+                    required.
                   </span>
                 )}
               </div>
             </div>
+
+            {/* Per-trail breakdown */}
+            {trails.length > 0 && (
+              <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                {trails.map((trail) => {
+                  const simRisk = riskOverrides.get(trail._id) || 0;
+                  return (
+                    <div
+                      key={trail._id}
+                      className="flex items-center justify-between text-[11px] bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2"
+                    >
+                      <span className="text-slate-300 truncate mr-2">
+                        {trail.name}
+                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-slate-500">
+                          DB: {trail.currentRiskScore}%
+                        </span>
+                        <span className="text-slate-600">→</span>
+                        <span
+                          className={`font-bold ${
+                            simRisk >= 75
+                              ? "text-rose-400"
+                              : simRisk >= 50
+                              ? "text-amber-400"
+                              : "text-emerald-400"
+                          }`}
+                        >
+                          Sim: {simRisk}%
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <div className="text-xs text-slate-400 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-            <span className="font-semibold text-slate-300">Authority Note:</span> Any changes made here are broadcasted in real time to all authenticated Trekkers on the field.
+          <div className="text-xs text-slate-400 p-3 bg-slate-950/60 rounded-xl border border-slate-800 mt-4">
+            <span className="font-semibold text-slate-300">
+              Authority Note:
+            </span>{" "}
+            Simulation uses each trail's actual <em>baselineDifficulty</em>,{" "}
+            <em>slopeGradient</em>, and <em>maxSafeFootfall</em> from the
+            database — not hardcoded constants.
           </div>
+        </div>
+      </div>
+
+      {/* ═══ Interactive Fort Map + Trail Management ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Map (2/3 width) */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-white text-lg flex items-center gap-2">
+              <Map className="w-5 h-5 text-amber-400" />
+              Authority Map — Live Trail Network
+            </h2>
+            <span className="text-[11px] bg-amber-500/10 text-amber-300 font-semibold px-3 py-1 rounded-full border border-amber-500/30">
+              ⚡ Simulation Active
+            </span>
+          </div>
+          <FortMap
+            className="h-[550px]"
+            onFortSelect={(fort) => handleFortChange(fort.slug)}
+            riskOverrides={riskOverrides}
+          />
+        </div>
+
+        {/* Trail Management Panel (1/3 width) */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+              <Navigation className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-base">
+                Trail Management
+              </h3>
+              <p className="text-xs text-slate-400">
+                Close or reopen trail segments
+              </p>
+            </div>
+          </div>
+
+          {isLoadingDetail ? (
+            <div className="flex items-center justify-center py-12 text-slate-500">
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              <span className="text-xs">Loading trails...</span>
+            </div>
+          ) : trails.length === 0 ? (
+            <p className="text-xs text-slate-500 italic py-8 text-center">
+              Select a fort to manage its trails
+            </p>
+          ) : (
+            <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+              {trails.map((trail) => {
+                const isClosed =
+                  trail.status === "closed" || trail.status === "diverted";
+                const isUpdating = updatingTrailId === trail._id;
+
+                return (
+                  <div
+                    key={trail._id}
+                    className={`p-3 rounded-xl border transition ${
+                      isClosed
+                        ? "bg-rose-500/5 border-rose-500/30"
+                        : "bg-slate-950/50 border-slate-800/80"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-slate-200 truncate">
+                          {trail.name}
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          {trail.distanceKm} km · {trail.difficulty} ·
+                          Footfall: {trail.currentFootfall}/
+                          {trail.maxSafeFootfall}
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          isClosed
+                            ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                            : trail.currentRiskScore >= 50
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        }`}
+                      >
+                        Risk {trail.currentRiskScore}%
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleTrailToggle(trail)}
+                      disabled={isUpdating}
+                      className={`w-full py-1.5 px-3 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1.5 disabled:opacity-50 ${
+                        isClosed
+                          ? "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30"
+                          : "bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30"
+                      }`}
+                    >
+                      {isUpdating ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : isClosed ? (
+                        <>
+                          <RotateCcw className="w-3 h-3" /> Reopen Trail
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-3 h-3" /> Close Trail
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -213,4 +537,3 @@ export const AuthorityDashboard = () => {
 };
 
 export default AuthorityDashboard;
-
