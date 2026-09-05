@@ -34,6 +34,7 @@ import {
     CheckCircle2,
     AlertTriangle,
     Droplets,
+    Navigation,
 } from "lucide-react";
 
 // ── Empty GeoJSON (used as initial source data) ──
@@ -52,7 +53,7 @@ const hasSource = (map, id) => {
 // Props interface is identical to the original Leaflet version:
 //   className, onFortSelect, riskOverrides
 // ═══════════════════════════════════════════════════════════
-const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
+const FortMap = ({ className = "", onFortSelect, riskOverrides = null, safeRoute = null }) => {
     const {
         forts,
         selectedFort,
@@ -68,8 +69,9 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
     const [showTrails, setShowTrails] = useState(true);
     const [showCisterns, setShowCisterns] = useState(true);
     const [terrainEnabled, setTerrainEnabled] = useState(false);
-    const [isLocating, setIsLocating] = useState(false);
     const [mapReady, setMapReady] = useState(false);
+    const [isLocating, setIsLocating] = useState(false);
+    const [userLocation, setUserLocation] = useState(null); // [lng, lat]
 
     // ── Refs ──
     const mapContainerRef = useRef(null);
@@ -78,7 +80,7 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
     const userMarkerRef = useRef(null);
     const geoWatchRef = useRef(null);
     // Store current data for re-adding after style changes
-    const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC });
+    const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC });
     const stateRef = useRef({ showTrails: true, showCisterns: true, terrainEnabled: false });
 
     // Keep stateRef in sync
@@ -108,10 +110,32 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
         [cisterns]
     );
 
+    // ── Safe Route GeoJSON (Phase 5 Adaptive Routing) ──
+    const routeGeoJSON = useMemo(() => {
+        if (!safeRoute || !safeRoute.safe || !safeRoute.segments?.length) {
+            return EMPTY_FC;
+        }
+        const features = safeRoute.segments
+            .filter((seg) => seg.path && seg.path.length >= 2)
+            .map((seg) => ({
+                type: "Feature",
+                properties: {
+                    name: seg.name,
+                    distanceKm: seg.distanceKm || 0,
+                    riskScore: seg.currentRiskScore || 0,
+                },
+                geometry: {
+                    type: "LineString",
+                    coordinates: seg.path, // [[lng, lat], ...]
+                },
+            }));
+        return { type: "FeatureCollection", features };
+    }, [safeRoute]);
+
     // Store latest GeoJSON in ref for style.load handler
     useEffect(() => {
-        dataRef.current = { forts: fortsGeoJSON, trails: trailsGeoJSON, cisterns: cisternsGeoJSON };
-    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON]);
+        dataRef.current = { forts: fortsGeoJSON, trails: trailsGeoJSON, cisterns: cisternsGeoJSON, route: routeGeoJSON };
+    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON]);
 
     // ══════════════════════════════════════════════════════
     // Add GeoJSON sources + layers to the map
@@ -280,6 +304,50 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
                     "circle-opacity": 0.9,
                     "circle-stroke-width": 2,
                     "circle-stroke-color": "rgba(255,255,255,0.9)",
+                },
+            });
+        }
+
+        // ── Safe Route Source + Layer (Phase 5 Adaptive Routing) ──
+        if (!hasSource(map, "safe-route-source")) {
+            map.addSource("safe-route-source", { type: "geojson", data: data.route || EMPTY_FC });
+        } else {
+            map.getSource("safe-route-source").setData(data.route || EMPTY_FC);
+        }
+
+        // Safe route glow (wider, semi-transparent backdrop)
+        if (!hasLayer(map, "safe-route-glow")) {
+            map.addLayer({
+                id: "safe-route-glow",
+                type: "line",
+                source: "safe-route-source",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round",
+                },
+                paint: {
+                    "line-color": "#22c55e",
+                    "line-width": 10,
+                    "line-opacity": 0.3,
+                },
+            });
+        }
+
+        // Safe route line (bright green, thicker than base trails)
+        if (!hasLayer(map, "safe-route-line")) {
+            map.addLayer({
+                id: "safe-route-line",
+                type: "line",
+                source: "safe-route-source",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round",
+                },
+                paint: {
+                    "line-color": "#4ade80",
+                    "line-width": 5,
+                    "line-opacity": 0.95,
+                    "line-dasharray": [2, 1],
                 },
             });
         }
@@ -456,6 +524,18 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
         if (cisternSrc) cisternSrc.setData(cisternsGeoJSON);
     }, [cisternsGeoJSON, addSourcesAndLayers]);
 
+    // Update safe route source when route changes
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        if (map.isStyleLoaded()) {
+            addSourcesAndLayers(map);
+        }
+        const routeSrc = map.getSource("safe-route-source");
+        if (routeSrc) routeSrc.setData(routeGeoJSON);
+    }, [routeGeoJSON, addSourcesAndLayers]);
+
     // ══════════════════════════════════════════════════════
     // Fit bounds to all forts on initial data load
     // ══════════════════════════════════════════════════════
@@ -588,6 +668,7 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
             userMarkerRef.current?.remove();
             userMarkerRef.current = null;
             setIsLocating(false);
+            setUserLocation(null);
             return;
         }
 
@@ -615,6 +696,7 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
             (pos) => {
                 const { longitude, latitude, accuracy } = pos.coords;
                 marker.setLngLat([longitude, latitude]).addTo(map);
+                setUserLocation([longitude, latitude]);
 
                 // Fly to user on first fix
                 if (geoWatchRef.current === watchId) {
@@ -698,6 +780,20 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
                             ✕
                         </button>
                     </div>
+
+                    {isLocating && userLocation && selectedFort?.location?.coordinates && (
+                        <div className="mb-3">
+                            <a
+                                href={`https://www.google.com/maps/dir/?api=1&origin=${userLocation[1]},${userLocation[0]}&destination=${selectedFort.location.coordinates[1]},${selectedFort.location.coordinates[0]}&travelmode=driving`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold py-2 px-3 rounded-xl transition"
+                            >
+                                <Navigation className="w-3.5 h-3.5" />
+                                Find Route (Car/Bike) to Entry Gate
+                            </a>
+                        </div>
+                    )}
 
                     {/* Trail summary */}
                     {trails.length > 0 && (

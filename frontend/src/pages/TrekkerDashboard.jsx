@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useWeatherStore } from "../store/useWeatherStore";
 import { useFortStore } from "../store/useFortStore";
 import { useRiskStore } from "../store/useRiskStore";
+import { useRoutingStore } from "../store/useRoutingStore";
 import FortMap from "../components/map/FortMap";
 import {
   Compass,
@@ -19,6 +20,9 @@ import {
   ChevronDown,
   Map as MapIcon,
   Activity,
+  Navigation,
+  Loader2,
+  Route,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -46,6 +50,17 @@ export const TrekkerDashboard = () => {
     startPolling,
     stopPolling,
   } = useRiskStore();
+
+  const {
+    routeResult,
+    isLoading: isLoadingRoute,
+    error: routeError,
+    findRoute,
+    clearRoute,
+  } = useRoutingStore();
+
+  const [startWaypoint, setStartWaypoint] = useState("");
+  const [destWaypoint, setDestWaypoint] = useState("");
 
   // Fetch forts list + weather on mount & start auto-refresh
   useEffect(() => {
@@ -81,6 +96,28 @@ export const TrekkerDashboard = () => {
 
   // Dynamic trail data from selected fort
   const liveTrails = fortDetail?.trails || [];
+
+  // Extract unique waypoints from trails (for route finder dropdowns)
+  const waypoints = useMemo(() => {
+    const names = new Set();
+    liveTrails.forEach((trail) => {
+      if (trail.startPoint?.name) names.add(trail.startPoint.name);
+      if (trail.endPoint?.name) names.add(trail.endPoint.name);
+    });
+    return [...names].sort();
+  }, [liveTrails]);
+
+  // Reset waypoint selections when fort changes
+  useEffect(() => {
+    setStartWaypoint("");
+    setDestWaypoint("");
+    clearRoute();
+  }, [selectedFortSlug]);
+
+  const handleFindRoute = async () => {
+    if (!selectedFortSlug || !startWaypoint || !destWaypoint) return;
+    await findRoute(selectedFortSlug, startWaypoint, destWaypoint);
+  };
 
   // Live risk from the risk engine API (preferred) or fallback to DB scores
   const liveTrailRisks = liveRiskData?.trails || [];
@@ -369,7 +406,152 @@ export const TrekkerDashboard = () => {
           </span>
         </div>
         <FortMap
-  className="h-[550px]"onFortSelect={(fort) => handleFortChange(fort.slug)}/>
+  className="h-[550px]"
+  onFortSelect={(fort) => handleFortChange(fort.slug)}
+  safeRoute={routeResult}
+/>
+      </div>
+
+      {/* ═══ Route Finder — Phase 5 Adaptive Routing ═══ */}
+      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 mb-8">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-bold text-white text-base flex items-center gap-2">
+            <Route className="w-5 h-5 text-emerald-400" />
+            Adaptive Route Finder
+          </h3>
+          <span className="text-[11px] bg-emerald-500/10 text-emerald-300 font-semibold px-3 py-1 rounded-full border border-emerald-500/30">
+            Dijkstra · Risk-Aware
+          </span>
+        </div>
+
+        {waypoints.length === 0 ? (
+          <p className="text-xs text-slate-500 italic">Select a fort to use route finder</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {/* Start Waypoint */}
+              <div>
+                <label className="block text-[11px] text-slate-400 font-medium mb-1.5">Start Waypoint</label>
+                <div className="relative">
+                  <select
+                    value={startWaypoint}
+                    onChange={(e) => setStartWaypoint(e.target.value)}
+                    className="w-full appearance-none bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-emerald-500 transition cursor-pointer"
+                  >
+                    <option value="">Select start...</option>
+                    {waypoints.filter((w) => w !== destWaypoint).map((wp) => (
+                      <option key={wp} value={wp}>{wp}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Destination Waypoint */}
+              <div>
+                <label className="block text-[11px] text-slate-400 font-medium mb-1.5">Destination</label>
+                <div className="relative">
+                  <select
+                    value={destWaypoint}
+                    onChange={(e) => setDestWaypoint(e.target.value)}
+                    className="w-full appearance-none bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-emerald-500 transition cursor-pointer"
+                  >
+                    <option value="">Select destination...</option>
+                    {waypoints.filter((w) => w !== startWaypoint).map((wp) => (
+                      <option key={wp} value={wp}>{wp}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Find Route Button */}
+              <div className="flex items-end">
+                <button
+                  onClick={handleFindRoute}
+                  disabled={!startWaypoint || !destWaypoint || isLoadingRoute}
+                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition"
+                >
+                  {isLoadingRoute ? (
+                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Computing...</>
+                  ) : (
+                    <><Navigation className="w-3.5 h-3.5" /> Find Safe Route</>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Route Error */}
+            {routeError && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl mb-4">
+                <p className="text-xs text-rose-300 flex items-center gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  {routeError}
+                </p>
+              </div>
+            )}
+
+            {/* Route Result — Safe */}
+            {routeResult && routeResult.safe && (
+              <div className="p-4 bg-emerald-500/5 border border-emerald-500/30 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Safe Route Found
+                  </h4>
+                  <button
+                    onClick={clearRoute}
+                    className="text-[10px] text-slate-400 hover:text-slate-200 transition"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-slate-300 mb-3">
+                  <span><strong>{routeResult.start}</strong> → <strong>{routeResult.destination}</strong></span>
+                  <span className="text-emerald-400 font-semibold">{routeResult.totalDistanceKm} km</span>
+                  <span className="text-slate-500">{routeResult.segmentCount} segment{routeResult.segmentCount !== 1 ? "s" : ""}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {routeResult.segments.map((seg, i) => (
+                    <div key={seg.trailId || i} className="flex items-center justify-between p-2 bg-slate-950/40 rounded-lg border border-slate-800/60 text-[11px]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-400 font-bold w-5">{i + 1}.</span>
+                        <span className="text-slate-200">{seg.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-slate-400">
+                        <span>{seg.distanceKm} km</span>
+                        <span className={seg.currentRiskScore >= 50 ? "text-amber-400" : "text-emerald-400"}>
+                          Risk {seg.currentRiskScore}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Route Result — No Safe Route */}
+            {routeResult && !routeResult.safe && (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-bold text-rose-300 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    No Safe Route Available
+                  </h4>
+                  <button
+                    onClick={clearRoute}
+                    className="text-[10px] text-slate-400 hover:text-slate-200 transition"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <p className="text-xs text-rose-300/80">
+                  {routeResult.message || "All connecting trails between these waypoints are currently closed, diverted, or at critical risk levels. Try a different start/destination or wait for conditions to improve."}
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Grid of Key Features */}
