@@ -310,7 +310,8 @@ export const TrekkerDashboard = () => {
             18 Forts · Konkan & Deccan
           </span>
         </div>
-        <FortMap className="h-[550px]" onFortSelect={(fort) => setSelectedFort(fort.slug)} />
+        <FortMap
+  className="h-[550px]"onFortSelect={(fort) => handleFortChange(fort.slug)}/>
       </div>
 
       {/* Grid of Key Features */}
