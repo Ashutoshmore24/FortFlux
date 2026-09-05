@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useWeatherStore } from "../store/useWeatherStore";
 import { useFortStore } from "../store/useFortStore";
+import { useRiskStore } from "../store/useRiskStore";
 import FortMap from "../components/map/FortMap";
 import {
   Compass,
@@ -16,7 +17,8 @@ import {
   Droplets,
   RefreshCw,
   ChevronDown,
-  Map,
+  Map as MapIcon,
+  Activity,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -35,22 +37,41 @@ export const TrekkerDashboard = () => {
     isLoadingForts,
   } = useWeatherStore();
 
-  const { selectFort: setMapFort, forts, fortDetail, fetchFortDetail } = useFortStore();
+  const { selectFort: setMapFort, forts, fortDetail, fetchFortDetail, fetchForts: fetchMapForts } = useFortStore();
+
+  const {
+    riskData: liveRiskData,
+    isLoading: isLoadingRisk,
+    fetchRisk,
+    startPolling,
+    stopPolling,
+  } = useRiskStore();
 
   // Fetch forts list + weather on mount & start auto-refresh
   useEffect(() => {
     fetchForts();
+    fetchMapForts();
     fetchWeather();
     startAutoRefresh();
-    return () => stopAutoRefresh();
+    return () => {
+      stopAutoRefresh();
+      stopPolling();
+    };
   }, []);
 
-  // Fetch fort detail when selected fort changes
+  // Fetch fort detail + live risk when selected fort changes
   useEffect(() => {
     if (selectedFortSlug) {
       fetchFortDetail(selectedFortSlug);
+      fetchRisk(selectedFortSlug);
+      // Start polling risk every 2 minutes
+      startPolling(selectedFortSlug, 2 * 60 * 1000);
+      // Sync with useFortStore selectedFort
+      const matching = forts.find(f => f.slug === selectedFortSlug);
+      if (matching) setMapFort(matching);
     }
-  }, [selectedFortSlug]);
+    return () => stopPolling();
+  }, [selectedFortSlug, forts]);
 
   const handleFortChange = (slug) => {
     setSelectedFort(slug);
@@ -61,10 +82,23 @@ export const TrekkerDashboard = () => {
   // Dynamic trail data from selected fort
   const liveTrails = fortDetail?.trails || [];
 
-  // Compute aggregate erosion risk from trail data
-  const aggregateRisk = liveTrails.length > 0
-    ? Math.round(liveTrails.reduce((sum, t) => sum + t.currentRiskScore, 0) / liveTrails.length)
-    : 0;
+  // Live risk from the risk engine API (preferred) or fallback to DB scores
+  const liveTrailRisks = liveRiskData?.trails || [];
+  const liveAggregate = liveRiskData?.aggregate;
+  const hasLiveRisk = liveTrailRisks.length > 0;
+
+  // Get risk score for a trail: prefer live-computed, fallback to DB
+  const getTrailRiskScore = (trail) => {
+    const liveTrail = liveTrailRisks.find((t) => t.trailId === trail._id);
+    return liveTrail ? liveTrail.liveRiskScore : trail.currentRiskScore;
+  };
+
+  // Compute aggregate erosion risk from live API or trail data
+  const aggregateRisk = hasLiveRisk
+    ? liveAggregate.averageRisk
+    : liveTrails.length > 0
+      ? Math.round(liveTrails.reduce((sum, t) => sum + t.currentRiskScore, 0) / liveTrails.length)
+      : 0;
   const riskLevel = aggregateRisk >= 75 ? 4 : aggregateRisk >= 50 ? 3 : aggregateRisk >= 30 ? 2 : aggregateRisk >= 10 ? 1 : 0;
   const riskLabels = ["Level 0 - Safe", "Level 1 - Low", "Level 2 - Elevated", "Level 3 - High", "Level 4 - Critical"];
   const riskBadgeColors = [
@@ -327,7 +361,7 @@ export const TrekkerDashboard = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-white text-lg flex items-center gap-2">
-            <Map className="w-5 h-5 text-cyan-400" />
+            <MapIcon className="w-5 h-5 text-cyan-400" />
             Sahyadri Fort Network — Live Map
           </h2>
           <span className="text-[11px] bg-cyan-500/10 text-cyan-300 font-semibold px-3 py-1 rounded-full border border-cyan-500/30">
@@ -361,23 +395,31 @@ export const TrekkerDashboard = () => {
                     <div className="font-semibold text-slate-200 truncate">{trail.name}</div>
                     <div className="text-slate-400 text-[10px]">{trail.distanceKm} km · {trail.difficulty}</div>
                   </div>
-                  {trail.status === "open" && trail.currentRiskScore < 50 ? (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Open
-                    </span>
-                  ) : trail.status === "caution" || trail.currentRiskScore >= 50 ? (
-                    <span className="text-amber-400 font-bold flex items-center gap-1 shrink-0">
-                      <AlertTriangle className="w-3.5 h-3.5" /> Caution
-                    </span>
-                  ) : trail.status === "closed" || trail.status === "diverted" ? (
-                    <span className="text-rose-400 font-bold flex items-center gap-1 shrink-0">
-                      <AlertTriangle className="w-3.5 h-3.5" /> {trail.status === "diverted" ? "Diverted" : "Closed"}
-                    </span>
-                  ) : (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Open
-                    </span>
-                  )}
+                  {(() => {
+                      const riskScore = getTrailRiskScore(trail);
+                      const effectiveStatus = trail.status === "closed" || trail.status === "diverted"
+                        ? trail.status
+                        : riskScore >= 75 ? "closed" : riskScore >= 50 ? "caution" : trail.status;
+                      if (effectiveStatus === "closed" || effectiveStatus === "diverted") {
+                        return (
+                          <span className="text-rose-400 font-bold flex items-center gap-1 shrink-0">
+                            <AlertTriangle className="w-3.5 h-3.5" /> {effectiveStatus === "diverted" ? "Diverted" : "Closed"}
+                          </span>
+                        );
+                      } else if (effectiveStatus === "caution" || riskScore >= 30) {
+                        return (
+                          <span className="text-amber-400 font-bold flex items-center gap-1 shrink-0">
+                            <AlertTriangle className="w-3.5 h-3.5" /> Caution
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Open
+                          </span>
+                        );
+                      }
+                    })()}
                 </div>
               ))
             )}
@@ -394,6 +436,11 @@ export const TrekkerDashboard = () => {
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${riskBadgeColors[riskLevel]}`}>
               {riskLabels[riskLevel]}
             </span>
+            {hasLiveRisk && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+                <Activity className="w-3 h-3" /> Live
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-400 mb-4">
             Aggregated from {liveTrails.length} trail segment{liveTrails.length !== 1 ? "s" : ""} — precipitation, slope gradient, and volcanic rock mortar saturation.

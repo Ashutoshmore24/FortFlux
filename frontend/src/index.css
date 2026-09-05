@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 
 @layer base {
   body {
@@ -10,82 +9,85 @@
   }
 }
 
-/* ── Leaflet Map Customizations ── */
-.leaflet-container {
-  background: #0d131a;
-  font-family: inherit;
-}
-
-/* Fort marker pin shape */
-.fort-marker-icon {
-  background: transparent !important;
-  border: none !important;
-}
+/* ── MapLibre GL Customizations ── */
 
 /* Dark-themed popups */
-.leaflet-popup-content-wrapper {
+.maplibregl-popup-content {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  padding: 0;
-}
-
-.leaflet-popup-content {
-  margin: 8px 10px;
-  font-family: inherit;
+  padding: 10px 12px;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 12px;
   line-height: 1.5;
 }
 
-.leaflet-popup-tip {
-  background: #fff;
+.maplibregl-popup-tip {
+  border-top-color: #fff;
 }
 
-/* Tooltip styling */
-.leaflet-tooltip {
-  background: #1e293b;
-  color: #e2e8f0;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-family: inherit;
-  font-size: 11px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+.maplibregl-popup-close-button {
+  font-size: 16px;
+  padding: 2px 6px;
+  color: #94a3b8;
+  border-radius: 6px;
+  right: 4px;
+  top: 4px;
 }
 
-.leaflet-tooltip-top::before {
-  border-top-color: #1e293b;
-}
-
-.leaflet-tooltip-bottom::before {
-  border-bottom-color: #1e293b;
-}
-
-.leaflet-tooltip-left::before {
-  border-left-color: #1e293b;
-}
-
-.leaflet-tooltip-right::before {
-  border-right-color: #1e293b;
+.maplibregl-popup-close-button:hover {
+  background: #f1f5f9;
+  color: #1e293b;
 }
 
 /* Dark controls */
-.leaflet-control-zoom a {
+.maplibregl-ctrl-group {
   background: #1e293b !important;
-  color: #e2e8f0 !important;
-  border-color: #334155 !important;
+  border: 1px solid #334155 !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
-.leaflet-control-zoom a:hover {
+.maplibregl-ctrl-group button {
+  background: #1e293b !important;
+  border-bottom: 1px solid #334155 !important;
+  width: 34px !important;
+  height: 34px !important;
+}
+
+.maplibregl-ctrl-group button:hover {
   background: #334155 !important;
 }
 
-.leaflet-control-attribution {
+.maplibregl-ctrl-group button + button {
+  border-top: none !important;
+}
+
+.maplibregl-ctrl-group .maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+.maplibregl-ctrl-group .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon,
+.maplibregl-ctrl-group .maplibregl-ctrl-compass .maplibregl-ctrl-icon {
+  filter: invert(1) brightness(0.85);
+}
+
+/* Dark attribution */
+.maplibregl-ctrl-attrib {
   background: rgba(15, 23, 42, 0.8) !important;
   color: #64748b !important;
   font-size: 9px !important;
+  border-radius: 6px !important;
 }
 
-.leaflet-control-attribution a {
+.maplibregl-ctrl-attrib a {
   color: #94a3b8 !important;
+}
+
+.maplibregl-ctrl-attrib-button {
+  filter: invert(1) brightness(0.6);
+}
+
+/* Canvas focus outline */
+.maplibregl-canvas:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: -2px;
 }

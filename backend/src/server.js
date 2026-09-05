@@ -6,6 +6,7 @@ import connectDB from './lib/db.js';
 import authRoutes from './routes/auth.route.js';
 import fortRoutes from './routes/fort.route.js';
 import weatherRoutes from './routes/weather.route.js';
+import riskRoutes from './routes/risk.route.js';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/forts", fortRoutes);
 app.use("/api/weather", weatherRoutes);
+app.use("/api/risk", riskRoutes);
 
 // Catch-all for unknown API routes
 app.all("/api/*path", (req, res) => {
