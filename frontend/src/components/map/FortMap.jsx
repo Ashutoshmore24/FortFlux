@@ -1,9 +1,33 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip, useMap, LayersControl } from "react-leaflet";
 import L from "leaflet";
 import { useFortStore } from "../../store/useFortStore";
 import { RiskLegend } from "./RiskLegend";
-import { Mountain, Navigation, Droplets, AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
+import { Mountain, Navigation, Droplets, AlertTriangle, CheckCircle2, MapPin, Layers, Globe, MapIcon, Satellite } from "lucide-react";
+
+// ── Map Tile Styles (all free, no API key) ──
+const MAP_STYLES = {
+    dark: {
+        name: "Dark",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        attribution: "Esri",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    },
+    satellite: {
+        name: "Satellite",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        attribution: "Esri World Imagery",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    },
+    terrain: {
+        name: "Terrain",
+        url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        attribution: "OpenTopoMap",
+        labels: null,
+    },
+};
+
+const HILLSHADE_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}";
 
 // Fix Leaflet default icon issue with bundlers
 delete L.Icon.Default.prototype._getIconUrl;
@@ -70,7 +94,7 @@ const MAHARASHTRA_BOUNDS = [
     [21.0, 80.9], // NE corner
 ];
 
-const FortMap = ({ className = "", onFortSelect }) => {
+const FortMap = ({ className = "", onFortSelect, riskOverrides = null }) => {
     const {
         forts,
         selectedFort,
@@ -83,6 +107,8 @@ const FortMap = ({ className = "", onFortSelect }) => {
 
     const [showTrails, setShowTrails] = useState(true);
     const [showCisterns, setShowCisterns] = useState(true);
+    const [mapStyle, setMapStyle] = useState("dark");
+    const [showHillshade, setShowHillshade] = useState(false);
 
     useEffect(() => {
         if (forts.length === 0) fetchForts();
@@ -107,10 +133,30 @@ const FortMap = ({ className = "", onFortSelect }) => {
                 style={{ height: "100%", width: "100%", minHeight: "500px" }}
                 className="bg-slate-950"
             >
-                {/* Dark-themed map tiles (Esri) */}
+                {/* Dynamic tile layer based on selected style */}
                 <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                    key={`base-${mapStyle}`}
+                    url={MAP_STYLES[mapStyle].url}
                 />
+
+                {/* Labels overlay for dark & satellite modes */}
+                {MAP_STYLES[mapStyle].labels && (
+                    <TileLayer
+                        key={`labels-${mapStyle}`}
+                        url={MAP_STYLES[mapStyle].labels}
+                        zIndex={2}
+                    />
+                )}
+
+                {/* Hillshade overlay for 3D terrain depth effect */}
+                {showHillshade && (
+                    <TileLayer
+                        key="hillshade"
+                        url={HILLSHADE_URL}
+                        opacity={mapStyle === "satellite" ? 0.35 : mapStyle === "dark" ? 0.25 : 0.2}
+                        zIndex={1}
+                    />
+                )}
 
                 {/* Fly to selected fort */}
                 {selectedFort?.location?.coordinates && (
@@ -175,8 +221,12 @@ const FortMap = ({ className = "", onFortSelect }) => {
                     const positions = (trail.path || []).map(([lng, lat]) => [lat, lng]);
                     if (positions.length < 2) return null;
 
-                    const color = getTrailColor(trail.status, trail.currentRiskScore);
-                    const dashArray = getTrailDash(trail.status);
+                    // Use overridden risk score if provided (from Authority simulation sliders)
+                    const effectiveRisk = riskOverrides?.get(trail._id) ?? trail.currentRiskScore;
+                    const effectiveStatus = effectiveRisk >= 75 ? "closed" : trail.status;
+                    const color = getTrailColor(effectiveStatus, effectiveRisk);
+                    const dashArray = getTrailDash(effectiveStatus);
+                    const isSimulated = riskOverrides?.has(trail._id) && riskOverrides.get(trail._id) !== trail.currentRiskScore;
 
                     return (
                         <Polyline
@@ -184,7 +234,7 @@ const FortMap = ({ className = "", onFortSelect }) => {
                             positions={positions}
                             pathOptions={{
                                 color,
-                                weight: 4,
+                                weight: isSimulated ? 5 : 4,
                                 opacity: 0.85,
                                 dashArray,
                                 lineCap: "round",
@@ -195,9 +245,10 @@ const FortMap = ({ className = "", onFortSelect }) => {
                                 <div className="text-xs">
                                     <div className="font-bold text-slate-800">{trail.name}</div>
                                     <div className="flex items-center gap-2 mt-0.5">
-                                        <span>Risk: <strong style={{ color }}>{trail.currentRiskScore}%</strong></span>
+                                        <span>Risk: <strong style={{ color }}>{Math.round(effectiveRisk)}%</strong></span>
+                                        {isSimulated && <span style={{ color: '#f59e0b', fontWeight: 600 }}>⚡ Simulated</span>}
                                         <span>•</span>
-                                        <span className="capitalize">{trail.status}</span>
+                                        <span className="capitalize">{effectiveStatus}</span>
                                         <span>•</span>
                                         <span>{trail.distanceKm} km</span>
                                     </div>
@@ -214,8 +265,8 @@ const FortMap = ({ className = "", onFortSelect }) => {
 
                     const fillColor =
                         cistern.status === "overflow" ? "#ef4444" :
-                        cistern.status === "elevated" ? "#f59e0b" :
-                        "#3b82f6";
+                            cistern.status === "elevated" ? "#f59e0b" :
+                                "#3b82f6";
 
                     return (
                         <CircleMarker
@@ -247,26 +298,78 @@ const FortMap = ({ className = "", onFortSelect }) => {
 
             {/* Map Controls Overlay */}
             <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-                {/* Toggle Buttons */}
+                {/* Map Style Switcher */}
                 <div className="bg-slate-900/90 backdrop-blur-sm border border-slate-700 rounded-xl p-2 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1 px-1 mb-0.5">
+                        <Layers className="w-3 h-3 text-slate-500" />
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Map Style</span>
+                    </div>
+                    <button
+                        onClick={() => setMapStyle("dark")}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${mapStyle === "dark"
+                            ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200"
+                            }`}
+                    >
+                        <MapIcon className="w-3 h-3" />
+                        Dark
+                    </button>
+                    <button
+                        onClick={() => setMapStyle("satellite")}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${mapStyle === "satellite"
+                            ? "bg-sky-500/20 text-sky-300 border border-sky-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200"
+                            }`}
+                    >
+                        <Satellite className="w-3 h-3" />
+                        Satellite
+                    </button>
+                    <button
+                        onClick={() => setMapStyle("terrain")}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${mapStyle === "terrain"
+                            ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200"
+                            }`}
+                    >
+                        <Globe className="w-3 h-3" />
+                        Terrain
+                    </button>
+
+                    {/* Hillshade 3D toggle */}
+                    <button
+                        onClick={() => setShowHillshade(!showHillshade)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${showHillshade
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200"
+                            }`}
+                    >
+                        <Mountain className="w-3 h-3" />
+                        3D Relief
+                    </button>
+                </div>
+
+                {/* Layer Toggle Buttons */}
+                <div className="bg-slate-900/90 backdrop-blur-sm border border-slate-700 rounded-xl p-2 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1 px-1 mb-0.5">
+                        <Navigation className="w-3 h-3 text-slate-500" />
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Layers</span>
+                    </div>
                     <button
                         onClick={() => setShowTrails(!showTrails)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${
-                            showTrails
-                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                : "bg-slate-800 text-slate-400 border border-slate-700"
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${showTrails
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700"
+                            }`}
                     >
                         <Navigation className="w-3 h-3" />
                         Trails
                     </button>
                     <button
                         onClick={() => setShowCisterns(!showCisterns)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${
-                            showCisterns
-                                ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                                : "bg-slate-800 text-slate-400 border border-slate-700"
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${showCisterns
+                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700"
+                            }`}
                     >
                         <Droplets className="w-3 h-3" />
                         Cisterns

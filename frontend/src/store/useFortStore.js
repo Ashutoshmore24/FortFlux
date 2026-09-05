@@ -61,4 +61,24 @@ export const useFortStore = create((set, get) => ({
     clearSelection: () => {
         set({ selectedFort: null, fortDetail: null });
     },
+
+    /**
+     * Update a trail's status/risk/footfall via the authority API.
+     * After success, refreshes fort detail so the map reflects the change.
+     */
+    updateTrailStatus: async (trailId, data) => {
+        try {
+            const res = await axiosInstance.put(`/forts/trails/${trailId}`, data);
+            // Refresh fort detail to reflect updated trail on the map
+            const selectedFort = get().selectedFort;
+            if (selectedFort?.slug) {
+                await get().fetchFortDetail(selectedFort.slug);
+            }
+            return { success: true, trail: res.data?.trail };
+        } catch (error) {
+            const message = error.response?.data?.message || "Failed to update trail status";
+            console.error("updateTrailStatus error:", message);
+            return { success: false, message };
+        }
+    },
 }));
