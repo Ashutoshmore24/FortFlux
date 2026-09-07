@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         minlength: 6
     },
     role: {
@@ -31,6 +31,48 @@ const UserSchema = new mongoose.Schema({
     profilePic: {
         type: String,
         default: ""
+    },
+    googleId: {
+        type: String,
+        default: null
+    },
+    authProvider: {
+        type: String,
+        enum: ["local", "google"],
+        default: "local"
+    },
+    fullName: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    bio: {
+        type: String,
+        default: "",
+        maxlength: 150,
+        trim: true
+    },
+    location: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    avatarUrl: {
+        type: String,
+        default: ""
+    },
+    avatarCloudinaryId: {
+        type: String,
+        default: ""
+    },
+    stats: {
+        treksCompleted: { type: Number, default: 0 },
+        photosContributed: { type: Number, default: 0 },
+        fortsVisited: { type: [String], default: [] }
+    },
+    authorityDetails: {
+        assignedForts: { type: [String], default: [] },
+        designation: { type: String, default: "" }
     }
 }, { timestamps: true });
 
