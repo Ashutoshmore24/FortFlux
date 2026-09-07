@@ -98,7 +98,7 @@ export const simulateRoute = async (req, res) => {
             riskOverrides = null,
             start,
             destination,
-        } = req.body;
+        } = req.body || {};
 
         const slug = req.params.slug || fortSlug;
 
@@ -139,7 +139,10 @@ export const simulateRoute = async (req, res) => {
             ...simulationResult,
         });
     } catch (error) {
-        console.error("Error in simulateRoute controller:", error.message);
-        return res.status(500).json({ message: "Internal server error during routing simulation" });
+        console.error("Error in simulateRoute controller:", error);
+        return res.status(500).json({
+            message: "Internal server error during routing simulation",
+            error: error.message,
+        });
     }
 };

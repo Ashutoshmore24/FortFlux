@@ -1,12 +1,16 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../config/firebase";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
   isCheckingAuth: true,
   isSigningUp: false,
   isLoggingIn: false,
+  isGoogleLoggingIn: false,
   isUpdatingProfile: false,
+  isUploadingAvatar: false,
   authError: null,
 
   clearError: () => set({ authError: null }),
@@ -53,6 +57,33 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  googleLogin: async () => {
+    set({ isGoogleLoggingIn: true, authError: null });
+    try {
+      // Open Google sign-in popup via Firebase
+      const result = await signInWithPopup(auth, googleProvider);
+      // Get the Firebase ID token
+      const idToken = await result.user.getIdToken();
+      // Send token to our backend for verification and user creation/login
+      const res = await axiosInstance.post("/auth/google", { idToken });
+      set({ authUser: res.data });
+      return { success: true };
+    } catch (error) {
+      let message = "Google sign-in failed. Please try again.";
+      if (error.code === "auth/popup-closed-by-user") {
+        message = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === "auth/cancelled-popup-request") {
+        message = "Sign-in was cancelled. Please try again.";
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      }
+      set({ authError: message });
+      return { success: false, message };
+    } finally {
+      set({ isGoogleLoggingIn: false });
+    }
+  },
+
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
@@ -78,6 +109,26 @@ export const useAuthStore = create((set) => ({
       return { success: false, message };
     } finally {
       set({ isUpdatingProfile: false });
+    }
+  },
+
+  uploadAvatar: async (userId, file) => {
+    set({ isUploadingAvatar: true, authError: null });
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await axiosInstance.post(`/users/${userId}/avatar`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      set({ authUser: res.data });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to upload avatar.";
+      set({ authError: message });
+      return { success: false, message };
+    } finally {
+      set({ isUploadingAvatar: false });
     }
   },
 }));
