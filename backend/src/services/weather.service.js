@@ -56,6 +56,70 @@ const getMonsoonSeverity = (precipitation) => {
 };
 
 /**
+ * Generates trek recommendations based on weather conditions.
+ */
+const generateTrekRecommendations = (weatherData) => {
+    let status = "Highly Recommended";
+    let isSafe = true;
+    let message = "Conditions are ideal for trekking. Enjoy your trip!";
+    let accessories = ["Water (2-3L)", "Trekking Shoes", "Energy Snacks", "First-Aid Kit"];
+    let precautions = ["Stay hydrated", "Keep the fort clean"];
+    
+    const { temperature, windSpeed, precipitation, weatherSeverity } = weatherData;
+
+    // Evaluate Precipitation / Weather Severity
+    if (weatherSeverity === "extreme" || precipitation > 35) {
+        status = "Strictly Avoid";
+        isSafe = false;
+        message = "Extreme weather or heavy downpour detected. High risk of landslides and slippery routes.";
+        accessories = ["Heavy Raincoat", "Waterproof Bag Cover"];
+        precautions = ["Do not attempt the trek", "Seek safe shelter immediately", "Avoid streams and edges"];
+    } else if (weatherSeverity === "heavy" || precipitation > 7.5) {
+        status = "Not Recommended";
+        isSafe = false;
+        message = "Heavy rain expected. The trails will be very slippery and visibility might be low.";
+        accessories.push("Raincoat", "Waterproof Trekking Shoes", "Trekking Pole", "Waterproof Bag Cover");
+        precautions.push("Watch your step on wet rocks", "Avoid steep ascents", "Return before dark");
+    } else if (weatherSeverity === "moderate" || precipitation > 0) {
+        status = "Proceed with Caution";
+        isSafe = true;
+        message = "Light to moderate rain. The trail might be slightly slippery.";
+        accessories.push("Light Rain Jacket", "Trekking Pole", "Cap");
+        precautions.push("Be careful on descending routes", "Carry extra dry clothes");
+    }
+
+    // Evaluate Temperature
+    if (temperature > 35) {
+        if (status === "Highly Recommended") {
+            status = "Proceed with Caution";
+            message = "High temperatures. Risk of dehydration and heat exhaustion.";
+        }
+        accessories.push("Sunscreen", "Sunglasses", "Cap/Hat", "Electrolytes");
+        precautions.push("Start trek early morning", "Take frequent breaks in shade", "Avoid midday sun");
+    } else if (temperature < 10) {
+        accessories.push("Thermal Wear", "Fleece Jacket", "Gloves");
+        precautions.push("Dress in layers", "Keep moving to stay warm");
+    }
+
+    // Evaluate Wind Speed
+    if (windSpeed > 40) {
+        status = status === "Strictly Avoid" ? "Strictly Avoid" : "Not Recommended";
+        isSafe = false;
+        message = "High wind speeds detected. Very dangerous near cliff edges and ridges.";
+        precautions.push("Avoid walking on exposed ridges", "Maintain low center of gravity");
+    }
+
+    // Ensure accessories and precautions are unique
+    return {
+        status,
+        isSafe,
+        message,
+        accessories: [...new Set(accessories)],
+        precautions: [...new Set(precautions)],
+    };
+};
+
+/**
  * Fetches current weather data from Open-Meteo for a given lat/lon.
  * Uses in-memory cache with 10-minute TTL.
  */
@@ -107,7 +171,7 @@ const getWeatherForCoords = async (latitude, longitude) => {
     // Compute monsoon severity
     const monsoon = getMonsoonSeverity(current.precipitation);
 
-    const weatherData = {
+    const baseWeatherData = {
         temperature: current.temperature_2m,
         apparentTemperature: current.apparent_temperature,
         humidity: current.relative_humidity_2m,
@@ -120,6 +184,13 @@ const getWeatherForCoords = async (latitude, longitude) => {
         weatherSeverity: weatherInfo.severity,
         weatherIcon: weatherInfo.icon,
         monsoonSeverity: monsoon,
+    };
+
+    const recommendation = generateTrekRecommendations(baseWeatherData);
+
+    const weatherData = {
+        ...baseWeatherData,
+        recommendation,
         units: {
             temperature: "°C",
             humidity: "%",
