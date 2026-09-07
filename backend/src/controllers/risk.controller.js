@@ -1,4 +1,5 @@
 import { computeFortRisk, applyRiskScores } from "../services/risk.service.js";
+import { emitToAll, emitToFort } from "../lib/socket.js";
 
 /**
  * GET /api/risk/:fortSlug
@@ -69,10 +70,27 @@ export const applyRisk = async (req, res) => {
             });
         }
 
+        // Phase 7: Emit real-time risk update to all connected clients
+        const riskEventData = {
+            fortSlug,
+            fortName: result.fort.name,
+            trails: result.trails.map((t) => ({
+                trailId: t.trailId,
+                name: t.name,
+                liveRiskScore: t.liveRiskScore,
+                suggestedStatus: t.suggestedStatus,
+                appliedStatus: t.appliedStatus,
+            })),
+            updatedAt: Date.now(),
+        };
+        emitToFort(fortSlug, "risk-update", riskEventData);
+        emitToAll("risk-update", riskEventData);
+
         return res.status(200).json({
             message: `Risk scores applied to ${result.trails.length} trail(s) for ${result.fort.name}`,
             ...result,
         });
+
     } catch (error) {
         console.error("Error in applyRisk controller:", error.message);
 

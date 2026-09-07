@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import { subscribeToEvent } from "../lib/socket";
 
 export const useFortStore = create((set, get) => ({
     forts: [],
@@ -8,6 +9,7 @@ export const useFortStore = create((set, get) => ({
     isLoading: false,
     isLoadingDetail: false,
     error: null,
+    _socketUnsubs: [],
 
     /**
      * Fetch all forts (basic list).
@@ -81,4 +83,82 @@ export const useFortStore = create((set, get) => ({
             return { success: false, message };
         }
     },
+
+    /**
+     * Phase 7: Subscribe to real-time socket events.
+     * Updates trail data in-place when trail-status-changed events arrive.
+     */
+    subscribeToSocket: () => {
+        // Clean up any existing subscriptions first
+        get().unsubscribeFromSocket();
+
+        const unsubs = [];
+
+        // Listen for trail status changes from authority actions
+        unsubs.push(
+            subscribeToEvent("trail-status-changed", (data) => {
+                const { fortDetail } = get();
+                if (!fortDetail?.trails) return;
+
+                // Update the trail in the current fortDetail if it matches
+                const updatedTrails = fortDetail.trails.map((trail) => {
+                    if (trail._id === data.trailId) {
+                        return {
+                            ...trail,
+                            status: data.status,
+                            currentRiskScore: data.currentRiskScore,
+                            currentFootfall: data.currentFootfall,
+                            updatedAt: data.updatedAt,
+                        };
+                    }
+                    return trail;
+                });
+
+                set({
+                    fortDetail: { ...fortDetail, trails: updatedTrails },
+                });
+            })
+        );
+
+        // Listen for risk-update events to refresh trail risk scores
+        unsubs.push(
+            subscribeToEvent("risk-update", (data) => {
+                const { fortDetail, selectedFort } = get();
+                if (!fortDetail?.trails || !selectedFort) return;
+
+                // Only process if this update is for our currently selected fort
+                if (data.fortSlug !== selectedFort.slug) return;
+
+                const updatedTrails = fortDetail.trails.map((trail) => {
+                    const riskUpdate = data.trails?.find(
+                        (t) => t.trailId === trail._id
+                    );
+                    if (riskUpdate) {
+                        return {
+                            ...trail,
+                            currentRiskScore: riskUpdate.liveRiskScore,
+                            status: riskUpdate.appliedStatus || trail.status,
+                        };
+                    }
+                    return trail;
+                });
+
+                set({
+                    fortDetail: { ...fortDetail, trails: updatedTrails },
+                });
+            })
+        );
+
+        set({ _socketUnsubs: unsubs });
+    },
+
+    /**
+     * Phase 7: Unsubscribe from all socket events.
+     */
+    unsubscribeFromSocket: () => {
+        const unsubs = get()._socketUnsubs;
+        unsubs.forEach((unsub) => unsub());
+        set({ _socketUnsubs: [] });
+    },
 }));
+

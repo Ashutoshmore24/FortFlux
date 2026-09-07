@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import { subscribeToEvent } from "../lib/socket";
 
 export const useRiskStore = create((set, get) => ({
     riskData: null, // Full risk response from API
@@ -9,6 +10,7 @@ export const useRiskStore = create((set, get) => ({
     lastComputed: null,
 
     _pollInterval: null,
+    _socketUnsubs: [],
 
     /**
      * Fetch live-computed risk scores for a fort (read-only, does not persist).
@@ -104,5 +106,41 @@ export const useRiskStore = create((set, get) => ({
     clearRisk: () => {
         get().stopPolling();
         set({ riskData: null, error: null, lastComputed: null });
+    },
+
+    /**
+     * Phase 7: Subscribe to real-time risk update events.
+     */
+    subscribeToSocket: () => {
+        get().unsubscribeFromSocket();
+
+        const unsubs = [];
+
+        unsubs.push(
+            subscribeToEvent("risk-update", (data) => {
+                // Update risk data with the live scores from the socket event
+                set({
+                    riskData: {
+                        ...get().riskData,
+                        trails: data.trails || get().riskData?.trails,
+                        fort: data.fortName
+                            ? { name: data.fortName, slug: data.fortSlug }
+                            : get().riskData?.fort,
+                    },
+                    lastComputed: data.updatedAt || Date.now(),
+                });
+            })
+        );
+
+        set({ _socketUnsubs: unsubs });
+    },
+
+    /**
+     * Phase 7: Unsubscribe from all socket events.
+     */
+    unsubscribeFromSocket: () => {
+        const unsubs = get()._socketUnsubs;
+        unsubs.forEach((unsub) => unsub());
+        set({ _socketUnsubs: [] });
     },
 }));

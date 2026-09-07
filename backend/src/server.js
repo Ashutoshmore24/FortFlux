@@ -1,8 +1,10 @@
+import { createServer } from 'http';
 import ENV from './lib/env.js';
 import express, { urlencoded } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import connectDB from './lib/db.js';
+import { initSocket } from './lib/socket.js';
 import authRoutes from './routes/auth.route.js';
 import fortRoutes from './routes/fort.route.js';
 import weatherRoutes from './routes/weather.route.js';
@@ -11,6 +13,7 @@ import routingRoutes from './routes/routing.route.js';
 import userRoutes from './routes/user.route.js';
 
 const app = express();
+const httpServer = createServer(app);
 
 const PORT = ENV.PORT || 6000;
 
@@ -36,9 +39,12 @@ app.all("/api/*path", (req, res) => {
     res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
 });
 
-// Connect to DB then start server
+// Connect to DB, initialize Socket.IO, then start server
 connectDB().then(() => {
-    app.listen(PORT, () => {
+    // Phase 7: Attach Socket.IO to the HTTP server
+    initSocket(httpServer);
+
+    httpServer.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
 });

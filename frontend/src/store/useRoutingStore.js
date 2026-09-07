@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import { subscribeToEvent } from "../lib/socket";
 
 export const useRoutingStore = create((set, get) => ({
     routeResult: null, // Full route response from API
@@ -13,6 +14,7 @@ export const useRoutingStore = create((set, get) => ({
     isSimulating: false,
     simulationError: null,
     manuallySeveredIds: [],
+    _socketUnsubs: [],
 
     /**
      * Find the safest route between two waypoints for a given fort.
@@ -133,5 +135,36 @@ export const useRoutingStore = create((set, get) => ({
      */
     clearRoute: () => {
         set({ routeResult: null, error: null });
+    },
+
+    /**
+     * Phase 7: Subscribe to real-time routing/simulation events.
+     */
+    subscribeToSocket: () => {
+        get().unsubscribeFromSocket();
+
+        const unsubs = [];
+
+        unsubs.push(
+            subscribeToEvent("simulation-update", (data) => {
+                // Update simulation result with live data from authority actions
+                set({
+                    simulationResult: data,
+                    severedTrails: data.severedTrails || [],
+                    diversionRoute: data.diversionRoute || null,
+                });
+            })
+        );
+
+        set({ _socketUnsubs: unsubs });
+    },
+
+    /**
+     * Phase 7: Unsubscribe from all socket events.
+     */
+    unsubscribeFromSocket: () => {
+        const unsubs = get()._socketUnsubs;
+        unsubs.forEach((unsub) => unsub());
+        set({ _socketUnsubs: [] });
     },
 }));
