@@ -4,13 +4,21 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useFortStore } from "../../store/useFortStore";
 import { RiskLegend } from "./RiskLegend";
 import MapControls from "./MapControls";
-import { getFortPopupHTML, getTrailTooltipHTML, getCisternTooltipHTML } from "./MapPopup";
+import {
+    getFortPopupHTML,
+    getTrailTooltipHTML,
+    getCisternTooltipHTML,
+    getSeveredTrailTooltipHTML,
+    getDiversionTooltipHTML,
+} from "./MapPopup";
 import {
     fortsToGeoJSON,
     trailsToGeoJSON,
     cisternsToGeoJSON,
     computeFortBounds,
     getTrailColor,
+    severedTrailsToGeoJSON,
+    diversionRouteToGeoJSON,
 } from "../../utils/geoJsonUtils";
 import {
     MAPTILER_KEY,
@@ -53,7 +61,14 @@ const hasSource = (map, id) => {
 // Props interface is identical to the original Leaflet version:
 //   className, onFortSelect, riskOverrides
 // ═══════════════════════════════════════════════════════════
-const FortMap = ({ className = "", onFortSelect, riskOverrides = null, safeRoute = null }) => {
+const FortMap = ({
+    className = "",
+    onFortSelect,
+    riskOverrides = null,
+    safeRoute = null,
+    severedTrails = null,
+    diversionRoute = null,
+}) => {
     const {
         forts,
         selectedFort,
@@ -132,10 +147,27 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null, safeRoute
         return { type: "FeatureCollection", features };
     }, [safeRoute]);
 
+    // ── Severed Trails GeoJSON (Phase 5 Adaptive Routing) ──
+    const severedGeoJSON = useMemo(() => {
+        return severedTrailsToGeoJSON(severedTrails || []);
+    }, [severedTrails]);
+
+    // ── Diversion Route GeoJSON (Phase 5 Adaptive Routing) ──
+    const diversionGeoJSON = useMemo(() => {
+        return diversionRouteToGeoJSON(diversionRoute);
+    }, [diversionRoute]);
+
     // Store latest GeoJSON in ref for style.load handler
     useEffect(() => {
-        dataRef.current = { forts: fortsGeoJSON, trails: trailsGeoJSON, cisterns: cisternsGeoJSON, route: routeGeoJSON };
-    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON]);
+        dataRef.current = {
+            forts: fortsGeoJSON,
+            trails: trailsGeoJSON,
+            cisterns: cisternsGeoJSON,
+            route: routeGeoJSON,
+            severed: severedGeoJSON,
+            diversion: diversionGeoJSON,
+        };
+    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON, severedGeoJSON, diversionGeoJSON]);
 
     // ══════════════════════════════════════════════════════
     // Add GeoJSON sources + layers to the map
@@ -351,6 +383,94 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null, safeRoute
                 },
             });
         }
+
+        // ── Severed Trails Source + Layer (Phase 5 Adaptive Routing) ──
+        if (!hasSource(map, "severed-trails-source")) {
+            map.addSource("severed-trails-source", { type: "geojson", data: data.severed || EMPTY_FC });
+        } else {
+            map.getSource("severed-trails-source").setData(data.severed || EMPTY_FC);
+        }
+
+        // Severed trails glow (wide semi-transparent hazard red halo)
+        if (!hasLayer(map, "severed-trails-glow")) {
+            map.addLayer({
+                id: "severed-trails-glow",
+                type: "line",
+                source: "severed-trails-source",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round",
+                },
+                paint: {
+                    "line-color": "#ef4444",
+                    "line-width": 14,
+                    "line-opacity": 0.45,
+                },
+            });
+        }
+
+        // Severed trails dashed line (high-visibility hazard red dashed line)
+        if (!hasLayer(map, "severed-trails-line")) {
+            map.addLayer({
+                id: "severed-trails-line",
+                type: "line",
+                source: "severed-trails-source",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round",
+                },
+                paint: {
+                    "line-color": "#dc2626",
+                    "line-width": 5,
+                    "line-opacity": 1.0,
+                    "line-dasharray": [3, 2],
+                },
+            });
+        }
+
+        // ── Diversion Route Source + Layer (Phase 5 Adaptive Routing) ──
+        if (!hasSource(map, "diversion-route-source")) {
+            map.addSource("diversion-route-source", { type: "geojson", data: data.diversion || EMPTY_FC });
+        } else {
+            map.getSource("diversion-route-source").setData(data.diversion || EMPTY_FC);
+        }
+
+        // Diversion route glow (pulsing emerald aura)
+        if (!hasLayer(map, "diversion-route-glow")) {
+            map.addLayer({
+                id: "diversion-route-glow",
+                type: "line",
+                source: "diversion-route-source",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round",
+                },
+                paint: {
+                    "line-color": "#10b981",
+                    "line-width": 14,
+                    "line-opacity": 0.45,
+                },
+            });
+        }
+
+        // Diversion route line (high-visibility neon green line)
+        if (!hasLayer(map, "diversion-route-line")) {
+            map.addLayer({
+                id: "diversion-route-line",
+                type: "line",
+                source: "diversion-route-source",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round",
+                },
+                paint: {
+                    "line-color": "#22c55e",
+                    "line-width": 6,
+                    "line-opacity": 0.98,
+                    "line-dasharray": [2, 1],
+                },
+            });
+        }
     }, []);
 
     // ══════════════════════════════════════════════════════
@@ -466,6 +586,36 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null, safeRoute
             popupRef.current.remove();
         });
 
+        // ── Severed trail hover for tooltip ──
+        map.on("mouseenter", "severed-trails-line", (e) => {
+            map.getCanvas().style.cursor = "pointer";
+            if (!e.features?.length) return;
+            const props = e.features[0].properties;
+            popupRef.current
+                .setLngLat(e.lngLat)
+                .setHTML(getSeveredTrailTooltipHTML(props))
+                .addTo(map);
+        });
+        map.on("mouseleave", "severed-trails-line", () => {
+            map.getCanvas().style.cursor = "";
+            popupRef.current.remove();
+        });
+
+        // ── Diversion route hover for tooltip ──
+        map.on("mouseenter", "diversion-route-line", (e) => {
+            map.getCanvas().style.cursor = "pointer";
+            if (!e.features?.length) return;
+            const props = e.features[0].properties;
+            popupRef.current
+                .setLngLat(e.lngLat)
+                .setHTML(getDiversionTooltipHTML(props))
+                .addTo(map);
+        });
+        map.on("mouseleave", "diversion-route-line", () => {
+            map.getCanvas().style.cursor = "";
+            popupRef.current.remove();
+        });
+
         // ── Fort hover cursor ──
         const setPointer = () => { map.getCanvas().style.cursor = "pointer"; };
         const resetPointer = () => { map.getCanvas().style.cursor = ""; };
@@ -535,6 +685,30 @@ const FortMap = ({ className = "", onFortSelect, riskOverrides = null, safeRoute
         const routeSrc = map.getSource("safe-route-source");
         if (routeSrc) routeSrc.setData(routeGeoJSON);
     }, [routeGeoJSON, addSourcesAndLayers]);
+
+    // Update severed trails source when severed trails change
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        if (map.isStyleLoaded()) {
+            addSourcesAndLayers(map);
+        }
+        const severedSrc = map.getSource("severed-trails-source");
+        if (severedSrc) severedSrc.setData(severedGeoJSON);
+    }, [severedGeoJSON, addSourcesAndLayers]);
+
+    // Update diversion route source when diversion changes
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        if (map.isStyleLoaded()) {
+            addSourcesAndLayers(map);
+        }
+        const diversionSrc = map.getSource("diversion-route-source");
+        if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
+    }, [diversionGeoJSON, addSourcesAndLayers]);
 
     // ══════════════════════════════════════════════════════
     // Fit bounds to all forts on initial data load

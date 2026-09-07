@@ -1,87 +1,78 @@
 /**
  * Phase 5 — Adaptive Routing Engine
  *
- * Pure business logic: builds a directed graph from a fort's Trail
- * documents and finds the safest/cheapest path between two waypoints
- * using Dijkstra's algorithm.
- *
- * This file intentionally has NO Express/HTTP code (same convention as
- * weather.service.js) and NO dependency on Phase 4. It only reads the
- * `currentRiskScore` / `status` fields that already exist on the Trail
- * model. Whenever Phase 4 starts writing updated values into those
- * fields, this service will automatically route around them on the
- * very next request — no code changes required here.
+ * Graph traversal and risk-aware routing engine for fort trail networks.
+ * Uses Dijkstra's algorithm to compute safest paths, dynamically severs
+ * edges when risk exceeds critical threshold (>= 75%) or by authority action,
+ * and recalculates diversion routes.
  */
 
-// Trails at or above this risk score are always excluded from routing.
-const CRITICAL_RISK_THRESHOLD = 75;
+// Trails at or above this risk score are automatically severed from routing.
+export const CRITICAL_RISK_THRESHOLD = 75;
 
 // Statuses that make a trail unusable for routing.
-const UNSAFE_STATUSES = new Set(["closed", "diverted"]);
+export const UNSAFE_STATUSES = new Set(["closed", "diverted"]);
 
 /**
  * Normalizes a waypoint name for case/whitespace-insensitive matching.
- * (Trail.startPoint.name / Trail.endPoint.name are free-text strings.)
  */
 const NODE_ALIASES = {
     "chor darwaja (secret gate)": "chor darwaja",
+    "padmavati temple": "padmavati temple complex",
+    "padmavati machi": "padmavati temple complex",
+    "padmavati machi base": "padmavati temple complex",
 };
 
-const normalizeNodeName = (name) => {
+export const normalizeNodeName = (name) => {
     const normalized = (name || "").trim().toLowerCase();
-
     return NODE_ALIASES[normalized] || normalized;
 };
 
 /**
  * Calculates the risk-aware edge cost for a single trail.
- *
- * cost = distanceKm * (1 + currentRiskScore / 100)
- *
- * Missing/invalid distanceKm or currentRiskScore are defensively
- * treated as 0, matching the Trail schema's own defaults, so a single
- * bad record can't crash routing for the whole fort.
+ * cost = distanceKm * (1 + riskScore / 100)
  */
-const calculateEdgeCost = (trail) => {
+export const calculateEdgeCost = (trail, explicitRisk = null) => {
     const distanceKm = typeof trail.distanceKm === "number" && trail.distanceKm >= 0
         ? trail.distanceKm
-        : 0;
-    const currentRiskScore = typeof trail.currentRiskScore === "number" && trail.currentRiskScore >= 0
-        ? trail.currentRiskScore
-        : 0;
+        : 0.5;
 
-    return distanceKm * (1 + currentRiskScore / 100);
+    const risk = typeof explicitRisk === "number"
+        ? explicitRisk
+        : (typeof trail.currentRiskScore === "number" ? trail.currentRiskScore : 0);
+
+    return distanceKm * (1 + Math.max(0, risk) / 100);
 };
 
 /**
- * Returns true if a trail is currently safe to route through.
- * Unsafe trails (closed, diverted, or critical risk) are excluded
- * entirely from the graph — never selected, never returned.
+ * Checks if a trail is safe to route through under given conditions.
  */
-const isTrailSafe = (trail) => {
+export const isTrailSafe = (trail, effectiveRisk = null, severedIds = new Set()) => {
+    const trailIdStr = (trail._id || trail.id || "").toString();
+    if (severedIds.has(trailIdStr)) return false;
     if (UNSAFE_STATUSES.has(trail.status)) return false;
-    const riskScore = typeof trail.currentRiskScore === "number" ? trail.currentRiskScore : 0;
-    if (riskScore >= CRITICAL_RISK_THRESHOLD) return false;
+
+    const risk = typeof effectiveRisk === "number"
+        ? effectiveRisk
+        : (typeof trail.currentRiskScore === "number" ? trail.currentRiskScore : 0);
+
+    if (risk >= CRITICAL_RISK_THRESHOLD) return false;
     return true;
 };
 
 /**
- * Builds a directed adjacency list graph from a fort's trail documents.
- *
- * Each trail contributes exactly ONE directed edge: startPoint -> endPoint.
- * Trails are never treated as bidirectional — this mirrors the schema
- * comment "Graph edge representation: start waypoint -> end waypoint".
- *
- * Unsafe trails are skipped entirely (they never appear in the graph,
- * so Dijkstra can never select them).
- *
- * @param {Array} trails - Trail documents belonging to a single fort.
- * @returns {{ adjacency: Map<string, Array>, nodeDisplayNames: Map<string,string> }}
+ * Builds an adjacency list graph from a fort's trail documents.
+ * Supports bidirectional edge traversal so ascent and descent routing
+ * both work naturally.
  */
-const buildGraph = (trails) => {
-    // adjacency: normalizedNodeName -> [{ to, cost, trail }]
+export const buildGraph = (trails, options = {}) => {
+    const {
+        bidirectional = true,
+        riskOverrides = null, // Map or Object of trailId -> simulatedRisk
+        severedIds = new Set(), // Set of trailId strings explicitly severed
+    } = options;
+
     const adjacency = new Map();
-    // Keep original (display) names so responses aren't lowercased.
     const nodeDisplayNames = new Map();
 
     const ensureNode = (rawName) => {
@@ -93,35 +84,53 @@ const buildGraph = (trails) => {
     };
 
     for (const trail of trails) {
-        if (!trail.startPoint?.name || !trail.endPoint?.name) continue; // malformed record guard
-        if (!isTrailSafe(trail)) continue;
+        if (!trail.startPoint?.name || !trail.endPoint?.name) continue;
+
+        const trailIdStr = (trail._id || trail.id || "").toString();
+        const effectiveRisk = riskOverrides instanceof Map
+            ? riskOverrides.get(trailIdStr)
+            : (riskOverrides && riskOverrides[trailIdStr] !== undefined
+                ? riskOverrides[trailIdStr]
+                : trail.currentRiskScore);
+
+        if (!isTrailSafe(trail, effectiveRisk, severedIds)) continue;
 
         const fromKey = ensureNode(trail.startPoint.name);
         const toKey = ensureNode(trail.endPoint.name);
         if (!fromKey || !toKey) continue;
 
+        const cost = calculateEdgeCost(trail, effectiveRisk);
+
+        // Forward edge (start -> end)
         adjacency.get(fromKey).push({
             to: toKey,
-            cost: calculateEdgeCost(trail),
+            cost,
             trail,
+            reversed: false,
+            effectiveRisk: effectiveRisk ?? trail.currentRiskScore,
         });
+
+        // Reverse edge (end -> start) for bidirectional mountain paths
+        if (bidirectional) {
+            adjacency.get(toKey).push({
+                to: fromKey,
+                cost,
+                trail,
+                reversed: true,
+                effectiveRisk: effectiveRisk ?? trail.currentRiskScore,
+            });
+        }
     }
 
     return { adjacency, nodeDisplayNames };
 };
 
 /**
- * Runs Dijkstra's shortest-path algorithm over a pre-built graph.
- *
- * @param {Map} adjacency - adjacency list from buildGraph()
- * @param {string} startKey - normalized start node
- * @param {string} destinationKey - normalized destination node
- * @returns {{ trails: Array, totalDistanceKm: number, totalCost: number } | null}
- *          null when no path exists (disconnected graph / all routes unsafe).
+ * Runs Dijkstra's shortest/safest path algorithm.
  */
-const runDijkstra = (adjacency, startKey, destinationKey) => {
-    const distances = new Map(); // node -> cumulative cost
-    const previous = new Map(); // node -> { prevNode, trail }
+export const runDijkstra = (adjacency, startKey, destinationKey) => {
+    const distances = new Map();
+    const previous = new Map();
     const visited = new Set();
 
     for (const node of adjacency.keys()) {
@@ -129,7 +138,6 @@ const runDijkstra = (adjacency, startKey, destinationKey) => {
     }
     distances.set(startKey, 0);
 
-    // Simple O(V^2) selection — trail networks are small, no need for a heap.
     while (true) {
         let currentNode = null;
         let currentDistance = Infinity;
@@ -141,8 +149,8 @@ const runDijkstra = (adjacency, startKey, destinationKey) => {
             }
         }
 
-        if (currentNode === null) break; // remaining nodes are unreachable
-        if (currentNode === destinationKey) break; // shortest path to target found
+        if (currentNode === null) break;
+        if (currentNode === destinationKey) break;
 
         visited.add(currentNode);
 
@@ -154,63 +162,70 @@ const runDijkstra = (adjacency, startKey, destinationKey) => {
 
             if (candidateDistance < knownDistance) {
                 distances.set(edge.to, candidateDistance);
-                previous.set(edge.to, { prevNode: currentNode, trail: edge.trail });
+                previous.set(edge.to, {
+                    prevNode: currentNode,
+                    trail: edge.trail,
+                    reversed: edge.reversed,
+                    effectiveRisk: edge.effectiveRisk,
+                });
             }
         }
     }
 
     if (!distances.has(destinationKey) || distances.get(destinationKey) === Infinity) {
-        return null; // unreachable — disconnected graph or all connecting trails unsafe
+        return null;
     }
 
-    // Reconstruct path by walking `previous` backwards from destination.
+    // Reconstruct path
     const trailsUsed = [];
     let cursor = destinationKey;
     while (cursor !== startKey) {
         const step = previous.get(cursor);
-        if (!step) return null; // safety guard, should not happen
-        trailsUsed.unshift(step.trail);
+        if (!step) return null;
+
+        const rawTrail = step.trail.toObject ? step.trail.toObject() : { ...step.trail };
+        const pathCoords = Array.isArray(rawTrail.path) ? rawTrail.path : [];
+
+        // If traversed in reverse, orient coordinates to match travel direction
+        const orientedPath = step.reversed ? [...pathCoords].reverse() : pathCoords;
+        const segmentStart = step.reversed ? rawTrail.endPoint : rawTrail.startPoint;
+        const segmentEnd = step.reversed ? rawTrail.startPoint : rawTrail.endPoint;
+
+        trailsUsed.unshift({
+            trailId: rawTrail._id || rawTrail.id,
+            name: rawTrail.name,
+            slug: rawTrail.slug,
+            startPoint: segmentStart,
+            endPoint: segmentEnd,
+            path: orientedPath,
+            distanceKm: rawTrail.distanceKm || 0,
+            currentRiskScore: step.effectiveRisk ?? rawTrail.currentRiskScore,
+            status: rawTrail.status,
+            difficulty: rawTrail.difficulty || "moderate",
+            traversedReverse: !!step.reversed,
+        });
+
         cursor = step.prevNode;
     }
 
-    const totalDistanceKm = trailsUsed.reduce(
-        (sum, trail) => sum + (typeof trail.distanceKm === "number" ? trail.distanceKm : 0),
-        0
-    );
+    const totalDistanceKm = trailsUsed.reduce((sum, t) => sum + (t.distanceKm || 0), 0);
 
     return {
         trails: trailsUsed,
-        totalDistanceKm,
-        totalCost: distances.get(destinationKey),
+        totalDistanceKm: Number(totalDistanceKm.toFixed(2)),
+        totalCost: Number(distances.get(destinationKey).toFixed(2)),
     };
 };
 
 /**
- * Public entry point: finds the safest/cheapest route between two named
- * waypoints for a given fort's trail set.
- *
- * @param {Array} trails - ALL Trail documents for the fort (safe + unsafe).
- *                         Filtering happens internally so callers don't
- *                         need to know the safety rules.
- * @param {string} startName - waypoint name to start from
- * @param {string} destinationName - waypoint name to reach
- * @returns {object} result descriptor, see shapes below.
- *
- * Possible return shapes:
- *   { status: "invalid_node", node: "start" | "destination" }
- *   { status: "no_route" }
- *   { status: "ok", trails, totalDistanceKm, totalCost }
+ * Public entry point: find safest route between two waypoints.
  */
-const findRoute = (trails, startName, destinationName) => {
-    const { adjacency, nodeDisplayNames } = buildGraph(trails);
+export const findRoute = (trails, startName, destinationName, options = {}) => {
+    const { adjacency, nodeDisplayNames } = buildGraph(trails, options);
 
     const startKey = normalizeNodeName(startName);
     const destinationKey = normalizeNodeName(destinationName);
 
-    // A node is only "known" if it appears as an endpoint of at least
-    // one SAFE trail. This deliberately treats waypoints that only
-    // exist on closed/diverted/critical trails as unreachable, since
-    // there is no safe way to even approach them.
     if (!adjacency.has(startKey)) {
         return { status: "invalid_node", node: "start" };
     }
@@ -233,11 +248,191 @@ const findRoute = (trails, startName, destinationName) => {
     };
 };
 
-export {
-    findRoute,
-    buildGraph,
-    runDijkstra,
-    calculateEdgeCost,
-    isTrailSafe,
-    CRITICAL_RISK_THRESHOLD,
+/**
+ * Simulates adaptive routing with auto-severing and dynamic diversion computation.
+ *
+ * @param {Object} params
+ * @param {Array} params.trails - Fort trails
+ * @param {number|null} params.rainfall - Rainfall in mm/hr (from simulation sliders)
+ * @param {number|null} params.footfall - Live trekker count / density
+ * @param {Array<string>} params.severedTrailIds - Explicit trail IDs severed by authority
+ * @param {Map|Object|null} params.riskOverrides - Explicit simulated risk map
+ * @param {string|null} params.startName - Optional start waypoint
+ * @param {string|null} params.destinationName - Optional destination waypoint
+ */
+export const simulateRouting = ({
+    trails = [],
+    rainfall = null,
+    footfall = null,
+    severedTrailIds = [],
+    riskOverrides = null,
+    startName = null,
+    destinationName = null,
+}) => {
+    const severedSet = new Set(
+        (severedTrailIds || []).map((id) => (id ? id.toString() : ""))
+    );
+
+    // Calculate effective simulated risk for each trail
+    const maxRainfall = 150;
+    const soilSaturation = rainfall !== null
+        ? Math.min(Math.max(0, rainfall) / maxRainfall, 1)
+        : null;
+
+    const trailRisks = new Map();
+    const severedTrails = [];
+    const allTrailsStatus = [];
+
+    for (const trail of trails) {
+        const trailIdStr = (trail._id || trail.id || "").toString();
+
+        let effectiveRisk = trail.currentRiskScore || 0;
+
+        if (riskOverrides instanceof Map && riskOverrides.has(trailIdStr)) {
+            effectiveRisk = riskOverrides.get(trailIdStr);
+        } else if (riskOverrides && riskOverrides[trailIdStr] !== undefined) {
+            effectiveRisk = riskOverrides[trailIdStr];
+        } else if (soilSaturation !== null && footfall !== null) {
+            // Apply project risk formula
+            const baseDiff = trail.baselineDifficulty || 1.2;
+            const slope = trail.slopeGradient || 1.2;
+            const maxSafe = trail.maxSafeFootfall || 500;
+            const footfallRatio = footfall / maxSafe;
+
+            effectiveRisk = Math.min(
+                100,
+                Math.round(baseDiff * soilSaturation * slope * footfallRatio * 100)
+            );
+        }
+
+        trailRisks.set(trailIdStr, effectiveRisk);
+
+        // Check severing condition
+        const isExplicitlySevered = severedSet.has(trailIdStr);
+        const isCriticalRisk = effectiveRisk >= CRITICAL_RISK_THRESHOLD;
+        const isDbClosed = UNSAFE_STATUSES.has(trail.status);
+
+        const isSevered = isExplicitlySevered || isCriticalRisk || isDbClosed;
+
+        let severReason = null;
+        if (isExplicitlySevered) severReason = "authority_severed";
+        else if (isCriticalRisk) severReason = "critical_risk_threshold";
+        else if (isDbClosed) severReason = "closed_in_db";
+
+        const statusEntry = {
+            trailId: trailIdStr,
+            name: trail.name,
+            slug: trail.slug,
+            startPoint: trail.startPoint,
+            endPoint: trail.endPoint,
+            path: trail.path || [],
+            distanceKm: trail.distanceKm || 0,
+            currentRiskScore: trail.currentRiskScore,
+            simulatedRiskScore: effectiveRisk,
+            status: isSevered ? "severed" : (effectiveRisk >= 50 ? "caution" : "open"),
+            isSevered,
+            severReason,
+        };
+
+        allTrailsStatus.push(statusEntry);
+
+        if (isSevered) {
+            severedTrails.push(statusEntry);
+        }
+    }
+
+    // Build the graph of only safe remaining trails
+    const { adjacency, nodeDisplayNames } = buildGraph(trails, {
+        bidirectional: true,
+        riskOverrides: trailRisks,
+        severedIds: severedSet,
+    });
+
+    // Determine waypoints for diversion computation
+    let computedDiversion = null;
+    let diversionStart = startName;
+    let diversionDest = destinationName;
+
+    // If explicit waypoints not provided, find the most meaningful diversion
+    if (!diversionStart || !diversionDest) {
+        if (severedTrails.length > 0) {
+            // Try computing a detour between the endpoints of the primary severed trail
+            const primarySevered = severedTrails[0];
+            const startAttempt = primarySevered.startPoint?.name;
+            const destAttempt = primarySevered.endPoint?.name;
+
+            if (startAttempt && destAttempt) {
+                const sKey = normalizeNodeName(startAttempt);
+                const dKey = normalizeNodeName(destAttempt);
+                if (adjacency.has(sKey) && adjacency.has(dKey)) {
+                    const detourResult = runDijkstra(adjacency, sKey, dKey);
+                    if (detourResult) {
+                        diversionStart = startAttempt;
+                        diversionDest = destAttempt;
+                        computedDiversion = detourResult;
+                    }
+                }
+            }
+
+            // If local detour not found, route from base village/first trailhead to summit/central temple
+            if (!computedDiversion && trails.length > 0) {
+                const firstTrail = trails[0];
+                const lastTrail = trails[trails.length - 1];
+                const sKey = normalizeNodeName(firstTrail.startPoint?.name);
+                const dKey = normalizeNodeName(lastTrail.endPoint?.name || lastTrail.startPoint?.name);
+
+                if (adjacency.has(sKey) && adjacency.has(dKey)) {
+                    computedDiversion = runDijkstra(adjacency, sKey, dKey);
+                    if (computedDiversion) {
+                        diversionStart = firstTrail.startPoint?.name;
+                        diversionDest = lastTrail.endPoint?.name || lastTrail.startPoint?.name;
+                    }
+                }
+            }
+        }
+    } else {
+        const sKey = normalizeNodeName(diversionStart);
+        const dKey = normalizeNodeName(diversionDest);
+        if (adjacency.has(sKey) && adjacency.has(dKey)) {
+            computedDiversion = runDijkstra(adjacency, sKey, dKey);
+        }
+    }
+
+    let diversionRoute = null;
+    if (computedDiversion) {
+        diversionRoute = {
+            safe: true,
+            start: nodeDisplayNames.get(normalizeNodeName(diversionStart)) || diversionStart,
+            destination: nodeDisplayNames.get(normalizeNodeName(diversionDest)) || diversionDest,
+            totalDistanceKm: computedDiversion.totalDistanceKm,
+            totalCost: computedDiversion.totalCost,
+            segmentCount: computedDiversion.trails.length,
+            segments: computedDiversion.trails,
+        };
+    }
+
+    // Build human-readable summary
+    let summary = "";
+    const severedCount = severedTrails.length;
+
+    if (severedCount === 0) {
+        summary = "All trail segments within safe operating thresholds. No paths severed.";
+    } else {
+        const names = severedTrails.map((t) => t.name).join(", ");
+        if (diversionRoute) {
+            summary = `${severedCount} path${severedCount > 1 ? "s" : ""} severed (${names}). Safe alternative route active: ${diversionRoute.start} → ${diversionRoute.destination} (${diversionRoute.totalDistanceKm} km).`;
+        } else {
+            summary = `${severedCount} path${severedCount > 1 ? "s" : ""} severed (${names}). Warning: No safe alternative route available on this network.`;
+        }
+    }
+
+    return {
+        status: "ok",
+        isSevered: severedCount > 0,
+        severedCount,
+        severedTrails,
+        diversionRoute,
+        allTrailsStatus,
+        summary,
+    };
 };

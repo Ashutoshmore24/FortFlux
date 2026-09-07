@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.route.js';
 import fortRoutes from './routes/fort.route.js';
 import weatherRoutes from './routes/weather.route.js';
 import riskRoutes from './routes/risk.route.js';
+import routingRoutes from './routes/routing.route.js';
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/forts", fortRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/risk", riskRoutes);
+app.use("/api/routing", routingRoutes);
 
 // Catch-all for unknown API routes
 app.all("/api/*path", (req, res) => {

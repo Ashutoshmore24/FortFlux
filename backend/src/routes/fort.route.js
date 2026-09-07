@@ -7,7 +7,7 @@ import {
     updateTrailStatus,
 } from "../controllers/fort.controller.js";
 import { protectRoute, requireRole } from "../middlewares/auth.middleware.js";
-import { getRoute } from "../controllers/routing.controller.js";
+import { getRoute, simulateRoute } from "../controllers/routing.controller.js";
 const router = express.Router();
 
 // Public routes (accessible to all trekkers and visitors)
@@ -16,6 +16,7 @@ router.get("/:slug", getFortBySlug);
 router.get("/:slug/trails", getFortTrails);
 router.get("/:slug/cisterns", getFortCisterns);
 router.get("/:slug/route", getRoute);
+router.post("/:slug/route/simulate", simulateRoute);
 
 // Protected routes (authorities & admins only)
 router.put(
