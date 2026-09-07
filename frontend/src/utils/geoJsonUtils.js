@@ -229,3 +229,66 @@ export const computeFortBounds = (forts) => {
         [maxLng, maxLat],
     ];
 };
+
+/**
+ * Convert severed trails into a GeoJSON FeatureCollection for hazard overlay.
+ */
+export const severedTrailsToGeoJSON = (severedTrails) => {
+    if (!Array.isArray(severedTrails) || severedTrails.length === 0) {
+        return { type: "FeatureCollection", features: [] };
+    }
+
+    const features = [];
+    for (const trail of severedTrails) {
+        const path = trail.path || [];
+        if (!isValidLineString(path)) continue;
+
+        features.push({
+            type: "Feature",
+            properties: {
+                id: trail.trailId || trail._id,
+                name: trail.name,
+                riskScore: trail.simulatedRiskScore ?? trail.currentRiskScore ?? trail.riskScore ?? 80,
+                severReason: trail.severReason || "critical_risk_threshold",
+                distanceKm: trail.distanceKm || 0,
+            },
+            geometry: {
+                type: "LineString",
+                coordinates: path,
+            },
+        });
+    }
+
+    return { type: "FeatureCollection", features };
+};
+
+/**
+ * Convert diversion route into a GeoJSON FeatureCollection.
+ */
+export const diversionRouteToGeoJSON = (diversionRoute) => {
+    if (!diversionRoute || !diversionRoute.safe || !Array.isArray(diversionRoute.segments)) {
+        return { type: "FeatureCollection", features: [] };
+    }
+
+    const features = [];
+    for (const seg of diversionRoute.segments) {
+        const path = seg.path || [];
+        if (!isValidLineString(path)) continue;
+
+        features.push({
+            type: "Feature",
+            properties: {
+                name: seg.name,
+                distanceKm: seg.distanceKm || 0,
+                riskScore: seg.currentRiskScore || 0,
+                isDiversion: true,
+            },
+            geometry: {
+                type: "LineString",
+                coordinates: path,
+            },
+        });
+    }
+
+    return { type: "FeatureCollection", features };
+};

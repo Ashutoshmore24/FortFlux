@@ -74,3 +74,44 @@ export const getCisternTooltipHTML = (properties) => {
         </div>
     `;
 };
+
+/**
+ * Generate HTML content for a severed trail tooltip.
+ */
+export const getSeveredTrailTooltipHTML = (properties) => {
+    const { name, riskScore, severReason, distanceKm } = properties;
+    const reasonText = severReason === "authority_severed"
+        ? "Manually severed by Authority command"
+        : "Critical erosion threshold exceeded (≥75%)";
+
+    return `
+        <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 180px;">
+            <div style="font-weight: 800; font-size: 12px; color: #dc2626; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                🚨 SEVERED PATH: ${name}
+            </div>
+            <div style="font-size: 11px; color: #475569; margin-bottom: 3px;">
+                Risk: <strong style="color: #dc2626;">${riskScore}% CRITICAL</strong> · ${distanceKm} km
+            </div>
+            <div style="font-size: 10px; color: #9f1239; font-weight: 600; background: #ffe4e6; padding: 3px 6px; border-radius: 4px;">
+                ⚠️ ${reasonText} — Rerouting via diversion
+            </div>
+        </div>
+    `;
+};
+
+/**
+ * Generate HTML content for a diversion route segment tooltip.
+ */
+export const getDiversionTooltipHTML = (properties) => {
+    const { name, distanceKm, riskScore } = properties;
+    return `
+        <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 170px;">
+            <div style="font-weight: 800; font-size: 12px; color: #059669; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                ✅ ACTIVE DIVERSION: ${name}
+            </div>
+            <div style="font-size: 11px; color: #475569;">
+                Segment: <strong>${distanceKm} km</strong> · Risk: <span style="color: #059669; font-weight: 600;">${riskScore}% (Safe)</span>
+            </div>
+        </div>
+    `;
+};

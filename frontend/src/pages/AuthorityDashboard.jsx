@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useFortStore } from "../store/useFortStore";
 import { useWeatherStore } from "../store/useWeatherStore";
 import { useRiskStore } from "../store/useRiskStore";
+import { useRoutingStore } from "../store/useRoutingStore";
 import FortMap from "../components/map/FortMap";
 import {
   Shield,
@@ -21,6 +22,8 @@ import {
   Zap,
   Database,
   Activity,
+  Route,
+  Scissors,
 } from "lucide-react";
 
 export const AuthorityDashboard = () => {
@@ -55,6 +58,17 @@ export const AuthorityDashboard = () => {
     lastComputed,
   } = useRiskStore();
 
+  const {
+    severedTrails,
+    diversionRoute,
+    simulationResult,
+    isSimulating,
+    simulateRouting,
+    toggleSeverTrail,
+    clearSimulation,
+    manuallySeveredIds,
+  } = useRoutingStore();
+
   const [rainfall, setRainfall] = useState(65);
   const [footfall, setFootfall] = useState(450);
   const [updatingTrailId, setUpdatingTrailId] = useState(null);
@@ -79,6 +93,17 @@ export const AuthorityDashboard = () => {
     const mapFort = forts.find((f) => f.slug === slug);
     if (mapFort) selectFort(mapFort);
     setApplySuccess(false);
+    clearSimulation();
+  };
+
+  // Toggle manual severing of a trail segment (simulate emergency severance)
+  const handleSeverToggle = async (trailId) => {
+    if (selectedFortSlug) {
+      await toggleSeverTrail(selectedFortSlug, trailId, {
+        rainfall,
+        footfall,
+      });
+    }
   };
 
   // Compute live risk from weather API
@@ -164,6 +189,28 @@ export const AuthorityDashboard = () => {
     await updateTrailStatus(trail._id, { status: newStatus });
     setUpdatingTrailId(null);
   };
+
+  // ── Adaptive Routing Auto-Sever & Simulation Trigger ──
+  // Whenever rainfall or footfall causes risk >= 75% or manual severing occurs,
+  // the routing engine dynamically severs compromised paths and computes safe diversion routes.
+  useEffect(() => {
+    if (!selectedFortSlug || trails.length === 0) return;
+
+    const hasCriticalRisk = trails.some((t) => (riskOverrides.get(t._id) || 0) >= 75);
+    const hasManualSever = manuallySeveredIds.length > 0;
+
+    if (hasCriticalRisk || hasManualSever) {
+      const overridesObj = Object.fromEntries(riskOverrides.entries());
+      simulateRouting(selectedFortSlug, {
+        rainfall,
+        footfall,
+        riskOverrides: overridesObj,
+        severedTrailIds: manuallySeveredIds,
+      });
+    } else if (severedTrails.length > 0) {
+      clearSimulation();
+    }
+  }, [selectedFortSlug, rainfall, footfall, riskOverrides, manuallySeveredIds]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -583,6 +630,57 @@ export const AuthorityDashboard = () => {
       </div>
 
       {/* ═══ Interactive Fort Map + Trail Management ═══ */}
+      {severedTrails.length > 0 && (
+        <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-rose-950/50 via-slate-900 to-emerald-950/40 border border-rose-500/40 rounded-3xl shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 bg-rose-500/20 rounded-2xl text-rose-400 shrink-0 mt-0.5">
+                <AlertOctagon className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h3 className="text-sm font-bold text-white">
+                    🚦 Adaptive Routing Engine Active: {severedTrails.length} Segment{severedTrails.length > 1 ? "s" : ""} Auto-Severed
+                  </h3>
+                  <span className="text-[10px] bg-rose-500/20 text-rose-300 font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/40 uppercase tracking-wider">
+                    Threshold Exceeded (≥ 75%)
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">
+                  {simulationResult?.summary || "Compromised trail segments severed to prevent erosion disaster. Safe traffic diversion computed live via Dijkstra graph traversal."}
+                </p>
+                {diversionRoute && diversionRoute.safe && (
+                  <div className="flex flex-wrap items-center gap-3 mt-2.5 text-xs text-emerald-300 font-semibold bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+                    <span className="flex items-center gap-1.5">
+                      <Route className="w-4 h-4 text-emerald-400" />
+                      Active Diversion: <strong>{diversionRoute.start}</strong> → <strong>{diversionRoute.destination}</strong>
+                    </span>
+                    <span>·</span>
+                    <span>Distance: {diversionRoute.totalDistanceKm} km</span>
+                    <span>·</span>
+                    <span>{diversionRoute.segmentCount} Safe Segment{diversionRoute.segmentCount !== 1 ? "s" : ""}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                onClick={() => {
+                  clearSimulation();
+                  setRainfall(40);
+                  setFootfall(300);
+                }}
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset Engine
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Map (2/3 width) */}
         <div className="lg:col-span-2">
@@ -591,14 +689,25 @@ export const AuthorityDashboard = () => {
               <MapIcon className="w-5 h-5 text-amber-400" />
               Authority Map — Live Trail Network
             </h2>
-            <span className="text-[11px] bg-amber-500/10 text-amber-300 font-semibold px-3 py-1 rounded-full border border-amber-500/30">
-              ⚡ Simulation Active
-            </span>
+            <div className="flex items-center gap-2">
+              {severedTrails.length > 0 ? (
+                <span className="text-[11px] bg-rose-500/20 text-rose-300 font-bold px-3 py-1 rounded-full border border-rose-500/40 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  Diversion Active
+                </span>
+              ) : (
+                <span className="text-[11px] bg-amber-500/10 text-amber-300 font-semibold px-3 py-1 rounded-full border border-amber-500/30">
+                  ⚡ Simulation Active
+                </span>
+              )}
+            </div>
           </div>
           <FortMap
             className="h-[550px]"
             onFortSelect={(fort) => handleFortChange(fort.slug)}
             riskOverrides={riskOverrides}
+            severedTrails={severedTrails}
+            diversionRoute={diversionRoute}
           />
         </div>
 
@@ -633,12 +742,15 @@ export const AuthorityDashboard = () => {
                 const isClosed =
                   trail.status === "closed" || trail.status === "diverted";
                 const isUpdating = updatingTrailId === trail._id;
+                const isSevered = manuallySeveredIds.includes(trail._id) || (riskOverrides.get(trail._id) || 0) >= 75;
 
                 return (
                   <div
                     key={trail._id}
                     className={`p-3 rounded-xl border transition ${
-                      isClosed
+                      isSevered
+                        ? "bg-rose-500/10 border-rose-500/40"
+                        : isClosed
                         ? "bg-rose-500/5 border-rose-500/30"
                         : "bg-slate-950/50 border-slate-800/80"
                     }`}
@@ -656,38 +768,61 @@ export const AuthorityDashboard = () => {
                       </div>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          isClosed
+                          isSevered
+                            ? "bg-rose-600 text-white font-extrabold animate-pulse"
+                            : isClosed
                             ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                             : trail.currentRiskScore >= 50
                             ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
                             : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                         }`}
                       >
-                        Risk {trail.currentRiskScore}%
+                        {isSevered ? "SEVERED" : `Risk ${riskOverrides.get(trail._id) || trail.currentRiskScore}%`}
                       </span>
                     </div>
 
-                    <button
-                      onClick={() => handleTrailToggle(trail)}
-                      disabled={isUpdating}
-                      className={`w-full py-1.5 px-3 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1.5 disabled:opacity-50 ${
-                        isClosed
-                          ? "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30"
-                          : "bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30"
-                      }`}
-                    >
-                      {isUpdating ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : isClosed ? (
-                        <>
-                          <RotateCcw className="w-3 h-3" /> Reopen Trail
-                        </>
-                      ) : (
-                        <>
-                          <XCircle className="w-3 h-3" /> Close Trail
-                        </>
-                      )}
-                    </button>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <button
+                        onClick={() => handleSeverToggle(trail._id)}
+                        className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 border ${
+                          isSevered
+                            ? "bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border-amber-500/30"
+                            : "bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border-rose-500/30"
+                        }`}
+                      >
+                        {isSevered ? (
+                          <>
+                            <RotateCcw className="w-3 h-3" /> Reconnect
+                          </>
+                        ) : (
+                          <>
+                            <Scissors className="w-3 h-3" /> Sever Path
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleTrailToggle(trail)}
+                        disabled={isUpdating}
+                        className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 border disabled:opacity-50 ${
+                          isClosed
+                            ? "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30"
+                            : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                        }`}
+                      >
+                        {isUpdating ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : isClosed ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Reopen DB
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-3 h-3" /> Close DB
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
