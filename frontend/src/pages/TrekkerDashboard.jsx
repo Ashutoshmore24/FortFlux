@@ -23,6 +23,10 @@ import {
   Navigation,
   Loader2,
   Route,
+  ShieldCheck,
+  XCircle,
+  Backpack,
+  Info,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -384,6 +388,69 @@ export const TrekkerDashboard = () => {
               />
             </div>
           </div>
+
+          {/* Trek Recommendations */}
+          {weather.recommendation && (
+            <div className="mt-4 p-4 sm:p-5 bg-slate-950/60 rounded-xl border border-slate-800">
+              <div className="flex flex-col sm:flex-row gap-4 sm:items-start justify-between mb-4">
+                <div className="flex items-start gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    weather.recommendation.isSafe
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "bg-rose-500/10 text-rose-400"
+                  }`}>
+                    {weather.recommendation.isSafe ? (
+                      <ShieldCheck className="w-6 h-6" />
+                    ) : (
+                      <XCircle className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-base">
+                      {weather.recommendation.status}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {weather.recommendation.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800/80">
+                {/* Accessories */}
+                <div>
+                  <h5 className="text-[11px] font-semibold text-cyan-400 mb-2 flex items-center gap-1.5">
+                    <Backpack className="w-3.5 h-3.5" />
+                    Recommended Gear
+                  </h5>
+                  <ul className="grid grid-cols-1 gap-1.5">
+                    {weather.recommendation.accessories.map((item, i) => (
+                      <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-cyan-500/50"></span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Precautions */}
+                <div>
+                  <h5 className="text-[11px] font-semibold text-amber-400 mb-2 flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5" />
+                    Precautions
+                  </h5>
+                  <ul className="grid grid-cols-1 gap-1.5">
+                    {weather.recommendation.precautions.map((item, i) => (
+                      <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-amber-500/50"></span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Cache/freshness indicator */}
           <div className="mt-3 flex items-center justify-end gap-2 text-[10px] text-slate-500">
