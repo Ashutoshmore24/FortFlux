@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import TrekkerDashboard from "./pages/TrekkerDashboard";
 import AuthorityDashboard from "./pages/AuthorityDashboard";
+import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import { Loader2 } from "lucide-react";
@@ -77,6 +78,7 @@ export function App() {
             {/* Authenticated Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<TrekkerDashboard />} />
+              <Route path="/profile" element={<ProfilePage />} />
 
               {/* Authority Only Routes (Protected by RBAC RoleRoute) */}
               <Route element={<RoleRoute allowedRoles={["authority", "admin"]} />}>

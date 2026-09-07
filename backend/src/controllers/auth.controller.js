@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import User from "../models/User.js";
 import generateToken, { getCookieOptions } from "../lib/jwt.js";
+import admin from "../lib/firebase-admin.js";
+import cloudinary from "../lib/cloudinary.js";
 
 const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -134,12 +137,14 @@ const checkAuth = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { profilePic, username, organization } = req.body;
+        const { username, fullName, bio, location, organization } = req.body;
         const userId = req.user._id;
 
         const updateData = {};
-        if (profilePic !== undefined) updateData.profilePic = profilePic;
         if (username !== undefined) updateData.username = username.trim();
+        if (fullName !== undefined) updateData.fullName = fullName.trim();
+        if (bio !== undefined) updateData.bio = bio.trim();
+        if (location !== undefined) updateData.location = location.trim();
         if (organization !== undefined) updateData.organization = organization.trim();
 
         const updatedUser = await User.findByIdAndUpdate(
@@ -155,4 +160,80 @@ const updateProfile = async (req, res) => {
     }
 };
 
-export { login, signup, logout, checkAuth, updateProfile };
+const googleLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({ message: "Firebase ID token is required" });
+        }
+
+        // Verify the Firebase ID token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { uid, email, name, picture } = decodedToken;
+
+        if (!email) {
+            return res.status(400).json({ message: "Google account must have an email address" });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Check if user already exists
+        let user = await User.findOne({ email: normalizedEmail });
+
+        if (user) {
+            // Update googleId if not already set (existing email/password user linking to Google)
+            if (!user.googleId) {
+                user.googleId = uid;
+                user.authProvider = "google";
+                if (picture && !user.profilePic) {
+                    user.profilePic = picture;
+                }
+                await user.save();
+            }
+        } else {
+            // Create a new user — generate a random placeholder password
+            const randomPassword = crypto.randomBytes(32).toString("hex");
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(randomPassword, salt);
+
+            user = new User({
+                username: name || email.split("@")[0],
+                email: normalizedEmail,
+                password: hashedPassword,
+                role: "trekker",
+                organization: "",
+                profilePic: picture || "",
+                googleId: uid,
+                authProvider: "google",
+            });
+
+            await user.save();
+        }
+
+        // Generate JWT token and set cookie
+        generateToken(user._id, user.role, res);
+
+        return res.status(200).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            organization: user.organization,
+            profilePic: user.profilePic,
+        });
+    } catch (error) {
+        console.error("Error in googleLogin controller:", error.message);
+
+        if (error.code === "auth/id-token-expired") {
+            return res.status(401).json({ message: "Google token has expired. Please try again." });
+        }
+        if (error.code === "auth/argument-error" || error.code === "auth/id-token-revoked") {
+            return res.status(401).json({ message: "Invalid Google token. Please try again." });
+        }
+
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export { login, signup, logout, checkAuth, updateProfile, googleLogin };

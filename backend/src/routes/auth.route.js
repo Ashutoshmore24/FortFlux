@@ -1,5 +1,5 @@
 import express from "express";
-import { login, signup, logout, checkAuth, updateProfile } from "../controllers/auth.controller.js";
+import { login, signup, logout, checkAuth, updateProfile, googleLogin } from "../controllers/auth.controller.js";
 import { protectRoute, requireRole } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
+router.post("/google", googleLogin);
 
 router.get("/check", protectRoute, checkAuth);
 router.put("/profile", protectRoute, updateProfile);
