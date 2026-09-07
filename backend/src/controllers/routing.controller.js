@@ -1,6 +1,7 @@
 import Fort from "../models/Fort.js";
 import Trail from "../models/Trail.js";
 import { findRoute, simulateRouting } from "../services/routing.service.js";
+import { emitToAll, emitToFort } from "../lib/socket.js";
 
 /**
  * GET /api/forts/:slug/route?start=...&destination=...
@@ -132,12 +133,18 @@ export const simulateRoute = async (req, res) => {
             destinationName: destination || null,
         });
 
-        return res.status(200).json({
+        const responseData = {
             success: true,
             fort: fort.name,
             fortSlug: fort.slug,
             ...simulationResult,
-        });
+        };
+
+        // Phase 7: Emit real-time simulation update to all connected clients
+        emitToFort(fort.slug, "simulation-update", responseData);
+        emitToAll("simulation-update", responseData);
+
+        return res.status(200).json(responseData);
     } catch (error) {
         console.error("Error in simulateRoute controller:", error);
         return res.status(500).json({

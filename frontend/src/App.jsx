@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
+import { useFortStore } from "./store/useFortStore";
+import { useRiskStore } from "./store/useRiskStore";
+import { useRoutingStore } from "./store/useRoutingStore";
+import { connectSocket, disconnectSocket } from "./lib/socket";
 import Navbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -17,6 +21,31 @@ export function App() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Phase 7: Connect socket when authenticated, disconnect when not
+  useEffect(() => {
+    if (authUser) {
+      connectSocket();
+
+      // Subscribe all stores to real-time socket events
+      useFortStore.getState().subscribeToSocket();
+      useRiskStore.getState().subscribeToSocket();
+      useRoutingStore.getState().subscribeToSocket();
+    } else {
+      // Unsubscribe stores and disconnect socket on logout
+      useFortStore.getState().unsubscribeFromSocket();
+      useRiskStore.getState().unsubscribeFromSocket();
+      useRoutingStore.getState().unsubscribeFromSocket();
+      disconnectSocket();
+    }
+
+    return () => {
+      useFortStore.getState().unsubscribeFromSocket();
+      useRiskStore.getState().unsubscribeFromSocket();
+      useRoutingStore.getState().unsubscribeFromSocket();
+      disconnectSocket();
+    };
+  }, [authUser]);
 
   if (isCheckingAuth) {
     return (

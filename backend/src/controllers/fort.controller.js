@@ -1,6 +1,7 @@
 import Fort from "../models/Fort.js";
 import Trail from "../models/Trail.js";
 import Cistern from "../models/Cistern.js";
+import { emitToAll, emitToFort } from "../lib/socket.js";
 
 /**
  * GET /api/forts
@@ -133,6 +134,23 @@ export const updateTrailStatus = async (req, res) => {
         if (description !== undefined) trail.description = description;
 
         await trail.save();
+
+        // Phase 7: Emit real-time trail status update to all connected clients
+        const fort = await Fort.findById(trail.fort);
+        const eventData = {
+            trailId: trail._id,
+            fortSlug: fort?.slug || null,
+            name: trail.name,
+            status: trail.status,
+            currentRiskScore: trail.currentRiskScore,
+            currentFootfall: trail.currentFootfall,
+            updatedAt: trail.updatedAt,
+        };
+
+        if (fort?.slug) {
+            emitToFort(fort.slug, "trail-status-changed", eventData);
+        }
+        emitToAll("trail-status-changed", eventData);
 
         return res.status(200).json({
             message: `Trail '${trail.name}' status updated to '${trail.status}'`,
