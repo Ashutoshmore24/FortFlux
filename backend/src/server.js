@@ -9,6 +9,7 @@ import weatherRoutes from './routes/weather.route.js';
 import riskRoutes from './routes/risk.route.js';
 import routingRoutes from './routes/routing.route.js';
 import userRoutes from './routes/user.route.js';
+import reportRoutes from './routes/report.route.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/weather", weatherRoutes);
 app.use("/api/risk", riskRoutes);
 app.use("/api/routing", routingRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/reports", reportRoutes);
 
 // Catch-all for unknown API routes
 app.all("/api/*path", (req, res) => {

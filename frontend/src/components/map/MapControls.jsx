@@ -2,7 +2,7 @@
 // Provides map style switching, layer toggles, terrain controls, GPS, and camera reset.
 // Matches the existing FortFlux dark glassmorphism design.
 
-import { Mountain, Navigation, Droplets, Layers, Globe, MapIcon, Satellite, Compass, LocateFixed, RotateCcw } from "lucide-react";
+import { Mountain, Navigation, Droplets, Layers, Globe, MapIcon, Satellite, Compass, LocateFixed, RotateCcw, Camera } from "lucide-react";
 
 const MapControls = ({
     mapStyle,
@@ -11,6 +11,8 @@ const MapControls = ({
     onToggleTrails,
     showCisterns,
     onToggleCisterns,
+    showReports = true,
+    onToggleReports,
     terrainEnabled,
     onToggleTerrain,
     onResetView,
@@ -105,6 +107,20 @@ const MapControls = ({
                     <Droplets className="w-3 h-3" />
                     Cisterns
                 </button>
+                {onToggleReports && (
+                    <button
+                        onClick={onToggleReports}
+                        aria-label="Toggle photo evidence layer visibility"
+                        title={showReports ? "Hide photo evidence" : "Show photo evidence"}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition cursor-pointer ${showReports
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                            : "bg-slate-800 text-slate-400 border border-slate-700"
+                            }`}
+                    >
+                        <Camera className="w-3 h-3" />
+                        Photos
+                    </button>
+                )}
             </div>
 
             {/* Camera Controls */}

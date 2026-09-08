@@ -4,7 +4,9 @@ import { useWeatherStore } from "../store/useWeatherStore";
 import { useFortStore } from "../store/useFortStore";
 import { useRiskStore } from "../store/useRiskStore";
 import { useRoutingStore } from "../store/useRoutingStore";
+import { useReportStore } from "../store/useReportStore";
 import FortMap from "../components/map/FortMap";
+import PhotoUploadModal from "../components/PhotoUploadModal";
 import {
   Compass,
   CloudRain,
@@ -59,8 +61,15 @@ export const TrekkerDashboard = () => {
     clearRoute,
   } = useRoutingStore();
 
+  const {
+    reports,
+    fetchFortReports,
+    isLoadingReports,
+  } = useReportStore();
+
   const [startWaypoint, setStartWaypoint] = useState("");
   const [destWaypoint, setDestWaypoint] = useState("");
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch forts list + weather on mount & start auto-refresh
   useEffect(() => {
@@ -79,6 +88,7 @@ export const TrekkerDashboard = () => {
     if (selectedFortSlug) {
       fetchFortDetail(selectedFortSlug);
       fetchRisk(selectedFortSlug);
+      fetchFortReports(selectedFortSlug);
       // Start polling risk every 2 minutes
       startPolling(selectedFortSlug, 2 * 60 * 1000);
       // Sync with useFortStore selectedFort
@@ -406,10 +416,11 @@ export const TrekkerDashboard = () => {
           </span>
         </div>
         <FortMap
-  className="h-[550px]"
-  onFortSelect={(fort) => handleFortChange(fort.slug)}
-  safeRoute={routeResult}
-/>
+          className="h-[550px]"
+          onFortSelect={(fort) => handleFortChange(fort.slug)}
+          safeRoute={routeResult}
+          photoReports={reports}
+        />
       </div>
 
       {/* ═══ Route Finder — Phase 5 Adaptive Routing ═══ */}
@@ -650,17 +661,121 @@ export const TrekkerDashboard = () => {
                 <Camera className="w-4 h-4 text-emerald-400" />
                 Crowdsourced Audit
               </h3>
+              {reports.length > 0 && (
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  {reports.length} Evidence Logged
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400 mb-4">
-              Upload geotagged photos of mortar fissures, trail step rutting, or masonry degradation as you trek.
+              Upload geotagged photos of mortar fissures, trail step rutting, rockfall, or masonry degradation as you trek.
             </p>
           </div>
-          <button className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+          <button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-950/40"
+          >
             <Camera className="w-4 h-4" />
             Submit Trail Photo Evidence
           </button>
         </div>
       </div>
+
+      {/* ═══ Live Community Trail Evidence Feed ═══ */}
+      {reports.length > 0 && (
+        <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+                <Camera className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base flex items-center gap-2">
+                  Live Community Trail Evidence — {fortInfo?.name || "Fort Corridor"}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Real-time geotagged hazard photos verified by on-trail Sahyadri trekkers
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              Add Evidence
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {reports.slice(0, 6).map((report) => {
+              const severityColor =
+                report.severity === "critical"
+                  ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                  : report.severity === "high"
+                  ? "bg-orange-500/20 text-orange-300 border-orange-500/30"
+                  : report.severity === "moderate"
+                  ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+
+              return (
+                <div
+                  key={report._id}
+                  className="bg-slate-950/70 border border-slate-800/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition"
+                >
+                  <div>
+                    {report.imageUrl && (
+                      <div className="relative h-40 w-full overflow-hidden bg-slate-900">
+                        <img
+                          src={report.imageUrl}
+                          alt={report.hazardType}
+                          className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                        />
+                        <span
+                          className={`absolute top-2.5 right-2.5 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border backdrop-blur-sm ${severityColor}`}
+                        >
+                          {report.severity}
+                        </span>
+                        <span className="absolute bottom-2.5 left-2.5 text-[10px] font-bold bg-slate-950/80 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800 capitalize">
+                          {report.hazardType}
+                        </span>
+                      </div>
+                    )}
+                    <div className="p-4">
+                      {report.description && (
+                        <p className="text-xs text-slate-300 line-clamp-2 mb-2 leading-relaxed">
+                          {report.description}
+                        </p>
+                      )}
+
+                      {report.aiTriage?.hazardAssessment && (
+                        <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl p-2.5 mb-2.5 text-[11px] text-sky-200">
+                          <span className="font-bold text-sky-300">🤖 AI Triage:</span>{" "}
+                          {report.aiTriage.hazardAssessment}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="px-4 pb-4 pt-1 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>By {report.user?.username || "Sahyadri Trekker"}</span>
+                    <span className="text-slate-500">
+                      {report.createdAt ? new Date(report.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recent"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Geotagged Photo Upload Modal */}
+      <PhotoUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        defaultFortSlug={selectedFortSlug}
+      />
     </div>
   );
 };

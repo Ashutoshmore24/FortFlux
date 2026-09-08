@@ -115,3 +115,66 @@ export const getDiversionTooltipHTML = (properties) => {
         </div>
     `;
 };
+
+/**
+ * Generate HTML content for a crowdsourced photo report popup.
+ */
+export const getReportPopupHTML = (properties) => {
+    const {
+        imageUrl,
+        hazardType,
+        severity,
+        severityColor = "#f59e0b",
+        status,
+        description,
+        trekkerName,
+        createdAt,
+        aiAssessment,
+    } = properties;
+
+    const timeString = createdAt ? new Date(createdAt).toLocaleDateString("en-IN", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }) : "";
+
+    const hazardIcons = {
+        rockfall: "🪨 Rockfall",
+        landslide: "⚠️ Landslide",
+        waterlogging: "🌊 Waterlogged",
+        fissure: "🧱 Masonry Fissure",
+        railing: "⛓️ Broken Railing",
+        overcrowding: "👥 Congestion",
+        other: "📍 Hazard Report",
+    };
+
+    const hazardTitle = hazardIcons[hazardType] || "Hazard Report";
+
+    return `
+        <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 220px; max-width: 260px;">
+            ${imageUrl ? `
+                <div style="width: 100%; height: 125px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; background: #0f172a; position: relative;">
+                    <img src="${imageUrl}" alt="${hazardTitle}" style="width: 100%; height: 125px; object-fit: cover;" onerror="this.style.display='none'" />
+                    <span style="position: absolute; top: 6px; right: 6px; background: ${severityColor}; color: #fff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 999px; text-transform: uppercase;">
+                        ${severity}
+                    </span>
+                </div>
+            ` : ""}
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${hazardTitle}</span>
+                <span style="font-size: 9px; font-weight: 700; text-transform: capitalize; padding: 1px 6px; border-radius: 4px; ${
+                    status === "verified" ? "background: #dcfce7; color: #15803d;" : "background: #fef9c3; color: #854d0e;"
+                }">
+                    ${status}
+                </span>
+            </div>
+            ${description ? `<p style="font-size: 11px; color: #334155; margin: 0 0 6px; line-height: 1.4;">${description}</p>` : ""}
+            ${aiAssessment ? `<div style="font-size: 10px; color: #0369a1; background: #e0f2fe; padding: 4px 6px; border-radius: 6px; margin-bottom: 6px;">🤖 AI: ${aiAssessment}</div>` : ""}
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+                <span>By ${trekkerName}</span>
+                <span>${timeString}</span>
+            </div>
+        </div>
+    `;
+};

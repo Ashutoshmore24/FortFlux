@@ -10,6 +10,7 @@ import {
     getCisternTooltipHTML,
     getSeveredTrailTooltipHTML,
     getDiversionTooltipHTML,
+    getReportPopupHTML,
 } from "./MapPopup";
 import {
     fortsToGeoJSON,
@@ -19,6 +20,7 @@ import {
     getTrailColor,
     severedTrailsToGeoJSON,
     diversionRouteToGeoJSON,
+    reportsToGeoJSON,
 } from "../../utils/geoJsonUtils";
 import {
     MAPTILER_KEY,
@@ -68,6 +70,7 @@ const FortMap = ({
     safeRoute = null,
     severedTrails = null,
     diversionRoute = null,
+    photoReports = null,
 }) => {
     const {
         forts,
@@ -83,6 +86,7 @@ const FortMap = ({
     const [mapStyle, setMapStyle] = useState("satellite");
     const [showTrails, setShowTrails] = useState(true);
     const [showCisterns, setShowCisterns] = useState(true);
+    const [showReports, setShowReports] = useState(true);
     const [terrainEnabled, setTerrainEnabled] = useState(false);
     const [mapReady, setMapReady] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
@@ -95,13 +99,13 @@ const FortMap = ({
     const userMarkerRef = useRef(null);
     const geoWatchRef = useRef(null);
     // Store current data for re-adding after style changes
-    const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC });
-    const stateRef = useRef({ showTrails: true, showCisterns: true, terrainEnabled: false });
+    const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC, reports: EMPTY_FC });
+    const stateRef = useRef({ showTrails: true, showCisterns: true, showReports: true, terrainEnabled: false });
 
     // Keep stateRef in sync
     useEffect(() => {
-        stateRef.current = { showTrails, showCisterns, terrainEnabled };
-    }, [showTrails, showCisterns, terrainEnabled]);
+        stateRef.current = { showTrails, showCisterns, showReports, terrainEnabled };
+    }, [showTrails, showCisterns, showReports, terrainEnabled]);
 
     const trails = fortDetail?.trails || [];
     const cisterns = fortDetail?.cisterns || [];
@@ -157,6 +161,11 @@ const FortMap = ({
         return diversionRouteToGeoJSON(diversionRoute);
     }, [diversionRoute]);
 
+    // ── Photo Reports GeoJSON (Phase 6 Crowdsourced Evidence) ──
+    const reportsGeoJSON = useMemo(() => {
+        return reportsToGeoJSON(photoReports || []);
+    }, [photoReports]);
+
     // Store latest GeoJSON in ref for style.load handler
     useEffect(() => {
         dataRef.current = {
@@ -166,8 +175,9 @@ const FortMap = ({
             route: routeGeoJSON,
             severed: severedGeoJSON,
             diversion: diversionGeoJSON,
+            reports: reportsGeoJSON,
         };
-    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON, severedGeoJSON, diversionGeoJSON]);
+    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON, severedGeoJSON, diversionGeoJSON, reportsGeoJSON]);
 
     // ══════════════════════════════════════════════════════
     // Add GeoJSON sources + layers to the map
@@ -471,6 +481,59 @@ const FortMap = ({
                 },
             });
         }
+
+        // ── Photo Reports Source + Layers (Phase 6 Crowdsourced Evidence) ──
+        if (!hasSource(map, "reports-source")) {
+            map.addSource("reports-source", { type: "geojson", data: data.reports || EMPTY_FC });
+        } else {
+            map.getSource("reports-source").setData(data.reports || EMPTY_FC);
+        }
+
+        // Photo Reports glow halo
+        if (!hasLayer(map, "reports-glow")) {
+            map.addLayer({
+                id: "reports-glow",
+                type: "circle",
+                source: "reports-source",
+                layout: {
+                    visibility: state.showReports ? "visible" : "none",
+                },
+                paint: {
+                    "circle-radius": [
+                        "interpolate", ["linear"], ["zoom"],
+                        8, 8,
+                        12, 14,
+                        16, 20,
+                    ],
+                    "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
+                    "circle-opacity": 0.35,
+                },
+            });
+        }
+
+        // Photo Reports central circle pin
+        if (!hasLayer(map, "reports-circles")) {
+            map.addLayer({
+                id: "reports-circles",
+                type: "circle",
+                source: "reports-source",
+                layout: {
+                    visibility: state.showReports ? "visible" : "none",
+                },
+                paint: {
+                    "circle-radius": [
+                        "interpolate", ["linear"], ["zoom"],
+                        8, 5,
+                        12, 8,
+                        16, 11,
+                    ],
+                    "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
+                    "circle-stroke-width": 2,
+                    "circle-stroke-color": "#ffffff",
+                    "circle-opacity": 0.95,
+                },
+            });
+        }
     }, []);
 
     // ══════════════════════════════════════════════════════
@@ -616,6 +679,31 @@ const FortMap = ({
             popupRef.current.remove();
         });
 
+        // ── Photo Reports hover / click for popup ──
+        map.on("mouseenter", "reports-circles", (e) => {
+            map.getCanvas().style.cursor = "pointer";
+            if (!e.features?.length) return;
+            const props = e.features[0].properties;
+            const coords = e.features[0].geometry.coordinates.slice();
+            popupRef.current
+                .setLngLat(coords)
+                .setHTML(getReportPopupHTML(props))
+                .addTo(map);
+        });
+        map.on("mouseleave", "reports-circles", () => {
+            map.getCanvas().style.cursor = "";
+            popupRef.current.remove();
+        });
+        map.on("click", "reports-circles", (e) => {
+            if (!e.features?.length) return;
+            const props = e.features[0].properties;
+            const coords = e.features[0].geometry.coordinates.slice();
+            popupRef.current
+                .setLngLat(coords)
+                .setHTML(getReportPopupHTML(props))
+                .addTo(map);
+        });
+
         // ── Fort hover cursor ──
         const setPointer = () => { map.getCanvas().style.cursor = "pointer"; };
         const resetPointer = () => { map.getCanvas().style.cursor = ""; };
@@ -710,6 +798,18 @@ const FortMap = ({
         if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
     }, [diversionGeoJSON, addSourcesAndLayers]);
 
+    // Update photo reports source when photo reports change
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        if (map.isStyleLoaded()) {
+            addSourcesAndLayers(map);
+        }
+        const reportSrc = map.getSource("reports-source");
+        if (reportSrc) reportSrc.setData(reportsGeoJSON);
+    }, [reportsGeoJSON, addSourcesAndLayers]);
+
     // ══════════════════════════════════════════════════════
     // Fit bounds to all forts on initial data load
     // ══════════════════════════════════════════════════════
@@ -761,6 +861,18 @@ const FortMap = ({
             map.setLayoutProperty(LAYERS.cisternCircles, "visibility", showCisterns ? "visible" : "none");
         }
     }, [showCisterns, mapReady]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+
+        if (hasLayer(map, "reports-glow")) {
+            map.setLayoutProperty("reports-glow", "visibility", showReports ? "visible" : "none");
+        }
+        if (hasLayer(map, "reports-circles")) {
+            map.setLayoutProperty("reports-circles", "visibility", showReports ? "visible" : "none");
+        }
+    }, [showReports, mapReady]);
 
     // ══════════════════════════════════════════════════════
     // Style Change Handler
@@ -927,6 +1039,8 @@ const FortMap = ({
                 onToggleTrails={() => setShowTrails(!showTrails)}
                 showCisterns={showCisterns}
                 onToggleCisterns={() => setShowCisterns(!showCisterns)}
+                showReports={showReports}
+                onToggleReports={() => setShowReports(!showReports)}
                 terrainEnabled={terrainEnabled}
                 onToggleTerrain={handleToggleTerrain}
                 onResetView={handleResetView}
