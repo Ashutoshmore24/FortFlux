@@ -513,56 +513,6 @@ CLIENT_URL=http://localhost:5173
 
 ---
 
-## 🎬 Interactive Demo Flow (Judging Round)
-
-```mermaid
-graph TD
-    A["1. Open Trekker Dashboard<br/>Select Sinhagad or Rajgad"] --> B["2. Inspect Baseline State<br/>Green trails, normal water levels, live weather"]
-    B --> C["3. Open Heritage Guide<br/>View Key Landmarks, photo spots, turn-by-turn route"]
-    C --> D["4. Switch to Authority Command Center<br/>Stress-test with Simulation Sliders"]
-    D --> E["5. Drag Rainfall & Footfall Sliders Up ↑<br/>Watch Risk Score climb past 75"]
-    E --> F["6. Automated Severing & Reroute<br/>Compromised path closes, blue diversion drawn"]
-    F --> G["7. Submit Crowdsourced Hazard Photo<br/>Upload photo, verify triage on Authority map"]
-
-    style A fill:#065f46,color:#fff
-    style B fill:#065f46,color:#fff
-    style C fill:#0e7490,color:#fff
-    style D fill:#78350f,color:#fff
-    style E fill:#991b1b,color:#fff
-    style F fill:#991b1b,color:#fff
-    style G fill:#581c87,color:#fff
-```
-
-1. **Baseline View**: Open the Trekker Dashboard on **Sinhagad** or **Rajgad**. Observe the green open trails, stable cistern levels, and live Open-Meteo weather observations.
-2. **Heritage Page**: Click **"Heritage & History"** to explore authentic landmark photos (*Fort Walls*, *Pune Darwaja*, *Tanaji Malusare Memorial*), must-see durations, photo spots, turn-by-turn directions, and the Google Maps community gallery.
-3. **Simulation Stress-Test**: Log in as an **Authority** and navigate to the Command Center.
-4. **Increase Environmental Strain**: Drag the **Rainfall Slider** to $85\text{ mm/hr}$ and **Trekker Density** to $2.2\times$.
-5. **Threshold Trigger & Auto-Severing**: Watch the risk score on bottleneck segments cross $75$. The system immediately marks the path as **Closed** and computes an automatic safe detour.
-6. **Real-Time Client Broadcast**: Check the Trekker Dashboard in a separate tab — the trail status updates instantly without reloading, with warning alerts displayed.
-
----
-
-## 🌿 Why This Fits the Track
-
-**PCCOE IGC Hackathon Track**: *Biodiversity, Ecosystem Conservation & Climate Awareness*
-
-| Track Pillar | How FortFlux Solves It |
-|---|---|
-| **Ecosystem & Biodiversity Conservation** | Heavy unmanaged trekking crushes sub-alpine vegetation and accelerates gully erosion that strips topsoil from Western Ghats ridgelines. By throttling foot traffic dynamically, FortFlux protects delicate endemic slope ecology. |
-| **Climate Awareness in Action** | Translates abstract monsoon trends and cloudburst data into actionable real-time safety scores that trekkers and rangers understand at a glance. |
-| **Heritage & Living Masonry Preservation** | Western Ghats forts are active living heritage sites. FortFlux prevents irreversible scouring of 400-year-old rock-cut cisterns, battlements, and steep stone stairways. |
-
----
-
-## 🔮 Future Roadmap
-
-- 🛰️ **Synthetic Aperture Radar (SAR) InSAR Integration**: Incorporate Sentinel-1 satellite interferometry for millimetric slope displacement detection before visible rockfalls occur.
-- 📱 **Offline-First PWA & Mesh Networking**: Enable offline trail navigation and peer-to-peer hazard sharing via Bluetooth Low Energy (BLE) mesh in zero-connectivity mountain zones.
-- 🤖 **Edge AI Crack Classification**: Run lightweight TensorFlow.js models on trekker devices to automatically classify masonry crack width and depth at the moment of photo capture.
-- 🏛️ **Government & ASI Integration Portal**: Direct data pipelines into the Archaeological Survey of India (ASI) and Maharashtra Tourism Development Corporation (MTDC) for conservation funding allocation.
-
----
-
 ## 👥 Team
 
 | Member | Focus Area |
