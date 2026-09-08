@@ -95,76 +95,6 @@ const generateAiTriage = (hazardType, severity) => {
 };
 
 /**
- * Sample Seed Reports generator
- * Seeds realistic visual field audits for Rajgad when first accessed.
- */
-const seedSampleReports = async (fortId, trails) => {
-    try {
-        const sampleData = [
-            {
-                fort: fortId,
-                trail: trails[0]?._id || null,
-                imageUrl: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80",
-                hazardType: "rockfall",
-                severity: "high",
-                description: "Fresh scree rockfall detached near the outer gully above Chor Darwaja. Rocks slipping down when groups walk.",
-                location: {
-                    type: "Point",
-                    coordinates: [73.6858, 18.2439],
-                },
-                status: "pending",
-                aiTriage: {
-                    confidenceScore: 0.92,
-                    hazardAssessment: "Unstable rock slabs observed above primary trail gully.",
-                    recommendedAction: "Issue high rockfall warning; caution helmets mandatory.",
-                },
-            },
-            {
-                fort: fortId,
-                trail: trails[1]?._id || null,
-                imageUrl: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
-                hazardType: "fissure",
-                severity: "critical",
-                description: "Noticeable 4-inch crack opening along the ancient basalt mortar joint near the gateway arch after heavy night rains.",
-                location: {
-                    type: "Point",
-                    coordinates: [73.6841, 18.2452],
-                },
-                status: "verified",
-                aiTriage: {
-                    confidenceScore: 0.94,
-                    hazardAssessment: "Deep masonry separation detected in historical bastion curtain wall.",
-                    recommendedAction: "Cordon off bastion edge; dispatch ASI heritage structural inspection.",
-                },
-            },
-            {
-                fort: fortId,
-                trail: trails[3]?._id || null,
-                imageUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80",
-                hazardType: "waterlogging",
-                severity: "moderate",
-                description: "Padmavati cistern overflow spilling across the upper flagstone steps, heavy algae growth causing slippage.",
-                location: {
-                    type: "Point",
-                    coordinates: [73.6835, 18.2465],
-                },
-                status: "verified",
-                aiTriage: {
-                    confidenceScore: 0.88,
-                    hazardAssessment: "Standing water and moss slickness on carved stone steps.",
-                    recommendedAction: "Alert trekkers to slippery basalt hazards.",
-                },
-            },
-        ];
-
-        return sampleData;
-    } catch (e) {
-        console.error("Error generating sample reports:", e.message);
-        return [];
-    }
-};
-
-/**
  * POST /api/reports
  * Submit a crowdsourced photo evidence report.
  */
@@ -289,29 +219,11 @@ export const getFortReports = async (req, res) => {
             return res.status(404).json({ message: `Fort '${slug}' not found` });
         }
 
-        let reports = await TrailReport.find({ fort: fort._id })
+        const reports = await TrailReport.find({ fort: fort._id })
             .populate("user", "username avatarUrl role organization")
             .populate("trail", "name slug status currentRiskScore")
             .populate("verifiedBy", "username role")
             .sort({ createdAt: -1 });
-
-        // If no reports exist yet, auto-seed realistic sample reports for demo
-        if (reports.length === 0) {
-            const trails = await Trail.find({ fort: fort._id });
-            const sampleData = await seedSampleReports(fort._id, trails);
-
-            // Assign current logged-in user or first system user
-            for (const sample of sampleData) {
-                sample.user = req.user?._id || fort._id; // fallback id
-                await TrailReport.create(sample);
-            }
-
-            reports = await TrailReport.find({ fort: fort._id })
-                .populate("user", "username avatarUrl role organization")
-                .populate("trail", "name slug status currentRiskScore")
-                .populate("verifiedBy", "username role")
-                .sort({ createdAt: -1 });
-        }
 
         return res.status(200).json({
             success: true,

@@ -65,6 +65,10 @@ export const FORT_FLY_SPEED = 1.2;
 // ── 3D Terrain Camera ──
 export const TERRAIN_3D_PITCH = 60;
 export const TERRAIN_3D_BEARING = -20;
+export const ROTATION_STEP = 45; // degrees per rotate step
+export const PITCH_STEP = 15;    // degrees per pitch step
+export const MAX_PITCH = 85;
+export const MIN_PITCH = 0;
 
 // ── Maharashtra Bounds (safety boundary) ──
 export const MAHARASHTRA_BOUNDS = [

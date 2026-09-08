@@ -35,6 +35,10 @@ import {
     FORT_FLY_SPEED,
     TERRAIN_3D_PITCH,
     TERRAIN_3D_BEARING,
+    ROTATION_STEP,
+    PITCH_STEP,
+    MAX_PITCH,
+    MIN_PITCH,
     SOURCES,
     LAYERS,
     FORT_MARKER,
@@ -91,13 +95,23 @@ const FortMap = ({
     const [mapReady, setMapReady] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
     const [userLocation, setUserLocation] = useState(null); // [lng, lat]
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    // 3D Camera & Rotation state
+    const [cameraBearing, setCameraBearing] = useState(INITIAL_BEARING);
+    const [cameraPitch, setCameraPitch] = useState(INITIAL_PITCH);
+    const [isAutoRotating, setIsAutoRotating] = useState(false);
+    const [interactionMode, setInteractionMode] = useState("pan"); // "pan" | "rotate"
 
     // ── Refs ──
+    const rootContainerRef = useRef(null);
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
     const popupRef = useRef(null);
     const userMarkerRef = useRef(null);
     const geoWatchRef = useRef(null);
+    const autoRotateAnimRef = useRef(null);
+    const isOrbitDraggingRef = useRef(false);
+    const orbitDragStartRef = useRef({ x: 0, y: 0, bearing: 0, pitch: 0 });
     // Store current data for re-adding after style changes
     const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC, reports: EMPTY_FC });
     const stateRef = useRef({ showTrails: true, showCisterns: true, showReports: true, terrainEnabled: false });
@@ -589,6 +603,23 @@ const FortMap = ({
         map.on("style.load", handleMapReady);
         map.on("styledata", handleMapReady);
 
+        // ── Camera orientation tracking ──
+        const updateCameraState = () => {
+            setCameraBearing(map.getBearing());
+            setCameraPitch(map.getPitch());
+        };
+        map.on("rotate", updateCameraState);
+        map.on("pitch", updateCameraState);
+        map.on("moveend", updateCameraState);
+
+        // Interrupt auto-rotate if user manually drags or touches
+        const handleUserInterrupt = () => {
+            setIsAutoRotating(false);
+        };
+        map.on("dragstart", handleUserInterrupt);
+        map.on("rotatestart", handleUserInterrupt);
+        map.on("pitchstart", handleUserInterrupt);
+
         // ── Fort click handler (unselected and selected markers) ──
         const handleFortClick = (e) => {
             if (!e.features?.length) return;
@@ -718,6 +749,10 @@ const FortMap = ({
         return () => {
             if (geoWatchRef.current !== null) {
                 navigator.geolocation.clearWatch(geoWatchRef.current);
+            }
+            if (autoRotateAnimRef.current) {
+                cancelAnimationFrame(autoRotateAnimRef.current);
+                autoRotateAnimRef.current = null;
             }
             popupRef.current?.remove();
             userMarkerRef.current?.remove();
@@ -911,6 +946,8 @@ const FortMap = ({
             map.setTerrain({ source: TERRAIN_SOURCE.id, exaggeration: TERRAIN_EXAGGERATION });
             map.easeTo({ pitch: TERRAIN_3D_PITCH, bearing: TERRAIN_3D_BEARING, duration: 1000 });
         } else {
+            setIsAutoRotating(false);
+            setInteractionMode("pan");
             map.setTerrain(null);
             map.easeTo({ pitch: 0, bearing: 0, duration: 800 });
         }
@@ -923,6 +960,8 @@ const FortMap = ({
         const map = mapRef.current;
         if (!map) return;
 
+        setIsAutoRotating(false);
+        setInteractionMode("pan");
         clearSelection();
         popupRef.current?.remove();
 
@@ -937,6 +976,241 @@ const FortMap = ({
             map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
         }
     }, [forts, terrainEnabled, clearSelection]);
+
+    // ══════════════════════════════════════════════════════
+    // 3D Auto-Orbit Animation Loop
+    // ══════════════════════════════════════════════════════
+    useEffect(() => {
+        if (!isAutoRotating) {
+            if (autoRotateAnimRef.current) {
+                cancelAnimationFrame(autoRotateAnimRef.current);
+                autoRotateAnimRef.current = null;
+            }
+            return;
+        }
+
+        let lastTime = performance.now();
+        const rotateFrame = (now) => {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            const map = mapRef.current;
+            if (map) {
+                map.setBearing(map.getBearing() + 15 * dt);
+            }
+            autoRotateAnimRef.current = requestAnimationFrame(rotateFrame);
+        };
+
+        autoRotateAnimRef.current = requestAnimationFrame(rotateFrame);
+
+        return () => {
+            if (autoRotateAnimRef.current) {
+                cancelAnimationFrame(autoRotateAnimRef.current);
+                autoRotateAnimRef.current = null;
+            }
+        };
+    }, [isAutoRotating]);
+
+    // ══════════════════════════════════════════════════════
+    // 3D Orbit Interaction Drag Mode (Left-Click to Rotate & Tilt)
+    // ══════════════════════════════════════════════════════
+    useEffect(() => {
+        const map = mapRef.current;
+        const container = mapContainerRef.current;
+        if (!map || !container) return;
+
+        if (interactionMode === "rotate") {
+            map.dragPan.disable();
+            map.getCanvas().style.cursor = "grab";
+        } else {
+            map.dragPan.enable();
+            map.getCanvas().style.cursor = "";
+        }
+
+        const handleMouseDown = (e) => {
+            if (interactionMode !== "rotate" || e.button !== 0) return;
+            // Ignore clicks on popups or control overlays
+            if (e.target.closest && (e.target.closest(".fortflux-popup") || e.target.closest(".maplibregl-popup") || e.target.closest("button") || e.target.closest(".maplibregl-ctrl"))) {
+                return;
+            }
+
+            setIsAutoRotating(false);
+            isOrbitDraggingRef.current = true;
+            orbitDragStartRef.current = {
+                x: e.clientX,
+                y: e.clientY,
+                bearing: map.getBearing(),
+                pitch: map.getPitch(),
+            };
+            if (map.getCanvas()) map.getCanvas().style.cursor = "grabbing";
+        };
+
+        const handleMouseMove = (e) => {
+            if (!isOrbitDraggingRef.current || interactionMode !== "rotate") return;
+            const dx = e.clientX - orbitDragStartRef.current.x;
+            const dy = e.clientY - orbitDragStartRef.current.y;
+
+            if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+
+            const newBearing = orbitDragStartRef.current.bearing + dx * 0.45;
+            const newPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, orbitDragStartRef.current.pitch - dy * 0.35));
+
+            map.setBearing(newBearing);
+            map.setPitch(newPitch);
+        };
+
+        const handleMouseUp = () => {
+            if (isOrbitDraggingRef.current) {
+                isOrbitDraggingRef.current = false;
+                if (map && map.getCanvas()) {
+                    map.getCanvas().style.cursor = interactionMode === "rotate" ? "grab" : "";
+                }
+            }
+        };
+
+        const handleTouchStart = (e) => {
+            if (interactionMode !== "rotate" || e.touches.length !== 1) return;
+            const touch = e.touches[0];
+            if (touch.target.closest && (touch.target.closest(".fortflux-popup") || touch.target.closest("button") || touch.target.closest(".maplibregl-ctrl"))) {
+                return;
+            }
+            setIsAutoRotating(false);
+            isOrbitDraggingRef.current = true;
+            orbitDragStartRef.current = {
+                x: touch.clientX,
+                y: touch.clientY,
+                bearing: map.getBearing(),
+                pitch: map.getPitch(),
+            };
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isOrbitDraggingRef.current || interactionMode !== "rotate" || e.touches.length !== 1) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - orbitDragStartRef.current.x;
+            const dy = touch.clientY - orbitDragStartRef.current.y;
+
+            const newBearing = orbitDragStartRef.current.bearing + dx * 0.45;
+            const newPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, orbitDragStartRef.current.pitch - dy * 0.35));
+
+            map.setBearing(newBearing);
+            map.setPitch(newPitch);
+        };
+
+        const handleTouchEnd = () => {
+            isOrbitDraggingRef.current = false;
+        };
+
+        container.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
+
+        container.addEventListener("touchstart", handleTouchStart, { passive: true });
+        window.addEventListener("touchmove", handleTouchMove, { passive: true });
+        window.addEventListener("touchend", handleTouchEnd);
+
+        return () => {
+            container.removeEventListener("mousedown", handleMouseDown);
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
+
+            container.removeEventListener("touchstart", handleTouchStart);
+            window.removeEventListener("touchmove", handleTouchMove);
+            window.removeEventListener("touchend", handleTouchEnd);
+        };
+    }, [interactionMode]);
+
+    // ── 3D Camera Discrete Controls ──
+    const handleRotateLeft = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        setIsAutoRotating(false);
+        map.easeTo({ bearing: map.getBearing() - ROTATION_STEP, duration: 350 });
+    }, []);
+
+    const handleRotateRight = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        setIsAutoRotating(false);
+        map.easeTo({ bearing: map.getBearing() + ROTATION_STEP, duration: 350 });
+    }, []);
+
+    const handlePitchUp = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const currentPitch = map.getPitch();
+        map.easeTo({ pitch: Math.min(MAX_PITCH, currentPitch + PITCH_STEP), duration: 350 });
+    }, []);
+
+    const handlePitchDown = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const currentPitch = map.getPitch();
+        map.easeTo({ pitch: Math.max(MIN_PITCH, currentPitch - PITCH_STEP), duration: 350 });
+    }, []);
+
+    const handleResetNorth = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        setIsAutoRotating(false);
+        map.easeTo({ bearing: 0, duration: 400 });
+    }, []);
+
+    const handleToggleAutoRotate = useCallback(() => {
+        setIsAutoRotating((prev) => !prev);
+    }, []);
+
+    const handleToggleInteractionMode = useCallback((mode) => {
+        setInteractionMode(mode);
+    }, []);
+
+    // ── Fullscreen Toggle ──
+    const handleToggleFullscreen = useCallback(() => {
+        const root = rootContainerRef.current;
+        if (!root) return;
+
+        if (!document.fullscreenElement && !isFullscreen) {
+            if (root.requestFullscreen) {
+                root.requestFullscreen().catch(() => {
+                    setIsFullscreen(true);
+                });
+            } else if (root.webkitRequestFullscreen) {
+                root.webkitRequestFullscreen();
+            } else {
+                setIsFullscreen(true);
+            }
+        } else {
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+            setIsFullscreen(false);
+        }
+
+        setTimeout(() => {
+            if (mapRef.current) mapRef.current.resize();
+        }, 80);
+        setTimeout(() => {
+            if (mapRef.current) mapRef.current.resize();
+        }, 300);
+    }, [isFullscreen]);
+
+    // Keep isFullscreen in sync with ESC key and browser fullscreen events
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            const isFull = !!document.fullscreenElement;
+            setIsFullscreen(isFull);
+            setTimeout(() => {
+                if (mapRef.current) mapRef.current.resize();
+            }, 100);
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+        };
+    }, []);
+
 
     // ══════════════════════════════════════════════════════
     // GPS / Locate Me
@@ -1023,11 +1297,18 @@ const FortMap = ({
     // Render
     // ══════════════════════════════════════════════════════
     return (
-        <div className={`relative rounded-2xl overflow-hidden border border-slate-700 ${className}`}>
+        <div
+            ref={rootContainerRef}
+            className={`overflow-hidden transition-all duration-300 ${
+                isFullscreen
+                    ? "fixed inset-0 z-[9999] w-screen h-screen rounded-none bg-slate-950"
+                    : `relative rounded-2xl border border-slate-700 ${className}`
+            }`}
+        >
             {/* MapLibre GL container */}
             <div
                 ref={mapContainerRef}
-                style={{ height: "100%", width: "100%", minHeight: "500px" }}
+                style={{ height: "100%", width: "100%", minHeight: isFullscreen ? "100vh" : "600px" }}
                 className="bg-slate-950"
             />
 
@@ -1046,6 +1327,19 @@ const FortMap = ({
                 onResetView={handleResetView}
                 onLocateMe={handleLocateMe}
                 isLocating={isLocating}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={handleToggleFullscreen}
+                bearing={cameraBearing}
+                pitch={cameraPitch}
+                onRotateLeft={handleRotateLeft}
+                onRotateRight={handleRotateRight}
+                onPitchUp={handlePitchUp}
+                onPitchDown={handlePitchDown}
+                onResetNorth={handleResetNorth}
+                isAutoRotating={isAutoRotating}
+                onToggleAutoRotate={handleToggleAutoRotate}
+                interactionMode={interactionMode}
+                onToggleInteractionMode={handleToggleInteractionMode}
             />
 
             {/* Fort Info Panel (shown when a fort is selected) */}
