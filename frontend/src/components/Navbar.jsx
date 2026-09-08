@@ -33,12 +33,20 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-3 group" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border border-emerald-500/30 rounded-xl group-hover:border-emerald-500/50 group-hover:shadow-lg group-hover:shadow-emerald-500/10 transition-all duration-300">
-            <Mountain className="w-6 h-6 text-emerald-400" />
+          <div className="relative w-10 h-10 rounded-full overflow-hidden border border-emerald-500/40 p-0.5 bg-slate-900 shadow-md shadow-emerald-500/10 group-hover:border-emerald-400/80 group-hover:shadow-emerald-500/20 group-hover:scale-105 transition-all duration-300 ring-2 ring-emerald-500/20 shrink-0 flex items-center justify-center">
+            <img
+              src="/fortflux_logo.jpeg"
+              alt="FortFlux Logo"
+              className="w-full h-full object-cover rounded-full"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/logo.png";
+              }}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg text-white tracking-tight">FortFlux</span>
+              <span className="font-bold text-lg text-white tracking-tight group-hover:text-emerald-300 transition-colors">FortFlux</span>
               <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 v1.0
               </span>

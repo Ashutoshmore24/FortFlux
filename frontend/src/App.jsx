@@ -58,13 +58,21 @@ export function App() {
         {/* Branded Loading Screen */}
         <div className="relative flex items-center justify-center mb-8">
           {/* Animated rings */}
-          <div className="absolute w-20 h-20 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s" }} />
-          <div className="absolute w-16 h-16 rounded-full border border-emerald-500/10" />
+          <div className="absolute w-24 h-24 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s" }} />
+          <div className="absolute w-20 h-20 rounded-full border border-emerald-500/10" />
           {/* Orbiting dot */}
           <div className="absolute w-3 h-3 rounded-full bg-emerald-400 animate-orbit" />
-          {/* Center icon */}
-          <div className="relative p-4 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border border-emerald-500/30 rounded-2xl animate-pulse-glow">
-            <Mountain className="w-8 h-8 text-emerald-400" />
+          {/* Center logo */}
+          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 p-0.5 bg-slate-900 shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/10 animate-pulse-glow flex items-center justify-center">
+            <img
+              src="/fortflux_logo.jpeg"
+              alt="FortFlux Logo"
+              className="w-full h-full object-cover rounded-full"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/logo.png";
+              }}
+            />
           </div>
         </div>
 
