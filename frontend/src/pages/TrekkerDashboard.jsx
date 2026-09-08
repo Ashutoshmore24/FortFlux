@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useWeatherStore } from "../store/useWeatherStore";
 import { useFortStore } from "../store/useFortStore";
@@ -29,6 +30,7 @@ import {
   XCircle,
   Backpack,
   Info,
+  History,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -321,6 +323,18 @@ export const TrekkerDashboard = () => {
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
               </button>
+
+              {/* History Button */}
+              {selectedFortSlug && (
+                <Link
+                  to={`/forts/${selectedFortSlug}/history`}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 hover:text-emerald-400 text-xs font-medium transition flex items-center gap-1.5"
+                  title="View Fort History"
+                >
+                  <History className="w-4 h-4" />
+                  <span className="hidden sm:inline">History</span>
+                </Link>
+              )}
             </div>
           </div>
 

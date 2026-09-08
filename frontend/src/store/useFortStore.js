@@ -6,8 +6,10 @@ export const useFortStore = create((set, get) => ({
     forts: [],
     selectedFort: null,
     fortDetail: null, // { fort, trails, cisterns }
+    fortHistory: null,
     isLoading: false,
     isLoadingDetail: false,
+    isLoadingHistory: false,
     error: null,
     _socketUnsubs: [],
 
@@ -51,6 +53,25 @@ export const useFortStore = create((set, get) => ({
     },
 
     /**
+     * Fetch history for a specific fort by slug.
+     */
+    fetchFortHistory: async (slug) => {
+        set({ isLoadingHistory: true, error: null });
+        try {
+            const res = await axiosInstance.get(`/forts/${slug}/history`);
+            set({ fortHistory: res.data });
+            return { success: true, data: res.data };
+        } catch (error) {
+            const message = error.response?.data?.message || "Failed to fetch fort history";
+            console.error("fetchFortHistory error:", message);
+            set({ error: message, fortHistory: null });
+            return { success: false, message };
+        } finally {
+            set({ isLoadingHistory: false });
+        }
+    },
+
+    /**
      * Select a fort on the map (sets selectedFort + fetches detail).
      */
     selectFort: async (fort) => {
@@ -61,7 +82,7 @@ export const useFortStore = create((set, get) => ({
     },
 
     clearSelection: () => {
-        set({ selectedFort: null, fortDetail: null });
+        set({ selectedFort: null, fortDetail: null, fortHistory: null });
     },
 
     /**
