@@ -292,3 +292,50 @@ export const diversionRouteToGeoJSON = (diversionRoute) => {
 
     return { type: "FeatureCollection", features };
 };
+
+/**
+ * Convert crowdsourced photo evidence reports into a GeoJSON FeatureCollection.
+ */
+export const reportsToGeoJSON = (reports) => {
+    if (!Array.isArray(reports) || reports.length === 0) {
+        return { type: "FeatureCollection", features: [] };
+    }
+
+    const features = [];
+    for (const rep of reports) {
+        const coords = rep.location?.coordinates;
+        if (!isValidLngLat(coords)) continue;
+
+        const severityColor =
+            rep.severity === "critical"
+                ? "#ef4444"
+                : rep.severity === "high"
+                ? "#f97316"
+                : rep.severity === "moderate"
+                ? "#f59e0b"
+                : "#10b981";
+
+        features.push({
+            type: "Feature",
+            properties: {
+                id: rep._id,
+                imageUrl: rep.imageUrl,
+                hazardType: rep.hazardType,
+                severity: rep.severity,
+                severityColor,
+                status: rep.status,
+                description: rep.description,
+                trekkerName: rep.user?.username || "Sahyadri Trekker",
+                trailName: rep.trail?.name || "Trail Corridor",
+                createdAt: rep.createdAt,
+                aiAssessment: rep.aiTriage?.hazardAssessment || "",
+            },
+            geometry: {
+                type: "Point",
+                coordinates: coords, // [lng, lat]
+            },
+        });
+    }
+
+    return { type: "FeatureCollection", features };
+};

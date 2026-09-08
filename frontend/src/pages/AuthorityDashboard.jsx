@@ -4,6 +4,7 @@ import { useFortStore } from "../store/useFortStore";
 import { useWeatherStore } from "../store/useWeatherStore";
 import { useRiskStore } from "../store/useRiskStore";
 import { useRoutingStore } from "../store/useRoutingStore";
+import { useReportStore } from "../store/useReportStore";
 import FortMap from "../components/map/FortMap";
 import {
   Shield,
@@ -24,6 +25,9 @@ import {
   Activity,
   Route,
   Scissors,
+  Camera,
+  AlertTriangle,
+  Eye,
 } from "lucide-react";
 
 export const AuthorityDashboard = () => {
@@ -69,10 +73,19 @@ export const AuthorityDashboard = () => {
     manuallySeveredIds,
   } = useRoutingStore();
 
+  const {
+    reports,
+    fetchFortReports,
+    updateReportStatus,
+    isLoadingReports,
+  } = useReportStore();
+
   const [rainfall, setRainfall] = useState(65);
   const [footfall, setFootfall] = useState(450);
   const [updatingTrailId, setUpdatingTrailId] = useState(null);
   const [applySuccess, setApplySuccess] = useState(false);
+  const [auditFilter, setAuditFilter] = useState("all");
+  const [actingReportId, setActingReportId] = useState(null);
 
   // Fetch forts on mount
   useEffect(() => {
@@ -85,6 +98,7 @@ export const AuthorityDashboard = () => {
     if (selectedFortSlug) {
       fetchFortDetail(selectedFortSlug);
       fetchWeather(selectedFortSlug);
+      fetchFortReports(selectedFortSlug);
     }
   }, [selectedFortSlug]);
 
@@ -104,6 +118,37 @@ export const AuthorityDashboard = () => {
         footfall,
       });
     }
+  };
+
+  // One-click Verify & Sever Trail from crowdsourced field report
+  const handleVerifyAndSever = async (report) => {
+    setActingReportId(report._id);
+    const res = await updateReportStatus(report._id, {
+      status: "verified",
+      action: "sever_trail",
+    });
+    if (res.success) {
+      if (report.trail?._id || report.trail) {
+        const trailId = report.trail._id || report.trail;
+        await handleSeverToggle(trailId);
+      }
+      await fetchFortDetail(selectedFortSlug);
+    }
+    setActingReportId(null);
+  };
+
+  // Verify only
+  const handleVerifyOnly = async (report) => {
+    setActingReportId(report._id);
+    await updateReportStatus(report._id, { status: "verified" });
+    setActingReportId(null);
+  };
+
+  // Dismiss / resolve report
+  const handleDismissReport = async (report, newStatus = "rejected") => {
+    setActingReportId(report._id);
+    await updateReportStatus(report._id, { status: newStatus });
+    setActingReportId(null);
   };
 
   // Compute live risk from weather API
@@ -708,6 +753,7 @@ export const AuthorityDashboard = () => {
             riskOverrides={riskOverrides}
             severedTrails={severedTrails}
             diversionRoute={diversionRoute}
+            photoReports={reports}
           />
         </div>
 
@@ -829,6 +875,233 @@ export const AuthorityDashboard = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ═══ Incoming Field Audits & AI Visual Triage (Phase 6) ═══ */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-400">
+              <Camera className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-white text-lg">
+                  Incoming Field Audits & AI Visual Triage
+                </h3>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/40 uppercase tracking-wider">
+                  Phase 6 Evidence
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Crowdsourced geotagged hazard photos with AI severity assessment and one-click trail severance
+              </p>
+            </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+            <button
+              onClick={() => setAuditFilter("all")}
+              className={`px-3 py-1.5 rounded-lg transition ${
+                auditFilter === "all"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              All ({reports.length})
+            </button>
+            <button
+              onClick={() => setAuditFilter("pending")}
+              className={`px-3 py-1.5 rounded-lg transition ${
+                auditFilter === "pending"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              Pending ({reports.filter((r) => r.status === "pending").length})
+            </button>
+            <button
+              onClick={() => setAuditFilter("verified")}
+              className={`px-3 py-1.5 rounded-lg transition ${
+                auditFilter === "verified"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              Verified ({reports.filter((r) => r.status === "verified").length})
+            </button>
+          </div>
+        </div>
+
+        {/* Audit reports grid */}
+        {(() => {
+          const filtered = reports.filter((r) => {
+            if (auditFilter === "pending") return r.status === "pending";
+            if (auditFilter === "verified") return r.status === "verified";
+            return true;
+          });
+
+          if (filtered.length === 0) {
+            return (
+              <div className="p-8 text-center bg-slate-950/40 rounded-2xl border border-slate-800">
+                <Camera className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-xs text-slate-400 font-medium">
+                  No {auditFilter !== "all" ? auditFilter : ""} photo audits found for this fort.
+                </p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {filtered.map((report) => {
+                const isActing = actingReportId === report._id;
+                const severityColor =
+                  report.severity === "critical"
+                    ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                    : report.severity === "high"
+                    ? "bg-orange-500/20 text-orange-300 border-orange-500/40"
+                    : report.severity === "moderate"
+                    ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                    : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+
+                return (
+                  <div
+                    key={report._id}
+                    className="bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition shadow-lg"
+                  >
+                    <div>
+                      {/* Photo Thumbnail */}
+                      {report.imageUrl && (
+                        <div className="relative h-44 w-full overflow-hidden bg-slate-900">
+                          <img
+                            src={report.imageUrl}
+                            alt={report.hazardType}
+                            className="w-full h-full object-cover"
+                          />
+                          <span
+                            className={`absolute top-2.5 right-2.5 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border backdrop-blur-sm ${severityColor}`}
+                          >
+                            {report.severity}
+                          </span>
+                          <span className="absolute bottom-2.5 left-2.5 text-[10px] font-bold bg-slate-950/80 text-slate-300 px-2.5 py-0.5 rounded-lg border border-slate-800 capitalize">
+                            {report.hazardType}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Details */}
+                      <div className="p-4 space-y-3">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400">
+                            By <strong>{report.user?.username || "Trekker"}</strong>
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full font-bold uppercase text-[9px] ${
+                              report.status === "verified"
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                : report.status === "rejected"
+                                ? "bg-slate-800 text-slate-400"
+                                : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                            }`}
+                          >
+                            {report.status}
+                          </span>
+                        </div>
+
+                        {report.description && (
+                          <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                            {report.description}
+                          </p>
+                        )}
+
+                        {/* AI Triage Card */}
+                        {report.aiTriage && (
+                          <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl p-3 text-xs space-y-1">
+                            <div className="flex items-center justify-between text-sky-300 font-bold text-[11px]">
+                              <span>🤖 AI Hazard Assessment</span>
+                              {report.aiTriage.confidenceScore && (
+                                <span className="text-[10px] text-sky-400">
+                                  {Math.round(report.aiTriage.confidenceScore * 100)}% Confidence
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sky-200 text-[11px] leading-relaxed">
+                              {report.aiTriage.hazardAssessment}
+                            </p>
+                            {report.aiTriage.recommendedAction && (
+                              <div className="text-[10px] text-amber-300 font-semibold pt-1">
+                                Action: {report.aiTriage.recommendedAction}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {report.trail && (
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                            <Navigation className="w-3 h-3 text-emerald-400" />
+                            <span>Corridor: <strong>{report.trail?.name || "Main Trail"}</strong></span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="p-4 pt-2 border-t border-slate-800/80 bg-slate-950/40 space-y-2">
+                      {report.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => handleVerifyAndSever(report)}
+                            disabled={isActing}
+                            className="w-full py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-rose-950/50 disabled:opacity-50"
+                          >
+                            {isActing ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <AlertOctagon className="w-3.5 h-3.5" />
+                            )}
+                            Verify & Sever Trail
+                          </button>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => handleVerifyOnly(report)}
+                              disabled={isActing}
+                              className="py-1.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 disabled:opacity-50"
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Verify Only
+                            </button>
+                            <button
+                              onClick={() => handleDismissReport(report, "rejected")}
+                              disabled={isActing}
+                              className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 disabled:opacity-50"
+                            >
+                              <XCircle className="w-3 h-3" /> Dismiss
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Action Logged
+                          </span>
+                          <button
+                            onClick={() => handleDismissReport(report, "resolved")}
+                            disabled={isActing}
+                            className="text-[11px] text-slate-400 hover:text-slate-200 transition"
+                          >
+                            Mark Resolved
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
