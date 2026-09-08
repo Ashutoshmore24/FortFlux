@@ -46,14 +46,22 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-emerald-500/[0.04] blur-3xl animate-gradient-shift" />
+        <div className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-cyan-500/[0.04] blur-3xl animate-gradient-shift" style={{ animationDelay: "3s" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-violet-500/[0.02] blur-3xl animate-gradient-shift" style={{ animationDelay: "6s" }} />
+      </div>
+
+      {/* Login Card */}
+      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden animate-scale-in">
         {/* Decorative Top Accent */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
         {/* Heading */}
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 text-emerald-400">
+          <div className="inline-flex p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 text-emerald-400 animate-float">
             <Mountain className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Welcome Back</h1>
@@ -64,7 +72,7 @@ export const LoginPage = () => {
 
         {/* Error Alert */}
         {authError && (
-          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center gap-2.5 text-rose-300 text-xs">
+          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center gap-2.5 text-rose-300 text-xs animate-fade-in-up">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{authError}</span>
           </div>
@@ -75,7 +83,7 @@ export const LoginPage = () => {
           type="button"
           onClick={handleGoogleLogin}
           disabled={isGoogleLoggingIn || isLoggingIn}
-          className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-slate-800 text-sm font-semibold rounded-xl shadow-lg transition flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200"
+          className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-slate-800 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
         >
           {isGoogleLoggingIn ? (
             <>
@@ -99,7 +107,7 @@ export const LoginPage = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="animate-fade-in-up delay-100">
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Email Address
             </label>
@@ -113,12 +121,12 @@ export const LoginPage = () => {
                 placeholder="ranger@sahyadri.gov.in"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
               />
             </div>
           </div>
 
-          <div>
+          <div className="animate-fade-in-up delay-200">
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Password
             </label>
@@ -132,12 +140,12 @@ export const LoginPage = () => {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -147,7 +155,7 @@ export const LoginPage = () => {
           <button
             type="submit"
             disabled={isLoggingIn || isGoogleLoggingIn}
-            className="w-full mt-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/60 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/60 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] cursor-pointer animate-fade-in-up delay-300"
           >
             {isLoggingIn ? (
               <>
@@ -173,5 +181,3 @@ export const LoginPage = () => {
 };
 
 export default LoginPage;
-
-

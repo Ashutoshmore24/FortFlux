@@ -85,26 +85,31 @@ export const ProfilePage = () => {
   const displayAvatar = authUser?.avatarUrl || authUser?.profilePic;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] p-4 sm:p-6 lg:p-8 bg-slate-950 flex justify-center">
-      <div className="w-full max-w-4xl space-y-6">
+    <div className="min-h-[calc(100vh-4rem)] p-4 sm:p-6 lg:p-8 bg-slate-950 flex justify-center relative overflow-hidden">
+      {/* Background orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute -top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-emerald-500/[0.03] blur-3xl animate-gradient-shift" />
+        <div className="absolute -bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/[0.03] blur-3xl animate-gradient-shift" style={{ animationDelay: '4s' }} />
+      </div>
+      <div className="w-full max-w-4xl space-y-6 relative z-10 animate-fade-in-up">
 
         {/* Messages */}
         {successMsg && (
-          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3 text-emerald-400 text-sm font-medium">
+          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3 text-emerald-400 text-sm font-medium animate-fade-in-up">
             <CheckCircle2 className="w-5 h-5 shrink-0" />
             <p>{successMsg}</p>
           </div>
         )}
         {errorMsg && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center gap-3 text-rose-400 text-sm font-medium">
+          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center gap-3 text-rose-400 text-sm font-medium animate-fade-in-up">
             <X className="w-5 h-5 shrink-0" />
             <p>{errorMsg}</p>
           </div>
         )}
 
         {/* 1. Header Section */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl">
-          <div className="h-40 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 relative">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl hover-glow">
+          <div className="h-40 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 relative animate-gradient-shift">
             <div className="absolute inset-0 bg-black/20" />
             {/* Edit Button */}
             {!isEditMode && (
@@ -123,7 +128,7 @@ export const ProfilePage = () => {
 
               {/* Avatar */}
               <div className="relative group shrink-0">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-2xl flex items-center justify-center relative">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-2xl flex items-center justify-center relative group-hover:shadow-emerald-500/20 transition-shadow duration-300">
                   {displayAvatar ? (
                     <img src={displayAvatar} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
