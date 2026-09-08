@@ -748,7 +748,7 @@ export const AuthorityDashboard = () => {
             </div>
           </div>
           <FortMap
-            className="h-[550px]"
+            className="h-[680px] lg:h-[720px]"
             onFortSelect={(fort) => handleFortChange(fort.slug)}
             riskOverrides={riskOverrides}
             severedTrails={severedTrails}
