@@ -61,8 +61,18 @@ export const LoginPage = () => {
 
         {/* Heading */}
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 text-emerald-400 animate-float">
-            <Mountain className="w-8 h-8" />
+          <div className="inline-flex mb-3">
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 p-0.5 bg-slate-900 shadow-xl shadow-emerald-500/15 ring-4 ring-emerald-500/10 animate-float flex items-center justify-center">
+              <img
+                src="/fortflux_logo.jpeg"
+                alt="FortFlux Logo"
+                className="w-full h-full object-cover rounded-full"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/logo.png";
+                }}
+              />
+            </div>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Welcome Back</h1>
           <p className="text-xs text-slate-400 mt-1">
