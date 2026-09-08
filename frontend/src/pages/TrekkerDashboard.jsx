@@ -483,7 +483,7 @@ export const TrekkerDashboard = () => {
           </span>
         </div>
         <FortMap
-          className="h-[550px]"
+          className="h-[680px] lg:h-[720px]"
           onFortSelect={(fort) => handleFortChange(fort.slug)}
           safeRoute={routeResult}
           photoReports={reports}
@@ -728,14 +728,16 @@ export const TrekkerDashboard = () => {
                 <Camera className="w-4 h-4 text-emerald-400" />
                 Crowdsourced Audit
               </h3>
-              {reports.length > 0 && (
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  {reports.length} Evidence Logged
-                </span>
-              )}
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                reports.length > 0
+                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                  : "bg-slate-800 text-slate-400 border-slate-700"
+              }`}>
+                {reports.length > 0 ? `${reports.length} Evidence Logged` : "No Uploads Yet"}
+              </span>
             </div>
             <p className="text-xs text-slate-400 mb-4">
-              Upload geotagged photos of mortar fissures, trail step rutting, rockfall, or masonry degradation as you trek.
+              Upload real geotagged photos of mortar fissures, trail step rutting, rockfall, or masonry degradation as you trek.
             </p>
           </div>
           <button
@@ -749,31 +751,50 @@ export const TrekkerDashboard = () => {
       </div>
 
       {/* ═══ Live Community Trail Evidence Feed ═══ */}
-      {reports.length > 0 && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
-                <Camera className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-base flex items-center gap-2">
-                  Live Community Trail Evidence — {fortInfo?.name || "Fort Corridor"}
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Real-time geotagged hazard photos verified by on-trail Sahyadri trekkers
-                </p>
-              </div>
+      <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+              <Camera className="w-5 h-5" />
             </div>
+            <div>
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                Live Community Trail Evidence — {fortInfo?.name || "Fort Corridor"}
+              </h3>
+              <p className="text-xs text-slate-400">
+                Real geotagged hazard & trail photos uploaded by Sahyadri trekkers
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            Add Evidence
+          </button>
+        </div>
+
+        {reports.length === 0 ? (
+          <div className="p-8 text-center bg-slate-950/40 rounded-2xl border border-slate-800/80 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+              <Camera className="w-6 h-6" />
+            </div>
+            <h4 className="text-sm font-semibold text-slate-200 mb-1">
+              No Photo Evidence Uploaded Yet
+            </h4>
+            <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
+              Be the first trekker to capture and upload real geotagged trail photos, cistern water levels, or hazards at {fortInfo?.name || "this fort"}.
+            </p>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+              className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer shadow-md shadow-emerald-950/40"
             >
-              <Camera className="w-3.5 h-3.5" />
-              Add Evidence
+              <Camera className="w-4 h-4" />
+              Upload Real Field Photo
             </button>
           </div>
-
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {reports.slice(0, 6).map((report) => {
               const severityColor =
@@ -834,8 +855,8 @@ export const TrekkerDashboard = () => {
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Geotagged Photo Upload Modal */}
       <PhotoUploadModal
