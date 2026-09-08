@@ -30,6 +30,11 @@ export const useAuthStore = create((set) => ({
       const res = await axiosInstance.get("/auth/check");
       set({ authUser: normalizeUser(res.data) });
     } catch (error) {
+      if (error?.response?.status === 429) {
+        // Rate limited - do NOT clear user session, keep current state intact!
+        console.warn("Session check throttled by rate limiter - preserving current session state");
+        return;
+      }
       console.log("Not logged in or session expired:", error?.response?.data?.message || error.message);
       set({ authUser: null });
     } finally {

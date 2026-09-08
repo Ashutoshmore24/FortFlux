@@ -6,6 +6,7 @@ import {
     updateReportStatus,
 } from "../controllers/report.controller.js";
 import { protectRoute, requireRole } from "../middlewares/auth.middleware.js";
+import { reportRateLimiter } from "../middlewares/arcjet.middleware.js";
 import upload from "../middlewares/upload.js";
 
 const router = express.Router();
@@ -14,9 +15,10 @@ const router = express.Router();
 router.get("/recent", getRecentReports);
 router.get("/fort/:slug", getFortReports);
 
-// Protected report submission
+// Protected report submission (rate limited to 10 reports/min to protect storage)
 router.post(
     "/",
+    reportRateLimiter,
     protectRoute,
     upload.single("photo"),
     createReport
