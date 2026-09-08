@@ -183,6 +183,15 @@ flowchart TB
 
 ---
 
+## Rate Limiting with Arcjet
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/550507ed-43fa-4483-8063-eca5e69a360d" alt="rate_limiting_workflow" width="600">
+</p>
+
+---
+
+
 ## 📐 Risk Scoring & Adaptive Routing Engine
 
 ### 1. Dynamic Erosion Risk Formula
@@ -254,7 +263,6 @@ FortFlux/
 ├── .gitignore
 ├── analysis_results.md
 ├── backend/
-│   ├── .env.example
 │   ├── package-lock.json
 │   ├── package.json
 │   └── src/
@@ -269,6 +277,7 @@ FortFlux/
 │       ├── data/
 │       │   └── seed.js
 │       ├── lib/
+│       │   ├── arcjet.js
 │       │   ├── cloudinary.js
 │       │   ├── db.js
 │       │   ├── env.js
@@ -276,6 +285,7 @@ FortFlux/
 │       │   ├── jwt.js
 │       │   └── socket.js
 │       ├── middlewares/
+│       │   ├── arcjet.middleware.js
 │       │   ├── auth.middleware.js
 │       │   └── upload.js
 │       ├── models/
@@ -343,6 +353,7 @@ FortFlux/
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── PhotoUploadModal.jsx
 │   │   │   ├── ProtectedRoute.jsx
+│   │   │   ├── RateLimitModal.jsx
 │   │   │   ├── RoleRoute.jsx
 │   │   │   ├── ScrollToTop.jsx
 │   │   │   ├── Timeline.jsx
@@ -367,6 +378,7 @@ FortFlux/
 │   │   ├── store/
 │   │   │   ├── useAuthStore.js
 │   │   │   ├── useFortStore.js
+│   │   │   ├── useRateLimitStore.js
 │   │   │   ├── useReportStore.js
 │   │   │   ├── useRiskStore.js
 │   │   │   ├── useRoutingStore.js
