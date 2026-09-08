@@ -2,15 +2,16 @@
 
 # ⛰️ FortFlux
 
-### Micro-Climate Resilience Platform for Sahyadri Heritage Forts
+### Micro-Climate Resilience & Dynamic Trail Safety Platform for Sahyadri Heritage Forts
 
 [![Track](https://img.shields.io/badge/Track-Biodiversity%2C%20Ecosystem%20Conservation%20%26%20Climate%20Awareness-10b981?style=for-the-badge)](/)
 [![Hackathon](https://img.shields.io/badge/Hackathon-PCCOE%20IGC-0ea5e9?style=for-the-badge)](/)
-[![Status](https://img.shields.io/badge/Status-In%20Development-f59e0b?style=for-the-badge)](/)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-f59e0b?style=for-the-badge)](/)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](/)
 
-**Predict trail erosion. Prevent mudslips. Protect centuries-old heritage.**
+**Predict trail erosion. Prevent mudslips. Reroute trekkers in real time. Preserve living heritage.**
 
-FortFlux is an end-to-end platform that predicts trail erosion, mudslips, and structural degradation at historical Sahyadri mountain forts — rerouting trekkers away from danger in real time.
+FortFlux is an end-to-end intelligent platform that predicts trail erosion, soil saturation, and structural degradation across 18 iconic mountain forts of the Western Ghats (Sahyadris). By fusing live open meteorological telemetry, digital elevation data, carrying-capacity algorithms, and crowdsourced hazard audits, FortFlux severs compromised paths and computes safe diversions in real time.
 
 ---
 
@@ -18,207 +19,320 @@ FortFlux is an end-to-end platform that predicts trail erosion, mudslips, and st
 
 ## 📋 Table of Contents
 
-- [The Problem](#-the-problem)
-- [The Solution](#-the-solution)
-- [Key Features](#-key-features)
+- [The Crisis in the Sahyadris](#-the-crisis-in-the-sahyadris)
+- [The FortFlux Solution](#-the-fortflux-solution)
+- [Core Capabilities & Features](#-core-capabilities--features)
+- [18 Sahyadri Heritage Forts](#-18-sahyadri-heritage-forts)
 - [System Architecture](#-system-architecture)
-- [Risk Weight Formula](#-risk-weight-formula)
+- [Risk Scoring & Adaptive Routing Engine](#-risk-scoring--adaptive-routing-engine)
+- [Real-Time Telemetry & WebSockets](#-real-time-telemetry--websockets)
 - [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
+- [Project Directory Structure](#-project-directory-structure)
 - [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [API Reference](#-api-reference)
-- [Demo Flow](#-demo-flow-judging-round)
+- [Environment Configuration](#-environment-configuration)
+- [Complete API Reference](#-complete-api-reference)
+- [Interactive Demo Flow (Judging Round)](#-interactive-demo-flow-judging-round)
 - [Why This Fits the Track](#-why-this-fits-the-track)
-- [Future Scope](#-future-scope)
+- [Future Roadmap](#-future-roadmap)
 - [Team](#-team)
 
 ---
 
-## 🔴 The Problem
+## 🔴 The Crisis in the Sahyadris
 
-The forts of the Sahyadri range — **Rajgad, Torna, Raigad, Sinhagad**, and dozens more — are living heritage sites, not museum pieces. Every monsoon, their trails, cisterns, and centuries-old masonry take a beating from rainfall they were never engineered for at today's foot-traffic scale.
+The historic forts of the Sahyadri range — **Rajgad, Torna, Raigad, Sinhagad, Harishchandragad, Shivneri**, and more — are living ecological and cultural monuments. Every monsoon season, their cliffside trails, centuries-old rock-cut water cisterns (*tankis*), and mortar joints face catastrophic forces:
 
-Two forces compound the damage:
-
-- **Environmental Stress** — Intense, erratic monsoon surges accelerate soil rutting, undercut trail steps, and overload rock-cut cisterns designed for a slower, gentler climate.
-- **Human Overload** — Trekking has exploded in popularity. The same narrow paths that once saw a handful of pilgrims now carry weekend crowds — with no real-time way to know when a trail has crossed from "busy" to "unsafe."
-
-> Today, conservation decisions on these trails are **reactive** — a landslide happens, a mortar joint fails, *then* someone responds. There's no system that fuses live weather, terrain history, structural condition, and crowd density into a single early-warning picture.
+1. **Monsoon Volatility & Hydrological Scouring**: Extreme, erratic cloudbursts saturate volcanic basalt soil, eroding earthen trails, triggering rockfalls, and causing uncontrolled overflow from rock-cut cisterns that scours ancient masonry stairways.
+2. **Exponential Footfall & Unregulated Density**: Trekking tourism has grown exponentially. Narrow ridgelines engineered for medieval garrisons now carry thousands of weekend visitors without any real-time capacity management or early warnings.
+3. **Reactive Conservation Blindspot**: Trail closures and rescue operations currently happen *after* a fatal slip or rock collapse occurs. Authorities lack real-time digital twins that correlate live rainfall, soil saturation, slope gradients, and crowd density.
 
 ---
 
-## 💡 The Solution
+## 💡 The FortFlux Solution
 
-**FortFlux** turns each fort's trail network into a **living, risk-aware digital twin** — predicting erosion, mudslips, and structural degradation *before* they happen, and rerouting people away from danger in real time.
+**FortFlux** bridges the gap between conservation engineering and trekker safety by creating a **real-time, risk-aware digital twin** of the Sahyadri fort network.
 
-It fuses four data streams that nobody currently connects:
+```
+Live Weather Feeds (Precipitation + Wind + Humidity)
+                   +
+Digital Elevation Model (Slope Gradient + Soil Type)
+                   +
+Real-Time Crowd Density (Live Visitors / Safe Capacity)
+                   +
+Crowdsourced Visual Audits (Photos + Hazard Reports)
+                   ▼
+  [ DYNAMIC EROSION RISK INDEX ]
+                   ▼
+   [ AUTOMATED GRAPH REROUTING ]
+```
 
-| # | Data Stream | Source |
-|---|---|---|
-| 1 | **Live weather data** | Open meteorological feeds (precipitation, humidity, wind) |
-| 2 | **Geospatial + historical profiles** | Trail geometry, elevation gradients, masonry age, landslide records |
-| 3 | **Crowdsourced visual evidence** | Geotagged trekker photos analyzed for structural decay |
-| 4 | **Real-time crowd density** | Live visitor count per trail segment |
-
-...and processes them into a single **Erosion Risk Index** that drives live trail routing decisions.
+When environmental or footfall risk crosses safety thresholds on any trail, the system **automatically severs the route in the directed graph**, computes alternative safe pathways, and instantly broadcasts updates across all connected trekker apps and authority command centers via WebSockets.
 
 ---
 
-## ✨ Key Features
+## ✨ Core Capabilities & Features
 
-### 🌧️ Environmental Ingestion Layer
-Continuously pulls localized open meteorological data — precipitation rate, humidity swings, wind gusts — and cross-references it against static geospatial profiles: trail segment geometry, elevation gradients, masonry age, and historical landslide records for each fort.
+### 🌧️ Real-Time Meteorological Ingestion Layer
+- Integrates directly with high-resolution **Open-Meteo APIs** for pinpoint geographical coordinates of each mountain fort.
+- Monitors hourly rainfall volume, soil moisture impact, relative humidity, and wind gusts with intelligent in-memory caching to avoid rate limits.
 
-### 📸 Crowdsourced Visual Degradation Audit
-Trekkers submit geotagged photos of trail sections and structural features as they walk. The system runs pixel-variance analysis along marked mortar joints to estimate **soil rut depth** and **crack expansion** over time — turning every trekker into a passive structural sensor.
+### 🕸️ Directed Graph Carrying-Capacity & Routing Engine
+- Models the trail network of each fort as a **weighted directed graph**.
+- Edge weights update dynamically based on live risk.
+- Implements Dijkstra / A* pathfinding to calculate optimal safe routes from base village trailheads to upper citadels (*Balekilla*).
+- When a path is compromised (Risk ≥ 75 or status = `closed`), the engine severs the edge and computes a live detour.
 
-### 💧 Hydrological Runoff Matrix
-Models surface water velocity during monsoon surges and calculates volumetric influx for the fort's ancient rock-cut cisterns, flagging impending **overflow events** that could scour the masonry steps below them.
+### 🎚️ Live Authority Stress-Testing Simulation
+- Equips park rangers and disaster management teams with interactive **Simulation Sliders** for:
+  - **Rainfall Intensity (0 – 150 mm/hr)**
+  - **Trekker Density Multiplier (0.5x – 3.0x)**
+- Allows authorities to stress-test trail networks under projected cloudburst conditions and pre-emptively divert traffic.
 
-### 🕸️ Algorithmic Carrying-Capacity Throttle
-The entire trail network is modeled as a **dynamic directed graph**. Every path segment's risk weight is recalculated in real time by multiplying baseline traversal difficulty against live environmental variables.
+### 📸 Crowdsourced Visual Hazard Audit & Triage
+- Trekkers upload geotagged photos of trail damage, loose scree, waterlogging, or structural cracks directly from their phones.
+- Uploads are processed with image compression and classified by hazard severity (`low`, `moderate`, `high`, `critical`).
+- Authorities review and verify reports on an interactive map, updating trail statuses in one click.
 
-### 🎚️ Live Simulation Interface
-A demo-ready control panel lets users stress-test the model with **dynamic sliders** for rainfall intensity and trekker volume, watching the Erosion Risk Index climb in real time as conditions worsen.
+### 🏛️ Comprehensive Heritage & Landmark Explorer (18 Forts)
+- **Key Landmarks to Visit**: High-resolution authentic photographic cards with architectural descriptions.
+- **⭐ Must-See Landmarks**: Curated list of iconic historical spots with estimated visit times.
+- **📸 Best Photo Spots**: Scenic vantage points for sunrise, sunset, and panoramic valley photography.
+- **Turn-by-Turn Directions**: Step-by-step navigation from trailhead to summit with distances and duration.
+- **🚗 Route Information**: Motorable road accessibility, base village access, public transit/shared jeeps, and parking availability with rates.
+- **Community Photo Gallery**: Interactive Google Maps style gallery with visitor-contributed photographs and full-screen view.
+- **Chronological Timeline & Degradation Trends**: Historical milestone timeline and environmental wear charts (scale 1–10).
 
-### 🚦 Adaptive Routing Engine
-When a segment's risk score crosses a critical threshold, the engine automatically:
-- **Severs** the compromised path
-- **Computes** a safe alternative diversion route
-- **Pushes** the update to a **dual-mode geographic dashboard**
+### 🗺️ Dual-Mode Dashboard Architecture
+- **Trekker Portal**: Clean, high-contrast map with color-coded risk paths (`Open` / `Caution` / `Closed` / `Diverted`), live weather widget, crowd congestion badges, and turn-by-turn routing.
+- **Authority Command Center**: Comprehensive monitoring suite with trail management, manual overrides, simulation sliders, cistern overflow indicators, and report triage verification.
 
-### 🗺️ Dual-Mode Dashboard
-| View | Audience | Shows |
-|---|---|---|
-| **Trekker View** | Visiting crowds | Color-coded vulnerability zones, live closures, safe routes |
-| **Authority View** | Park authorities & rangers | Structural alerts, conservation flags, cistern overflow data, carrying-capacity controls |
+---
+
+## 🏰 18 Sahyadri Heritage Forts
+
+FortFlux provides comprehensive geospatial models, trails, cisterns, historical milestones, and route directions across 18 major forts:
+
+| Fort | District | Elevation | Unique Heritage Feature |
+|---|---|---|---|
+| **Sinhagad Fort** | Pune | 1,312 m | Battle of Sinhagad (1670), Tanaji Malusare Memorial, Pune & Kalyan Darwaja |
+| **Rajgad Fort** | Pune | 1,376 m | 26-year capital of Swarajya, Suvela Machi Nedhe, Balekilla citadel |
+| **Torna Fort** | Pune | 1,403 m | First fort captured by Shivaji Maharaj (1646), Zunjar & Budhla Machi |
+| **Purandar Fort** | Pune | 1,387 m | Birthplace of Sambhaji Maharaj, defense by Murarbaji Deshpande |
+| **Lohagad Fort** | Pune | 1,033 m | Historic treasury fort, 1.5 km Vinchukata (Scorpion's Tail) ridge |
+| **Visapur Fort** | Pune | 1,084 m | Peshwa palace ruins, natural gushing monsoon waterfall rock staircase |
+| **Tikona Fort** | Pune | 1,066 m | Pyramidal watchtower, steep rock-cut steps, panoramic Pawna lake views |
+| **Raigad Fort** | Raigad | 820 m | Coronation capital of Shivaji Maharaj (1674), Takmak Tok, Jagdishwar temple |
+| **Pratapgad Fort** | Satara | 1,080 m | Site of the epic 1659 duel with Afzal Khan, Bhavani Mata temple |
+| **Ajinkyatara Fort** | Satara | 1,006 m | "The Impregnable Star", capital during Queen Tara Rani & Shahu Maharaj |
+| **Panhala Fort** | Kolhapur | 845 m | Largest Deccan fort, Teen Darwaza, Sajja Kothi, escape to Vishalgad |
+| **Shivneri Fort** | Pune | 1,067 m | Sacred birthplace of Chhatrapati Shivaji Maharaj (1630), 7 defense gates |
+| **Harishchandragad** | Ahmednagar | 1,424 m | 6th-century fort, 2000ft concave Konkan Kada cliff, Kedareshwar cave |
+| **Rajmachi Fort** | Pune | 825 m | Twin citadels (Shrivardhan & Manaranjan), Borghat pass, Fireflies festival |
+| **Sindhudurg Fort** | Sindhudurg | Sea Level | Kurte Island sea fortress (1664), concealed sea gate, freshwater sea wells |
+| **Vijaydurg Fort** | Sindhudurg | Sea Level | Naval HQ of Kanhoji Angre, triple concentric sea walls, 1868 Helium discovery |
+| **Murud-Janjira** | Raigad | Sea Level | Undefeated marine citadel of the Siddis, 22 sea bastions, Kalal Bangadi cannon |
+| **Korigad Fort** | Pune | 923 m | 2 km intact walkable perimeter wall, freshwater plateau lakes, Aamby Valley views |
 
 ---
 
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-    A["🌧️ Open Weather Feeds<br/>(Open-Meteo / IMD)"] --> D["Environmental<br/>Ingestion Layer"]
-    B["🗺️ Static Geospatial Profiles<br/>trails, elevation, masonry age,<br/>landslide history"] --> D
-    C["📸 Crowdsourced<br/>Geotagged Photos"] --> E["Visual Degradation Audit<br/>pixel variance → rut depth<br/>/ crack growth"]
+flowchart TB
+    subgraph ExternalFeeds["🌐 External Telemetry & Ingestion"]
+        A["🌧️ Open-Meteo Weather API<br/>(Rainfall, Wind, Humidity)"]
+        B["🗺️ Static Geospatial Profiles<br/>(Trails, Elevation, Slopes, Cisterns)"]
+        C["📸 Crowdsourced Geotagged Audits<br/>(Trekker Photos & Hazard Reports)"]
+    end
 
-    D --> F["💧 Hydrological Runoff Matrix<br/>cistern overflow prediction"]
-    D --> G["🕸️ Carrying-Capacity Throttle<br/>trail network as directed graph"]
-    E --> G
-    F --> G
+    subgraph CoreEngine["⚙️ FortFlux Risk & Decision Core"]
+        D["Weather Service<br/>(Caching & Influx Tracking)"]
+        E["Dynamic Risk Engine<br/>(Saturation × Slope × Density)"]
+        F["Directed Graph Routing Engine<br/>(Dijkstra / A* Diversions)"]
+        G["Live Simulation Controller<br/>(Rainfall & Footfall Sliders)"]
+    end
 
-    G --> H{"⚠️ Erosion Risk Index<br/>vs. Threshold"}
+    subgraph DataStore["💾 Storage & Real-Time Sync"]
+        H[("MongoDB Atlas<br/>Forts, Trails, Cisterns, Reports, Users")]
+        I["⚡ Socket.IO Event Engine<br/>(Rooms: role:* and fort:*)"]
+    end
 
-    H -- "exceeds threshold" --> I["🚦 Routing Engine:<br/>sever path + compute<br/>diversion"]
-    H -- "safe" --> J["✅ Dashboard: green zone"]
+    subgraph Clients["🖥️ Dual-Mode User Experience"]
+        J["🥾 Trekker Dashboard<br/>(Live Map, Weather, Hazard Reporting, Safe Routing)"]
+        K["🛡️ Authority Command Center<br/>(Overrides, Simulation, Triage, Cistern Alerts)"]
+        L["🏛️ Heritage & History Hub<br/>(Landmarks, Directions, Photo Spots, Google Maps Gallery)"]
+    end
 
-    I --> K["🖥️ Dual-Mode Dashboard"]
-    J --> K
+    A --> D
+    B --> E
+    C --> H
+    D --> E
+    E --> F
+    G --> F
+    E --> H
+    H <--> I
+    I <--> J
+    I <--> K
+    H --> L
 
-    K --> L["🛡️ Authorities View:<br/>structural alerts,<br/>conservation flags"]
-    K --> M["🥾 Trekker View:<br/>closures, safe routes,<br/>live zones"]
-
-    style A fill:#0e7490,color:#fff
-    style B fill:#0e7490,color:#fff
-    style C fill:#0e7490,color:#fff
-    style D fill:#1e293b,color:#fff,stroke:#34d399
-    style E fill:#1e293b,color:#fff,stroke:#34d399
-    style F fill:#1e293b,color:#fff,stroke:#38bdf8
-    style G fill:#1e293b,color:#fff,stroke:#f59e0b
-    style H fill:#7f1d1d,color:#fff
-    style I fill:#991b1b,color:#fff
-    style J fill:#065f46,color:#fff
-    style K fill:#1e293b,color:#fff,stroke:#a78bfa
-    style L fill:#78350f,color:#fff
-    style M fill:#164e63,color:#fff
+    style ExternalFeeds fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff
+    style CoreEngine fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff
+    style DataStore fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style Clients fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#fff
 ```
 
 ---
 
-## 📐 Risk Weight Formula
+## 📐 Risk Scoring & Adaptive Routing Engine
 
-The core of FortFlux's decision engine. Every trail segment's risk is recalculated in real time:
+### 1. Dynamic Erosion Risk Formula
+
+Every trail segment's risk score ($0 - 100$) is calculated in real time:
+
+$$\text{Risk Score} = \text{Baseline Difficulty} \times \left(1 + \frac{\text{Rainfall}}{150}\right) \times \text{Slope Gradient} \times \left(\frac{\text{Live Footfall}}{\text{Max Safe Footfall}}\right) \times 25$$
+
+| Parameter | Source | Range | Description |
+|---|---|---|---|
+| **Baseline Difficulty** | Pre-surveyed trail data | $1.0 - 2.0$ | Terrain roughness, surface rock exposure |
+| **Soil Saturation Factor** | Live Open-Meteo telemetry | $1.0 - 2.0$ | Normalized against $150\text{ mm/hr}$ cloudburst cap |
+| **Slope Gradient** | Digital Elevation Model | $1.0 - 2.0$ | Steepness multiplier ($>30^\circ$ incline doubles risk) |
+| **Footfall Ratio** | Live visitor counts | $0.1 - 2.5+$ | Active foot traffic vs safe carrying capacity |
+
+### 2. Status Classification Thresholds
+
+- 🟢 **Open (Score 0 – 39)**: Safe for general traversal. Minimal erosion danger.
+- 🟡 **Caution (Score 40 – 74)**: Slippery surfaces, localized mudding, moderate footfall bottleneck. Caution advised.
+- 🔴 **Closed (Score 75 – 100)**: Hazardous soil saturation, active landslide risk, or critical overcrowding. Route automatically severed.
+- 🔵 **Diverted**: Segment flagged with an active alternate diversion path.
+
+---
+
+## ⚡ Real-Time Telemetry & WebSockets
+
+FortFlux utilizes **Socket.IO** with authenticated cookie handshakes and granular room subscriptions:
 
 ```
-Risk Weight = Baseline Traversal Difficulty
-              × Soil Saturation (rainfall / max_rainfall)
-              × Slope Steepness
-              × (Live Visitor Density ÷ Max Safe Footfall)
+Clients join rooms:
+├── fort:{slug}    (e.g., fort:rajgad, fort:sinhagad)
+└── role:{role}    (e.g., role:authority, role:trekker)
 ```
 
-| Parameter | Source | Range |
+### Broadcasted Socket Events:
+| Event | Trigger | Payload |
 |---|---|---|
-| Baseline Traversal Difficulty | Pre-surveyed trail profile | 1.0 – 2.0 |
-| Soil Saturation | Live rainfall ÷ 150 mm/hr max | 0.0 – 1.0 |
-| Slope Steepness | Elevation gradient data | 1.0 – 2.0 |
-| Visitor Density / Max Safe | Live count ÷ capacity threshold | 0.1 – 2.0+ |
-
-> **Critical Threshold:** When `Risk Weight ≥ 75%`, the routing engine automatically severs the segment and computes a diversion.
+| `trail-status-changed` | Authority override or automated risk threshold trigger | `{ trailId, fortSlug, status, currentRiskScore, currentFootfall, updatedAt }` |
+| `risk-update` | Live simulation slider adjustment or weather update | `{ fortSlug, simulatedRainfall, simulatedFootfall, trails: [...] }` |
+| `report-created` | Trekker submits geotagged hazard photo | `{ reportId, fortSlug, trailId, hazardType, severity, photoUrl }` |
+| `cistern-alert` | Projected runoff exceeds cistern capacity | `{ cisternId, fortSlug, waterLevel, overflowRisk }` |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19, Vite 8, Tailwind CSS v4, Zustand |
-| **UI Components** | Lucide React icons |
-| **Map & Geo** | Leaflet / Mapbox GL JS |
-| **Backend** | Node.js, Express v5 |
-| **Database** | MongoDB Atlas (Mongoose ODM) |
-| **Authentication** | JWT (httpOnly cookies) + bcrypt |
-| **Real-time** | WebSocket / Server-Sent Events |
-| **Weather Data** | Open-Meteo API |
-| **Routing** | React Router v7 |
-| **HTTP Client** | Axios |
+### Frontend
+- **Framework**: React 19, Vite 8, React Router v7
+- **Styling**: Tailwind CSS v4, Glassmorphism, CSS Grid
+- **State Management**: Zustand (modular stores for auth, forts, risk, routing, weather, reports)
+- **Mapping & GIS**: MapLibre GL / Leaflet, custom SVG pins, polyline vector rendering
+- **Icons**: Lucide React
+- **HTTP & Sockets**: Axios (with credentials), Socket.IO Client
+
+### Backend
+- **Runtime & Server**: Node.js, Express.js v5 (HTTP + WebSocket server)
+- **Database**: MongoDB Atlas / local MongoDB with Mongoose ODM (2dsphere geospatial indexing)
+- **Authentication**: JWT stored in `httpOnly` secure cookies, bcrypt password hashing, Role-Based Access Control (RBAC)
+- **File Uploads**: Multer with file type validation and size limits
+- **Weather Integration**: Open-Meteo REST API with memory-based TTL caching
+- **Real-Time Communication**: Socket.IO with cookie-based JWT handshake authentication
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Directory Structure
 
 ```
 FortFlux/
 ├── backend/
 │   ├── src/
 │   │   ├── controllers/
-│   │   │   └── auth.controller.js      # Signup, login, logout, profile
-│   │   ├── middlewares/
-│   │   │   └── auth.middleware.js       # JWT verification + RBAC
-│   │   ├── models/
-│   │   │   └── User.js                 # User schema (trekker/authority/admin)
-│   │   ├── routes/
-│   │   │   └── auth.route.js           # /api/auth/* endpoints
+│   │   │   ├── auth.controller.js       # Authentication & session management
+│   │   │   ├── fort.controller.js       # Fort, trail & cistern data
+│   │   │   ├── report.controller.js     # Crowdsourced hazard reports
+│   │   │   ├── risk.controller.js       # Risk calculation & persistence
+│   │   │   ├── routing.controller.js    # Safe route & simulation
+│   │   │   ├── user.controller.js       # User profile management
+│   │   │   └── weather.controller.js    # Weather data retrieval
+│   │   ├── data/
+│   │   │   └── seed.js                  # Master database seeder
 │   │   ├── lib/
-│   │   │   ├── db.js                   # MongoDB connection
-│   │   │   ├── env.js                  # Environment config
-│   │   │   └── jwt.js                  # Token generation + cookie options
-│   │   └── server.js                   # Express entry point
-│   ├── .env.example                    # Environment template
+│   │   │   ├── db.js
+│   │   │   ├── env.js
+│   │   │   ├── jwt.js
+│   │   │   └── socket.js                # Socket.IO server setup
+│   │   ├── middlewares/
+│   │   │   ├── auth.middleware.js       # JWT authentication & RBAC
+│   │   │   └── upload.middleware.js     # File upload handling
+│   │   ├── models/
+│   │   │   ├── Cistern.js
+│   │   │   ├── Fort.js
+│   │   │   ├── FortHistory.js
+│   │   │   ├── Trail.js
+│   │   │   ├── TrailReport.js
+│   │   │   └── User.js
+│   │   ├── routes/
+│   │   │   ├── auth.route.js
+│   │   │   ├── fort.route.js
+│   │   │   ├── report.route.js
+│   │   │   ├── risk.route.js
+│   │   │   ├── routing.route.js
+│   │   │   ├── user.route.js
+│   │   │   └── weather.route.js
+│   │   ├── scripts/
+│   │   │   ├── cleanReports.js
+│   │   │   └── seedHistory.js           # Historical data seeder
+│   │   ├── services/
+│   │   │   ├── risk.service.js          # Risk & erosion logic
+│   │   │   ├── routing.service.js       # A* routing & diversions
+│   │   │   └── weather.service.js       # Weather API & rainfall logic
+│   │   └── server.js                    # Express & Socket.IO entry point
+│   ├── .env.example
 │   └── package.json
 │
 ├── frontend/
 │   ├── public/
-│   │   └── favicon.svg                 # FortFlux mountain icon
+│   │   └── favicon.svg
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx              # Brand bar + role-aware navigation
-│   │   │   ├── ProtectedRoute.jsx      # Auth guard wrapper
-│   │   │   └── RoleRoute.jsx           # RBAC route wrapper
+│   │   │   ├── map/
+│   │   │   │   ├── FortMap.jsx
+│   │   │   │   ├── MapControls.jsx
+│   │   │   │   ├── MapPopup.jsx
+│   │   │   │   └── RiskLegend.jsx
+│   │   │   ├── ErosionChart.jsx
+│   │   │   ├── ImageComparisonSlider.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── PhotoUploadModal.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   ├── RoleRoute.jsx
+│   │   │   └── Timeline.jsx
+│   │   ├── data/
+│   │   │   └── fortHistoryData.js       # Curated fort history data
 │   │   ├── pages/
-│   │   │   ├── LoginPage.jsx           # Sign-in form
-│   │   │   ├── SignupPage.jsx          # Role selection + registration
-│   │   │   ├── TrekkerDashboard.jsx    # Trekker field portal
-│   │   │   └── AuthorityDashboard.jsx  # Authority command center
+│   │   │   ├── AuthorityDashboard.jsx
+│   │   │   ├── HistoryPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── ProfilePage.jsx
+│   │   │   ├── SignupPage.jsx
+│   │   │   └── TrekkerDashboard.jsx
 │   │   ├── store/
-│   │   │   └── useAuthStore.js         # Zustand auth state
-│   │   ├── lib/
-│   │   │   └── axios.js                # Axios instance config
-│   │   ├── App.jsx                     # Root router + auth check
-│   │   ├── main.jsx                    # React entry
-│   │   └── index.css                   # Tailwind + base styles
-│   ├── index.html
+│   │   │   ├── useAuthStore.js
+│   │   │   ├── useFortStore.js
+│   │   │   ├── useReportStore.js
+│   │   │   ├── useRiskStore.js
+│   │   │   ├── useRoutingStore.js
+│   │   │   └── useWeatherStore.js
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
 │   ├── vite.config.js
 │   └── package.json
 │
@@ -232,11 +346,11 @@ FortFlux/
 
 ### Prerequisites
 
-- **Node.js** v18+ (recommended v22)
+- **Node.js** v18+ (Node v20 or v22 recommended)
 - **npm** v9+
-- **MongoDB Atlas** account (or local MongoDB instance)
+- **MongoDB** (Local instance running at `mongodb://localhost:27017` or MongoDB Atlas URI)
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Ashutoshmore24/FortFlux.git
@@ -249,142 +363,183 @@ cd FortFlux
 cd backend
 npm install
 
-# Create your environment file
+# Copy environment template and configure
 cp .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
+```
+
+Edit `backend/.env` with your values (see [Environment Configuration](#-environment-configuration)).
+
+#### Seed Database (Forts, Trails, Cisterns & History)
+
+```bash
+# Seed all 18 forts, trail networks, and cisterns
+node src/data/seed.js
+
+# Seed historical timelines and erosion trends
+node src/scripts/seedHistory.js
 ```
 
 ### 3. Frontend Setup
 
 ```bash
-cd frontend
+cd ../frontend
 npm install
 ```
 
-### 4. Run the Development Servers
+### 4. Run Locally
 
-**Terminal 1 — Backend:**
+Open two terminal windows:
+
+**Terminal 1 — Backend Server:**
 ```bash
 cd backend
 npm run dev
-# → Server running on http://localhost:6000
+# Server running on http://localhost:6000
 ```
 
-**Terminal 2 — Frontend:**
+**Terminal 2 — Frontend Dev Server:**
 ```bash
 cd frontend
 npm run dev
-# → App running on http://localhost:5173
+# Vite dev server running on http://localhost:5173
 ```
 
-> The Vite dev server automatically proxies `/api` requests to the backend on port 6000.
+Navigate to `http://localhost:5173` in your browser.
 
 ---
 
-## 🔐 Environment Variables
+## 🔐 Environment Configuration
 
-Create a `backend/.env` file using `backend/.env.example` as template:
+Create a `backend/.env` file with the following variables:
 
-| Variable | Description | Example |
-|---|---|---|
-| `NODE_ENV` | Runtime environment | `development` |
-| `PORT` | Backend server port | `6000` |
-| `MONGODB_URI` | MongoDB connection string | `mongodb+srv://...` |
-| `JWT_SECRET` | Secret key for signing JWTs | `your_secret_key_here` |
-| `JWT_EXPIRES_IN` | Token expiration duration | `4d` |
+```env
+NODE_ENV=development
+PORT=6000
+MONGODB_URI=mongodb://localhost:27017/fortflux
+JWT_SECRET=your_super_secret_jwt_key_min_32_characters
+JWT_EXPIRES_IN=4d
+CLIENT_URL=http://localhost:5173
+```
 
 ---
 
-## 📡 API Reference
+## 📡 Complete API Reference
 
 ### Authentication — `/api/auth`
-
-| Method | Endpoint | Auth | Description |
+| Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/signup` | ❌ | Register a new user (trekker or authority) |
-| `POST` | `/api/auth/login` | ❌ | Sign in with email + password |
-| `POST` | `/api/auth/logout` | ❌ | Clear auth cookie |
-| `GET` | `/api/auth/check` | 🔒 | Verify current session / get user data |
-| `PUT` | `/api/auth/profile` | 🔒 | Update username, organization, or profile pic |
-| `GET` | `/api/auth/authority-check` | 🔒🛡️ | Authority/admin role verification |
+| `POST` | `/api/auth/signup` | Public | Register new user (`trekker` or `authority`) |
+| `POST` | `/api/auth/login` | Public | Sign in and set secure `jwt` cookie |
+| `POST` | `/api/auth/logout` | Public | Clear authentication cookie |
+| `GET` | `/api/auth/check` | 🔒 Authenticated | Verify active session & retrieve user object |
+| `PUT` | `/api/auth/profile` | 🔒 Authenticated | Update username, organization, or preferences |
+| `GET` | `/api/auth/authority-check` | 🔒🛡️ Authority/Admin | Verify elevated authority credentials |
 
-**User Roles:**
+### Forts, Trails & Cisterns — `/api/forts`
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/forts` | Public | Retrieve overview list of all 18 forts |
+| `GET` | `/api/forts/:slug` | Public | Fetch comprehensive fort detail (fort, trails, cisterns) |
+| `GET` | `/api/forts/:slug/history` | Public | Fetch timeline, degradation trends, and architecture |
+| `GET` | `/api/forts/:slug/trails` | Public | Get all trail segments with risk scores for a fort |
+| `GET` | `/api/forts/:slug/cisterns` | Public | Get all rock-cut water cisterns and overflow states |
+| `PUT` | `/api/forts/trails/:trailId` | 🔒🛡️ Authority/Admin | Manually override trail status (`open`, `caution`, `closed`, `diverted`) |
 
-| Role | Access Level |
-|---|---|
-| `trekker` | Trekker Dashboard — trail status, erosion index, photo uploads |
-| `authority` | Authority Command Center — simulation controls, trail closures, cistern alerts |
-| `admin` | Full access to all features |
+### Risk Engine & Simulation — `/api/risk`
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/risk/:fortSlug` | 🔒 Authenticated | Compute real-time risk scores for all trails of a fort |
+| `POST` | `/api/risk/:fortSlug/apply` | 🔒🛡️ Authority/Admin | Persist simulated/computed risk scores and broadcast via sockets |
+
+### Routing & Auto-Diversions — `/api/routing`
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/routing/:slug` | Public | Compute optimal safe path from trailhead to summit |
+| `POST` | `/api/routing/simulate` | Public | Calculate live diversion route given rainfall/footfall/severed paths |
+
+### Hazard Reporting & Triage — `/api/reports`
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/reports/recent` | Public | Fetch recent verified crowdsourced reports |
+| `GET` | `/api/reports/fort/:slug` | Public | Fetch all hazard reports for a specific fort |
+| `POST` | `/api/reports` | 🔒 Authenticated | Submit geotagged hazard report with photo |
+| `PATCH` | `/api/reports/:id/status` | 🔒🛡️ Authority/Admin | Triage report status (`verified`, `resolved`, `dismissed`) |
+
+### Weather Telemetry — `/api/weather`
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/weather/:fortSlug` | 🔒 Authenticated | Retrieve live Open-Meteo weather telemetry |
+| `POST` | `/api/weather/cache/clear` | 🔒🛡️ Admin | Flush cached weather observations |
 
 ---
 
-## 🎬 Demo Flow (Judging Round)
+## 🎬 Interactive Demo Flow (Judging Round)
 
 ```mermaid
-graph LR
-    A["1. Open Dashboard<br/>on Rajgad"] --> B["2. Show Baseline<br/>Green Trail Network"]
-    B --> C["3. Drag Rainfall<br/>Slider Up ↑"]
-    C --> D["4. Drag Trekker<br/>Volume Slider Up ↑"]
-    D --> E["5. Watch Risk Index<br/>Cross Threshold"]
-    E --> F["6. Trail Auto-Severed<br/>Diversion Drawn"]
-    F --> G["7. Switch to<br/>Authority View"]
-    G --> H["8. Show Cistern<br/>Overflow Alert"]
+graph TD
+    A["1. Open Trekker Dashboard<br/>Select Sinhagad or Rajgad"] --> B["2. Inspect Baseline State<br/>Green trails, normal water levels, live weather"]
+    B --> C["3. Open Heritage Guide<br/>View Key Landmarks, photo spots, turn-by-turn route"]
+    C --> D["4. Switch to Authority Command Center<br/>Stress-test with Simulation Sliders"]
+    D --> E["5. Drag Rainfall & Footfall Sliders Up ↑<br/>Watch Risk Score climb past 75"]
+    E --> F["6. Automated Severing & Reroute<br/>Compromised path closes, blue diversion drawn"]
+    F --> G["7. Submit Crowdsourced Hazard Photo<br/>Upload photo, verify triage on Authority map"]
 
     style A fill:#065f46,color:#fff
     style B fill:#065f46,color:#fff
-    style C fill:#b45309,color:#fff
-    style D fill:#b45309,color:#fff
+    style C fill:#0e7490,color:#fff
+    style D fill:#78350f,color:#fff
     style E fill:#991b1b,color:#fff
     style F fill:#991b1b,color:#fff
-    style G fill:#78350f,color:#fff
-    style H fill:#78350f,color:#fff
+    style G fill:#581c87,color:#fff
 ```
 
-1. **Open** the dashboard on a chosen fort (e.g., Rajgad) — show the baseline green trail network on the map.
-2. **Drag** the rainfall-intensity slider up — watch soil saturation rise on affected segments.
-3. **Drag** the trekker-volume slider up simultaneously — show compounding risk on a narrow bottleneck segment.
-4. **Watch** the threshold cross — the routing engine severs the path live and draws the diversion route.
-5. **Switch** to the Authority View — show the structural alert flagging a cistern nearing overflow.
+1. **Baseline View**: Open the Trekker Dashboard on **Sinhagad** or **Rajgad**. Observe the green open trails, stable cistern levels, and live Open-Meteo weather observations.
+2. **Heritage Page**: Click **"Heritage & History"** to explore authentic landmark photos (*Fort Walls*, *Pune Darwaja*, *Tanaji Malusare Memorial*), must-see durations, photo spots, turn-by-turn directions, and the Google Maps community gallery.
+3. **Simulation Stress-Test**: Log in as an **Authority** and navigate to the Command Center.
+4. **Increase Environmental Strain**: Drag the **Rainfall Slider** to $85\text{ mm/hr}$ and **Trekker Density** to $2.2\times$.
+5. **Threshold Trigger & Auto-Severing**: Watch the risk score on bottleneck segments cross $75$. The system immediately marks the path as **Closed** and computes an automatic safe detour.
+6. **Real-Time Client Broadcast**: Check the Trekker Dashboard in a separate tab — the trail status updates instantly without reloading, with warning alerts displayed.
 
 ---
 
 ## 🌿 Why This Fits the Track
 
-| Track Criteria | How FortFlux Addresses It |
+**PCCOE IGC Hackathon Track**: *Biodiversity, Ecosystem Conservation & Climate Awareness*
+
+| Track Pillar | How FortFlux Solves It |
 |---|---|
-| **Biodiversity & Ecosystem Conservation** | Protects surrounding slope ecology from erosion-driven habitat loss triggered by over-trafficked, storm-damaged trails |
-| **Climate Awareness** | Makes monsoon-driven risk visible and actionable in real time, rather than abstract |
-| **Heritage Conservation** | Directly protects centuries-old masonry and water infrastructure that standard "trail safety" apps ignore entirely |
+| **Ecosystem & Biodiversity Conservation** | Heavy unmanaged trekking crushes sub-alpine vegetation and accelerates gully erosion that strips topsoil from Western Ghats ridgelines. By throttling foot traffic dynamically, FortFlux protects delicate endemic slope ecology. |
+| **Climate Awareness in Action** | Translates abstract monsoon trends and cloudburst data into actionable real-time safety scores that trekkers and rangers understand at a glance. |
+| **Heritage & Living Masonry Preservation** | Western Ghats forts are active living heritage sites. FortFlux prevents irreversible scouring of 400-year-old rock-cut cisterns, battlements, and steep stone stairways. |
 
 ---
 
-## 🔮 Future Scope
+## 🔮 Future Roadmap
 
-- 🛰️ **Satellite soil moisture** — Integrate satellite-derived data to reduce reliance on point weather stations.
-- 📊 **48-hour risk forecast** — Predictive (not just reactive) erosion alerts using historical monsoon patterns.
-- 🏛️ **ASI partnership** — Verified masonry-age and repair-history data from the Archaeological Survey of India.
-- 🧠 **CNN crack detection** — Replace pixel-variance heuristics with a trained convolutional neural network for automated crack-growth classification.
-- 📱 **Mobile app** — Native trekker companion with offline trail maps and push notifications.
+- 🛰️ **Synthetic Aperture Radar (SAR) InSAR Integration**: Incorporate Sentinel-1 satellite interferometry for millimetric slope displacement detection before visible rockfalls occur.
+- 📱 **Offline-First PWA & Mesh Networking**: Enable offline trail navigation and peer-to-peer hazard sharing via Bluetooth Low Energy (BLE) mesh in zero-connectivity mountain zones.
+- 🤖 **Edge AI Crack Classification**: Run lightweight TensorFlow.js models on trekker devices to automatically classify masonry crack width and depth at the moment of photo capture.
+- 🏛️ **Government & ASI Integration Portal**: Direct data pipelines into the Archaeological Survey of India (ASI) and Maharashtra Tourism Development Corporation (MTDC) for conservation funding allocation.
 
 ---
 
 ## 👥 Team
 
-| Member | Role |
+| Member | Focus Area |
 |---|---|
-| **Ashutosh More** | - |
-| **Utkarsh Patkotwar** | - |
-| **Mohit Sojal** | - |
-| **Prachi Gorle** | - |
-| **Rahul Gadekar** | - |
+| **Ashutosh More** | Full-Stack Architecture, Real-Time Systems, GIS Integration |
+| **Utkarsh Patkotwar** | Backend Engine, Routing Algorithms, Data Modeling |
+| **Mohit Sojal** | Frontend UI/UX, Dynamic Visualizations, State Management |
+| **Prachi Gorle** | Environmental Research, Geospatial Data, Conservation Metrics |
+| **Rahul Gadekar** | Telemetry APIs, Testing & Quality Assurance |
 
 ---
 
 <div align="center">
 
-**Built for the PCCOE IGC Hackathon**
+**Built with pride for the PCCOE IGC Hackathon**  
 *Biodiversity, Ecosystem Conservation & Climate Awareness Track*
 
-⛰️ *Protecting the Sahyadri, one trail at a time.*
+⛰️ *Preserving the historic Sahyadri mountain legacy through proactive climate engineering.*
 
 </div>
