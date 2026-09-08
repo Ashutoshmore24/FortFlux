@@ -14,6 +14,7 @@ import ProfilePage from "./pages/ProfilePage";
 import HistoryPage from "./pages/HistoryPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastContainer } from "./components/Toast";
 import ScrollToTop from "./components/ScrollToTop";
 import { Mountain } from "lucide-react";
@@ -85,63 +86,65 @@ export function App() {
         <Navbar />
 
         <main className="flex-1">
-          <Routes>
-            {/* Public Auth Routes */}
-            <Route
-              path="/login"
-              element={
-                !authUser ? (
-                  <LoginPage />
-                ) : authUser.role === "authority" ? (
-                  <Navigate to="/authority" replace />
-                ) : (
-                  <Navigate to="/dashboard" replace />
-                )
-              }
-            />
+          <ErrorBoundary>
+            <Routes>
+              {/* Public Auth Routes */}
+              <Route
+                path="/login"
+                element={
+                  !authUser ? (
+                    <LoginPage />
+                  ) : authUser.role === "authority" ? (
+                    <Navigate to="/authority" replace />
+                  ) : (
+                    <Navigate to="/dashboard" replace />
+                  )
+                }
+              />
 
-            <Route
-              path="/signup"
-              element={
-                !authUser ? (
-                  <SignupPage />
-                ) : authUser.role === "authority" ? (
-                  <Navigate to="/authority" replace />
-                ) : (
-                  <Navigate to="/dashboard" replace />
-                )
-              }
-            />
+              <Route
+                path="/signup"
+                element={
+                  !authUser ? (
+                    <SignupPage />
+                  ) : authUser.role === "authority" ? (
+                    <Navigate to="/authority" replace />
+                  ) : (
+                    <Navigate to="/dashboard" replace />
+                  )
+                }
+              />
 
-            {/* Default Route: Redirect based on auth/role */}
-            <Route
-              path="/"
-              element={
-                !authUser ? (
-                  <Navigate to="/login" replace />
-                ) : authUser.role === "authority" ? (
-                  <Navigate to="/authority" replace />
-                ) : (
-                  <Navigate to="/dashboard" replace />
-                )
-              }
-            />
+              {/* Default Route: Redirect based on auth/role */}
+              <Route
+                path="/"
+                element={
+                  !authUser ? (
+                    <Navigate to="/login" replace />
+                  ) : authUser.role === "authority" ? (
+                    <Navigate to="/authority" replace />
+                  ) : (
+                    <Navigate to="/dashboard" replace />
+                  )
+                }
+              />
 
-            {/* Authenticated Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<TrekkerDashboard />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/forts/:slug/history" element={<HistoryPage />} />
+              {/* Authenticated Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<TrekkerDashboard />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/forts/:slug/history" element={<HistoryPage />} />
 
-              {/* Authority Only Routes (Protected by RBAC RoleRoute) */}
-              <Route element={<RoleRoute allowedRoles={["authority", "admin"]} />}>
-                <Route path="/authority" element={<AuthorityDashboard />} />
+                {/* Authority Only Routes (Protected by RBAC RoleRoute) */}
+                <Route element={<RoleRoute allowedRoles={["authority", "admin"]} />}>
+                  <Route path="/authority" element={<AuthorityDashboard />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ErrorBoundary>
         </main>
 
         {/* Global UI overlays */}

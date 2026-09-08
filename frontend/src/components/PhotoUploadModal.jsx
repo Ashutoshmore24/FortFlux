@@ -16,9 +16,11 @@ export const PhotoUploadModal = ({
     isOpen,
     onClose,
     fortSlug,
+    defaultFortSlug,
     fortName = "Fort",
     trails = [],
 }) => {
+    const activeFortSlug = fortSlug || defaultFortSlug;
     const { uploadReport, isUploading, error } = useReportStore();
 
     const [file, setFile] = useState(null);
@@ -270,11 +272,10 @@ export const PhotoUploadModal = ({
                                         key={cat.id}
                                         type="button"
                                         onClick={() => setHazardType(cat.id)}
-                                        className={`p-2.5 rounded-xl text-left border transition ${
-                                            hazardType === cat.id
-                                                ? "bg-emerald-500/15 border-emerald-500/60 text-emerald-300"
-                                                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200"
-                                        }`}
+                                        className={`p-2.5 rounded-xl text-left border transition ${hazardType === cat.id
+                                            ? "bg-emerald-500/15 border-emerald-500/60 text-emerald-300"
+                                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200"
+                                            }`}
                                     >
                                         <div className="text-xs font-bold">{cat.label}</div>
                                         <div className="text-[10px] text-slate-500">{cat.desc}</div>
@@ -320,9 +321,8 @@ export const PhotoUploadModal = ({
                                             key={s.id}
                                             type="button"
                                             onClick={() => setSeverity(s.id)}
-                                            className={`py-2 px-1 rounded-xl text-xs font-bold border transition text-center ${
-                                                severity === s.id ? s.color : "bg-slate-800/80 border-slate-700 text-slate-400"
-                                            }`}
+                                            className={`py-2 px-1 rounded-xl text-xs font-bold border transition text-center ${severity === s.id ? s.color : "bg-slate-800/80 border-slate-700 text-slate-400"
+                                                }`}
                                         >
                                             {s.label}
                                         </button>

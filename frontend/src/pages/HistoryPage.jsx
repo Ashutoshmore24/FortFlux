@@ -222,6 +222,22 @@ export default function HistoryPage() {
                     </div>
                 </div>
 
+                 {/* ═══════════════════════════════════════════════════════════════ */}
+                {/* CHRONOLOGICAL EVENTS TIMELINE                                   */}
+                {/* ═══════════════════════════════════════════════════════════════ */}
+                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
+                    <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+                        <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                            <History className="w-6 h-6 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-100">Chronological Events & Sovereign Milestones</h2>
+                            <p className="text-xs text-slate-400">Historical milestones, siege timelines, and ruler transitions</p>
+                        </div>
+                    </div>
+                    <Timeline events={details.timeline} />
+                </div>
+
                 {/* ═══════════════════════════════════════════════════════════════ */}
                 {/* KEY LANDMARKS TO VISIT (Updated with Modern Theme & Fonts)     */}
                 {/* ═══════════════════════════════════════════════════════════════ */}
@@ -629,39 +645,6 @@ export default function HistoryPage() {
                     />
                 </div>
 
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* CHRONOLOGICAL EVENTS TIMELINE                                   */}
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-                        <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                            <History className="w-6 h-6 text-emerald-400" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-100">Chronological Events & Sovereign Milestones</h2>
-                            <p className="text-xs text-slate-400">Historical milestones, siege timelines, and ruler transitions</p>
-                        </div>
-                    </div>
-                    <Timeline events={details.timeline} />
-                </div>
-
-                {/* Structural Degradation Photo Comparison (if available) */}
-                {structuralPair && (
-                    <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-xl">
-                        <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
-                            <div className="p-2 bg-cyan-500/10 rounded-lg">
-                                <ImageIcon className="w-6 h-6 text-cyan-400" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-100">Structural Comparison Analysis</h2>
-                        </div>
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-slate-300 flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4 text-slate-400" /> Archival vs Contemporary Structural Comparison
-                            </h3>
-                            <ImageComparisonSlider {...structuralPair} />
-                        </div>
-                    </div>
-                )}
 
                 {/* ═══════════════════════════════════════════════════════════════ */}
                 {/* COMMUNITY PHOTO GALLERY (Authentic Trekker Photos & Lightbox)  */}
