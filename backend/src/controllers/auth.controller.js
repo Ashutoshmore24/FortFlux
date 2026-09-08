@@ -10,6 +10,19 @@ const isValidEmail = (email) => {
     return emailRegex.test(email);
 };
 
+const sanitizeUser = (userDoc) => {
+    if (!userDoc) return null;
+    const user = userDoc.toObject ? userDoc.toObject() : { ...userDoc };
+    delete user.password;
+
+    // Synchronize avatarUrl and profilePic so both fields are always consistent
+    const avatar = user.avatarUrl || user.profilePic || "";
+    user.avatarUrl = avatar;
+    user.profilePic = avatar;
+
+    return user;
+};
+
 const signup = async (req, res) => {
     try {
         const { username, email, password, role, organization } = req.body;
@@ -59,14 +72,7 @@ const signup = async (req, res) => {
         // Generate JWT token and set cookie
         generateToken(newUser._id, newUser.role, res);
 
-        return res.status(201).json({
-            _id: newUser._id,
-            username: newUser.username,
-            email: newUser.email,
-            role: newUser.role,
-            organization: newUser.organization,
-            profilePic: newUser.profilePic,
-        });
+        return res.status(201).json(sanitizeUser(newUser));
     } catch (error) {
         console.error("Error in signup controller:", error.message);
         if (error.code === 11000) {
@@ -102,14 +108,16 @@ const login = async (req, res) => {
         // Generate JWT token and set cookie
         generateToken(user._id, user.role, res);
 
-        return res.status(200).json({
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            organization: user.organization,
-            profilePic: user.profilePic,
-        });
+        // Auto-heal / synchronize avatarUrl & profilePic in DB if one is set but not the other
+        if (!user.profilePic && user.avatarUrl) {
+            user.profilePic = user.avatarUrl;
+            await user.save();
+        } else if (!user.avatarUrl && user.profilePic) {
+            user.avatarUrl = user.profilePic;
+            await user.save();
+        }
+
+        return res.status(200).json(sanitizeUser(user));
     } catch (error) {
         console.error("Error in login controller:", error.message);
         return res.status(500).json({ message: "Internal server error" });
@@ -128,7 +136,7 @@ const logout = async (req, res) => {
 
 const checkAuth = async (req, res) => {
     try {
-        return res.status(200).json(req.user);
+        return res.status(200).json(sanitizeUser(req.user));
     } catch (error) {
         console.error("Error in checkAuth controller:", error.message);
         return res.status(500).json({ message: "Internal server error" });
@@ -137,7 +145,7 @@ const checkAuth = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { username, fullName, bio, location, organization } = req.body;
+        const { username, fullName, bio, location, organization, profilePic, avatarUrl } = req.body;
         const userId = req.user._id;
 
         const updateData = {};
@@ -146,6 +154,14 @@ const updateProfile = async (req, res) => {
         if (bio !== undefined) updateData.bio = bio.trim();
         if (location !== undefined) updateData.location = location.trim();
         if (organization !== undefined) updateData.organization = organization.trim();
+        if (profilePic !== undefined) {
+            updateData.profilePic = profilePic;
+            if (avatarUrl === undefined) updateData.avatarUrl = profilePic;
+        }
+        if (avatarUrl !== undefined) {
+            updateData.avatarUrl = avatarUrl;
+            if (profilePic === undefined) updateData.profilePic = avatarUrl;
+        }
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
@@ -153,7 +169,7 @@ const updateProfile = async (req, res) => {
             { returnDocument: "after" }
         ).select("-password");
 
-        return res.status(200).json(updatedUser);
+        return res.status(200).json(sanitizeUser(updatedUser));
     } catch (error) {
         console.error("Error in updateProfile controller:", error.message);
         return res.status(500).json({ message: "Internal server error" });
@@ -186,11 +202,12 @@ const googleLogin = async (req, res) => {
             if (!user.googleId) {
                 user.googleId = uid;
                 user.authProvider = "google";
-                if (picture && !user.profilePic) {
-                    user.profilePic = picture;
-                }
-                await user.save();
             }
+            if (picture) {
+                if (!user.profilePic) user.profilePic = picture;
+                if (!user.avatarUrl) user.avatarUrl = picture;
+            }
+            await user.save();
         } else {
             // Create a new user — generate a random placeholder password
             const randomPassword = crypto.randomBytes(32).toString("hex");
@@ -204,6 +221,7 @@ const googleLogin = async (req, res) => {
                 role: "trekker",
                 organization: "",
                 profilePic: picture || "",
+                avatarUrl: picture || "",
                 googleId: uid,
                 authProvider: "google",
             });
@@ -214,14 +232,7 @@ const googleLogin = async (req, res) => {
         // Generate JWT token and set cookie
         generateToken(user._id, user.role, res);
 
-        return res.status(200).json({
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            organization: user.organization,
-            profilePic: user.profilePic,
-        });
+        return res.status(200).json(sanitizeUser(user));
     } catch (error) {
         console.error("Error in googleLogin controller:", error.message);
 

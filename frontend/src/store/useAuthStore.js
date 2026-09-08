@@ -3,6 +3,16 @@ import { axiosInstance } from "../lib/axios";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
 
+const normalizeUser = (user) => {
+  if (!user) return null;
+  const avatar = user.avatarUrl || user.profilePic || "";
+  return {
+    ...user,
+    avatarUrl: avatar,
+    profilePic: avatar,
+  };
+};
+
 export const useAuthStore = create((set) => ({
   authUser: null,
   isCheckingAuth: true,
@@ -18,7 +28,7 @@ export const useAuthStore = create((set) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data });
+      set({ authUser: normalizeUser(res.data) });
     } catch (error) {
       console.log("Not logged in or session expired:", error?.response?.data?.message || error.message);
       set({ authUser: null });
@@ -31,7 +41,7 @@ export const useAuthStore = create((set) => ({
     set({ isSigningUp: true, authError: null });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
+      set({ authUser: normalizeUser(res.data) });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Signup failed. Please try again.";
@@ -46,7 +56,7 @@ export const useAuthStore = create((set) => ({
     set({ isLoggingIn: true, authError: null });
     try {
       const res = await axiosInstance.post("/auth/login", data);
-      set({ authUser: res.data });
+      set({ authUser: normalizeUser(res.data) });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Invalid email or password";
@@ -66,7 +76,7 @@ export const useAuthStore = create((set) => ({
       const idToken = await result.user.getIdToken();
       // Send token to our backend for verification and user creation/login
       const res = await axiosInstance.post("/auth/google", { idToken });
-      set({ authUser: res.data });
+      set({ authUser: normalizeUser(res.data) });
       return { success: true };
     } catch (error) {
       let message = "Google sign-in failed. Please try again.";
@@ -101,7 +111,7 @@ export const useAuthStore = create((set) => ({
     set({ isUpdatingProfile: true, authError: null });
     try {
       const res = await axiosInstance.put("/auth/profile", data);
-      set({ authUser: res.data });
+      set({ authUser: normalizeUser(res.data) });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Profile update failed.";
@@ -121,7 +131,7 @@ export const useAuthStore = create((set) => ({
       const res = await axiosInstance.post(`/users/${userId}/avatar`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      set({ authUser: res.data });
+      set({ authUser: normalizeUser(res.data) });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Failed to upload avatar.";

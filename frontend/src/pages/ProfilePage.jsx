@@ -13,6 +13,7 @@ export const ProfilePage = () => {
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [imgError, setImgError] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export const ProfilePage = () => {
       bio: authUser?.bio || "",
       location: authUser?.location || "",
     });
+    setImgError(false);
   }, [authUser]);
 
   const handleImageChange = async (e) => {
@@ -129,8 +131,13 @@ export const ProfilePage = () => {
               {/* Avatar */}
               <div className="relative group shrink-0">
                 <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-2xl flex items-center justify-center relative group-hover:shadow-emerald-500/20 transition-shadow duration-300">
-                  {displayAvatar ? (
-                    <img src={displayAvatar} alt="Profile" className="w-full h-full object-cover" />
+                  {displayAvatar && !imgError ? (
+                    <img
+                      src={displayAvatar}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={() => setImgError(true)}
+                    />
                   ) : (
                     <User className="w-16 h-16 sm:w-20 sm:h-20 text-slate-500" />
                   )}

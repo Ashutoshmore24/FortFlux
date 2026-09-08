@@ -9,7 +9,7 @@ import { getRiskLabel, getTrailColor } from "../../utils/geoJsonUtils";
  * Generate HTML content for a fort popup.
  */
 export const getFortPopupHTML = (properties) => {
-    const { name, elevation, district, region, description, baseVillage } = properties;
+    const { name, elevation, district, region, description, baseVillage, slug } = properties;
 
     return `
         <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 200px; max-width: 280px;">
@@ -28,7 +28,14 @@ export const getFortPopupHTML = (properties) => {
                 </span>
             </div>
             ${description ? `<p style="margin: 0 0 6px; font-size: 11px; color: #64748b; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${description}</p>` : ""}
-            ${baseVillage ? `<p style="margin: 0; font-size: 10px; color: #94a3b8;">Base village: <span style="font-weight: 500; color: #64748b;">${baseVillage}</span></p>` : ""}
+            ${baseVillage ? `<p style="margin: 0 0 6px; font-size: 10px; color: #94a3b8;">Base village: <span style="font-weight: 500; color: #64748b;">${baseVillage}</span></p>` : ""}
+            ${slug ? `
+                <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #f1f5f9;">
+                    <a href="/forts/${slug}/history" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #059669; text-decoration: none; padding: 4px 8px; background: #ecfdf5; border-radius: 6px; border: 1px solid #a7f3d0; cursor: pointer;">
+                        📜 View Fort History & Heritage &rarr;
+                    </a>
+                </div>
+            ` : ""}
         </div>
     `;
 };

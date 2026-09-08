@@ -42,7 +42,9 @@ export const uploadAvatar = async (req, res) => {
     }
 
     // Update user document
-    user.avatarUrl = uploadResponse.secure_url;
+    const avatarUrl = uploadResponse.secure_url;
+    user.avatarUrl = avatarUrl;
+    user.profilePic = avatarUrl;
     user.avatarCloudinaryId = uploadResponse.public_id;
     
     // Save updated user (triggering select("-password") logic is tricky when saving directly, 
@@ -51,6 +53,8 @@ export const uploadAvatar = async (req, res) => {
     
     const userResponse = user.toObject();
     delete userResponse.password;
+    userResponse.avatarUrl = avatarUrl;
+    userResponse.profilePic = avatarUrl;
 
     return res.status(200).json(userResponse);
   } catch (error) {

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
+import { useWeatherStore } from "../store/useWeatherStore";
 import { getSocket } from "../lib/socket";
-import { Mountain, Shield, Compass, LogOut, UserCheck, Menu, X, Wifi, WifiOff } from "lucide-react";
+import { Mountain, Shield, Compass, LogOut, UserCheck, Menu, X, Wifi, WifiOff, History, User } from "lucide-react";
 
 export const Navbar = () => {
   const { authUser, logout } = useAuthStore();
+  const selectedFortSlug = useWeatherStore((state) => state.selectedFortSlug) || "rajgad";
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,6 +23,7 @@ export const Navbar = () => {
   // Socket connection status
   const socket = getSocket();
   const isConnected = socket?.connected;
+  const avatarSrc = authUser?.avatarUrl || authUser?.profilePic;
 
   return (
     <header className="sticky top-0 z-50 bg-slate-950/70 backdrop-blur-xl border-b border-slate-800/60">
@@ -61,6 +64,17 @@ export const Navbar = () => {
                   <Compass className="w-3.5 h-3.5 text-cyan-400" />
                   Trekker Trail
                 </Link>
+                <Link
+                  to={`/forts/${selectedFortSlug}/history`}
+                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all duration-200 ${
+                    location.pathname.includes("/history")
+                      ? "bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800 border border-transparent"
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5 text-purple-400" />
+                  Fort History
+                </Link>
                 {authUser.role === "authority" && (
                   <Link
                     to="/authority"
@@ -87,9 +101,21 @@ export const Navbar = () => {
 
               {/* User Profile Badge */}
               <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-800">
-                <Link to="/profile" className="flex items-center gap-2 hover:bg-slate-800/50 p-1.5 rounded-xl transition-all duration-200">
+                <Link to="/profile" className="flex items-center gap-2.5 hover:bg-slate-800/50 p-1.5 rounded-xl transition-all duration-200 group">
+                  {avatarSrc ? (
+                    <img
+                      src={avatarSrc}
+                      alt={authUser.username}
+                      className="w-8 h-8 rounded-full object-cover border border-emerald-500/40 group-hover:border-emerald-400 shadow-sm shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 group-hover:text-slate-300 shrink-0">
+                      <User className="w-4 h-4" />
+                    </div>
+                  )}
+
                   <div className="text-right hidden md:block">
-                    <div className="text-xs font-semibold text-slate-200">{authUser.username}</div>
+                    <div className="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">{authUser.username}</div>
                     <div className="text-[10px] text-slate-400 truncate max-w-[150px]">
                       {authUser.organization || (authUser.role === "authority" ? "Forest Authority" : "Sahyadri Explorer")}
                     </div>
@@ -187,6 +213,19 @@ export const Navbar = () => {
               Trekker Trail Dashboard
             </Link>
 
+            <Link
+              to={`/forts/${selectedFortSlug}/history`}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
+                location.pathname.includes("/history")
+                  ? "bg-purple-500/15 text-purple-300 border border-purple-500/30"
+                  : "text-slate-300 hover:bg-slate-800 border border-transparent"
+              }`}
+            >
+              <History className="w-4 h-4 text-purple-400" />
+              Fort Heritage & History
+            </Link>
+
             {authUser.role === "authority" && (
               <Link
                 to="/authority"
@@ -211,7 +250,15 @@ export const Navbar = () => {
                   : "text-slate-300 hover:bg-slate-800 border border-transparent"
               }`}
             >
-              <UserCheck className="w-4 h-4 text-slate-400" />
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt={authUser.username}
+                  className="w-5 h-5 rounded-full object-cover border border-emerald-500/40 shrink-0"
+                />
+              ) : (
+                <User className="w-4 h-4 text-slate-400 shrink-0" />
+              )}
               Profile — {authUser.username}
             </Link>
 
