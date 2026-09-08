@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastContainer } from "./components/Toast";
+import RateLimitModal from "./components/RateLimitModal";
 import ScrollToTop from "./components/ScrollToTop";
 import { Mountain } from "lucide-react";
 
@@ -149,6 +150,7 @@ export function App() {
 
         {/* Global UI overlays */}
         <ToastContainer />
+        <RateLimitModal />
         <ScrollToTop />
       </div>
     </BrowserRouter>

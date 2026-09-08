@@ -12,6 +12,7 @@ import riskRoutes from './routes/risk.route.js';
 import routingRoutes from './routes/routing.route.js';
 import userRoutes from './routes/user.route.js';
 import reportRoutes from './routes/report.route.js';
+import { globalRateLimiter } from './middlewares/arcjet.middleware.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -26,6 +27,12 @@ app.use(cors({
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Baseline API Rate Limiting across all endpoints (exempting session check)
+app.use("/api", (req, res, next) => {
+    if (req.path === "/auth/check") return next();
+    return globalRateLimiter(req, res, next);
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
