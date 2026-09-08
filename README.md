@@ -251,71 +251,112 @@ Clients join rooms:
 
 ```
 FortFlux/
+├── .gitignore
+├── analysis_results.md
 ├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   │   ├── auth.controller.js       # Authentication & session management
-│   │   │   ├── fort.controller.js       # Fort, trail & cistern data
-│   │   │   ├── report.controller.js     # Crowdsourced hazard reports
-│   │   │   ├── risk.controller.js       # Risk calculation & persistence
-│   │   │   ├── routing.controller.js    # Safe route & simulation
-│   │   │   ├── user.controller.js       # User profile management
-│   │   │   └── weather.controller.js    # Weather data retrieval
-│   │   ├── data/
-│   │   │   └── seed.js                  # Master database seeder
-│   │   ├── lib/
-│   │   │   ├── db.js
-│   │   │   ├── env.js
-│   │   │   ├── jwt.js
-│   │   │   └── socket.js                # Socket.IO server setup
-│   │   ├── middlewares/
-│   │   │   ├── auth.middleware.js       # JWT authentication & RBAC
-│   │   │   └── upload.middleware.js     # File upload handling
-│   │   ├── models/
-│   │   │   ├── Cistern.js
-│   │   │   ├── Fort.js
-│   │   │   ├── FortHistory.js
-│   │   │   ├── Trail.js
-│   │   │   ├── TrailReport.js
-│   │   │   └── User.js
-│   │   ├── routes/
-│   │   │   ├── auth.route.js
-│   │   │   ├── fort.route.js
-│   │   │   ├── report.route.js
-│   │   │   ├── risk.route.js
-│   │   │   ├── routing.route.js
-│   │   │   ├── user.route.js
-│   │   │   └── weather.route.js
-│   │   ├── scripts/
-│   │   │   ├── cleanReports.js
-│   │   │   └── seedHistory.js           # Historical data seeder
-│   │   ├── services/
-│   │   │   ├── risk.service.js          # Risk & erosion logic
-│   │   │   ├── routing.service.js       # A* routing & diversions
-│   │   │   └── weather.service.js       # Weather API & rainfall logic
-│   │   └── server.js                    # Express & Socket.IO entry point
 │   ├── .env.example
-│   └── package.json
-│
+│   ├── package-lock.json
+│   ├── package.json
+│   └── src/
+│       ├── controllers/
+│       │   ├── auth.controller.js
+│       │   ├── fort.controller.js
+│       │   ├── report.controller.js
+│       │   ├── risk.controller.js
+│       │   ├── routing.controller.js
+│       │   ├── user.controller.js
+│       │   └── weather.controller.js
+│       ├── data/
+│       │   └── seed.js
+│       ├── lib/
+│       │   ├── cloudinary.js
+│       │   ├── db.js
+│       │   ├── env.js
+│       │   ├── firebase-admin.js
+│       │   ├── jwt.js
+│       │   └── socket.js
+│       ├── middlewares/
+│       │   ├── auth.middleware.js
+│       │   └── upload.js
+│       ├── models/
+│       │   ├── Cistern.js
+│       │   ├── Fort.js
+│       │   ├── FortHistory.js
+│       │   ├── Trail.js
+│       │   ├── TrailReport.js
+│       │   └── User.js
+│       ├── routes/
+│       │   ├── auth.route.js
+│       │   ├── fort.route.js
+│       │   ├── report.route.js
+│       │   ├── risk.route.js
+│       │   ├── routing.route.js
+│       │   ├── user.route.js
+│       │   └── weather.route.js
+│       ├── scripts/
+│       │   ├── cleanReports.js
+│       │   └── seedHistory.js
+│       ├── server.js
+│       └── services/
+│           ├── risk.service.js
+│           ├── routing.service.js
+│           └── weather.service.js
 ├── frontend/
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
 │   ├── public/
-│   │   └── favicon.svg
+│   │   ├── favicon.svg
+│   │   └── forts/
+│   │       ├── ajinkyatara.jpg
+│   │       ├── harishchandragad.webp
+│   │       ├── korigad.jpg
+│   │       ├── lohagad.webp
+│   │       ├── murud-janjira.jpg
+│   │       ├── panhala.jpg
+│   │       ├── pratapgad.jpg
+│   │       ├── purandar.avif
+│   │       ├── raigad.webp
+│   │       ├── rajgad.jpg
+│   │       ├── rajmachi.jpg
+│   │       ├── shivneri.webp
+│   │       ├── sindhudurg.jpg
+│   │       ├── sinhagad.webp
+│   │       ├── tikona.jpg
+│   │       ├── torna.webp
+│   │       ├── vijaydurg.webp
+│   │       └── visapur.avif
+│   ├── README.md
 │   ├── src/
+│   │   ├── App.jsx
 │   │   ├── components/
+│   │   │   ├── ErosionChart.jsx
+│   │   │   ├── ErrorBoundary.jsx
+│   │   │   ├── ImageComparisonSlider.jsx
 │   │   │   ├── map/
 │   │   │   │   ├── FortMap.jsx
 │   │   │   │   ├── MapControls.jsx
 │   │   │   │   ├── MapPopup.jsx
 │   │   │   │   └── RiskLegend.jsx
-│   │   │   ├── ErosionChart.jsx
-│   │   │   ├── ImageComparisonSlider.jsx
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── PhotoUploadModal.jsx
 │   │   │   ├── ProtectedRoute.jsx
 │   │   │   ├── RoleRoute.jsx
-│   │   │   └── Timeline.jsx
+│   │   │   ├── ScrollToTop.jsx
+│   │   │   ├── Timeline.jsx
+│   │   │   └── Toast.jsx
+│   │   ├── config/
+│   │   │   ├── firebase.js
+│   │   │   └── mapConfig.js
 │   │   ├── data/
-│   │   │   └── fortHistoryData.js       # Curated fort history data
+│   │   │   └── fortHistoryData.js
+│   │   ├── index.css
+│   │   ├── lib/
+│   │   │   ├── axios.js
+│   │   │   └── socket.js
+│   │   ├── main.jsx
 │   │   ├── pages/
 │   │   │   ├── AuthorityDashboard.jsx
 │   │   │   ├── HistoryPage.jsx
@@ -329,15 +370,14 @@ FortFlux/
 │   │   │   ├── useReportStore.js
 │   │   │   ├── useRiskStore.js
 │   │   │   ├── useRoutingStore.js
+│   │   │   ├── useToastStore.js
 │   │   │   └── useWeatherStore.js
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── vite.config.js
-│   └── package.json
-│
-├── .gitignore
+│   │   └── utils/
+│   │       └── geoJsonUtils.js
+│   └── vite.config.js
+├── package-lock.json
 └── README.md
+
 ```
 
 ---
