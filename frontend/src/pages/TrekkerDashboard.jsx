@@ -29,6 +29,8 @@ import {
   XCircle,
   Backpack,
   Info,
+  Mountain,
+  Leaf,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -153,11 +155,11 @@ export const TrekkerDashboard = () => {
   const riskLevel = aggregateRisk >= 75 ? 4 : aggregateRisk >= 50 ? 3 : aggregateRisk >= 30 ? 2 : aggregateRisk >= 10 ? 1 : 0;
   const riskLabels = ["Level 0 - Safe", "Level 1 - Low", "Level 2 - Elevated", "Level 3 - High", "Level 4 - Critical"];
   const riskBadgeColors = [
-    "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-    "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
-    "bg-amber-500/15 text-amber-300 border-amber-500/30",
-    "bg-orange-500/15 text-orange-300 border-orange-500/30",
-    "bg-rose-500/15 text-rose-300 border-rose-500/30",
+    "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+    "bg-teal-500/20 text-teal-300 border-teal-500/40",
+    "bg-amber-500/20 text-amber-300 border-amber-500/40",
+    "bg-orange-500/20 text-orange-300 border-orange-500/40",
+    "bg-rose-500/20 text-rose-300 border-rose-500/40",
   ];
 
   const weather = weatherData?.weather;
@@ -166,77 +168,90 @@ export const TrekkerDashboard = () => {
   // Determine severity-based styling
   const getSeverityColor = (severity) => {
     switch (severity) {
-      case "clear":
-        return "text-emerald-400";
-      case "cloudy":
-        return "text-slate-300";
-      case "light":
-        return "text-cyan-400";
-      case "moderate":
-        return "text-amber-400";
-      case "heavy":
-        return "text-orange-400";
-      case "extreme":
-        return "text-rose-400";
-      default:
-        return "text-cyan-400";
+      case "clear":   return "text-emerald-400";
+      case "cloudy":  return "text-sky-300";
+      case "light":   return "text-teal-400";
+      case "moderate":return "text-amber-400";
+      case "heavy":   return "text-orange-400";
+      case "extreme": return "text-rose-400";
+      default:        return "text-teal-400";
     }
   };
 
   const getSeverityBg = (severity) => {
     switch (severity) {
-      case "clear":
-        return "bg-emerald-500/10 border-emerald-500/30";
-      case "cloudy":
-        return "bg-slate-500/10 border-slate-500/30";
-      case "light":
-        return "bg-cyan-500/10 border-cyan-500/30";
-      case "moderate":
-        return "bg-amber-500/10 border-amber-500/30";
-      case "heavy":
-        return "bg-orange-500/10 border-orange-500/30";
-      case "extreme":
-        return "bg-rose-500/10 border-rose-500/30";
-      default:
-        return "bg-cyan-500/10 border-cyan-500/30";
+      case "clear":   return "bg-emerald-500/10 border-emerald-500/30";
+      case "cloudy":  return "bg-sky-500/10 border-sky-500/30";
+      case "light":   return "bg-teal-500/10 border-teal-500/30";
+      case "moderate":return "bg-amber-500/10 border-amber-500/30";
+      case "heavy":   return "bg-orange-500/10 border-orange-500/30";
+      case "extreme": return "bg-rose-500/10 border-rose-500/30";
+      default:        return "bg-teal-500/10 border-teal-500/30";
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8 relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+      {/* ── WELCOME BANNER ── */}
+      <div className="relative rounded-3xl p-6 sm:p-8 mb-8 overflow-hidden animate-fade-in-up border border-emerald-500/20"
+        style={{ background: "linear-gradient(135deg, #0a1f14 0%, #0d1b2a 40%, #0f1a2e 100%)" }}>
+        {/* Animated layered gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/15 via-teal-500/8 to-cyan-600/10 animate-gradient-shift pointer-events-none" />
+        {/* Decorative mountain silhouette */}
+        <div className="absolute right-0 bottom-0 opacity-5 pointer-events-none">
+          <Mountain className="w-64 h-64 text-emerald-300" />
+        </div>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-t-3xl" />
+
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">
                 <Compass className="w-3.5 h-3.5" />
                 Trekker Field Portal
               </span>
               {authUser?.role === "authority" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium">
                   <Shield className="w-3 h-3" /> Authority viewing Trekker mode
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Welcome, {authUser?.username}!
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-1">
+              <span className="text-white">Hey, </span>
+              <span style={{ background: "linear-gradient(90deg, #34d399, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                {authUser?.username}!
+              </span>
+              <span className="text-2xl ml-2">🏔️</span>
             </h1>
-            <p className="text-sm text-slate-400 mt-1 max-w-xl">
+            <p className="text-sm text-slate-400 mt-1 max-w-xl leading-relaxed">
               Live trail conditions, monsoon erosion metrics, and crowdsourced hazard tracking across Sahyadri heritage sites.
             </p>
+
+            {/* Quick stat pills */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-teal-300 text-[11px] font-semibold">
+                <Leaf className="w-3 h-3" /> 18 Forts Monitored
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/25 text-sky-300 text-[11px] font-semibold">
+                <Activity className="w-3 h-3" /> Live Data Feed
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/25 text-violet-300 text-[11px] font-semibold">
+                <Route className="w-3 h-3" /> AI Route Finder
+              </span>
+            </div>
           </div>
 
-          {/* Live Weather Badge — replaces hardcoded "Moderate Monsoon Surge" */}
-          <div className="flex items-center gap-3 bg-slate-950/70 border border-slate-800 p-4 rounded-2xl min-w-[220px]">
+          {/* Live Weather Badge */}
+          <div className="flex items-center gap-3 bg-black/30 backdrop-blur-sm border border-white/10 p-4 rounded-2xl min-w-[220px] shrink-0">
             {isLoading && !weather ? (
-              // Loading skeleton
               <div className="flex items-center gap-3 animate-pulse w-full">
-                <div className="w-8 h-8 bg-slate-800 rounded-lg shrink-0" />
+                <div className="w-10 h-10 bg-white/10 rounded-xl shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-slate-800 rounded w-24" />
-                  <div className="h-4 bg-slate-800 rounded w-32" />
-                  <div className="h-2.5 bg-slate-800 rounded w-20" />
+                  <div className="h-3 bg-white/10 rounded w-24" />
+                  <div className="h-4 bg-white/10 rounded w-32" />
+                  <div className="h-2.5 bg-white/10 rounded w-20" />
                 </div>
               </div>
             ) : error ? (
@@ -245,30 +260,25 @@ export const TrekkerDashboard = () => {
                 <div>
                   <div className="text-xs text-slate-400">Weather</div>
                   <div className="text-sm font-bold text-amber-400">Unavailable</div>
-                  <button
-                    onClick={() => fetchWeather()}
-                    className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 mt-0.5 transition"
-                  >
+                  <button onClick={() => fetchWeather()} className="text-[11px] text-teal-400 hover:text-teal-300 flex items-center gap-1 mt-0.5 transition cursor-pointer">
                     <RefreshCw className="w-3 h-3" /> Retry
                   </button>
                 </div>
               </div>
             ) : weather ? (
               <div className="flex items-center gap-3">
-                <div className="text-2xl shrink-0">{weather.weatherIcon}</div>
+                <div className="text-3xl shrink-0 animate-float">{weather.weatherIcon}</div>
                 <div>
-                  <div className="text-xs text-slate-400">Current Forecast</div>
-                  <div className={`text-sm font-bold ${getSeverityColor(weather.weatherSeverity)}`}>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Current Forecast</div>
+                  <div className={`text-sm font-bold mt-0.5 ${getSeverityColor(weather.weatherSeverity)}`}>
                     {weather.monsoonSeverity?.label || weather.weatherDescription}
                   </div>
-                  <div className="text-[11px] text-cyan-400">
-                    {fortInfo?.name || "Sahyadri Corridor"}
-                  </div>
+                  <div className="text-[11px] text-teal-400 font-medium">{fortInfo?.name || "Sahyadri Corridor"}</div>
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <CloudRain className="w-8 h-8 text-cyan-400 shrink-0" />
+                <CloudRain className="w-8 h-8 text-teal-400 shrink-0 animate-pulse" />
                 <div>
                   <div className="text-xs text-slate-400">Current Forecast</div>
                   <div className="text-sm font-bold text-white">Loading...</div>
@@ -279,18 +289,21 @@ export const TrekkerDashboard = () => {
         </div>
       </div>
 
-      {/* Live Weather Detail Card + Fort Selector */}
+      {/* ── LIVE WEATHER DETAIL CARD ── */}
       {weather && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 mb-8">
+        <div className="bg-slate-900/60 border border-slate-700/60 rounded-2xl p-6 mb-8 animate-fade-in-up hover-glow"
+          style={{ boxShadow: "0 0 0 1px rgba(20,184,166,0.08), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="text-3xl">{weather.weatherIcon}</div>
+            <div className="flex items-center gap-3">
+              <div className="text-4xl animate-float">{weather.weatherIcon}</div>
               <div>
                 <h3 className="font-bold text-white text-base flex items-center gap-2">
-                  Live Weather — {fortInfo?.name}
+                  Live Weather
+                  <span className="text-teal-400">—</span>
+                  <span className="text-teal-300">{fortInfo?.name}</span>
                 </h3>
-                <p className="text-xs text-slate-400">
-                  {weather.weatherDescription} · Elevation: {fortInfo?.elevation}m ASL
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {weather.weatherDescription} · <span className="text-emerald-400/80">Elevation: {fortInfo?.elevation}m ASL</span>
                 </p>
               </div>
             </div>
@@ -301,22 +314,20 @@ export const TrekkerDashboard = () => {
                 <select
                   value={selectedFortSlug}
                   onChange={(e) => handleFortChange(e.target.value)}
-                  className="appearance-none bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium rounded-xl px-4 py-2 pr-8 focus:outline-none focus:border-cyan-500 transition cursor-pointer"
+                  className="appearance-none bg-slate-800/80 border border-teal-500/30 text-slate-200 text-xs font-medium rounded-xl px-4 py-2 pr-8 focus:outline-none focus:border-teal-400 transition cursor-pointer hover:border-teal-500/50"
                 >
                   {availableForts.map((f) => (
-                    <option key={f.slug} value={f.slug}>
-                      {f.name}
-                    </option>
+                    <option key={f.slug} value={f.slug}>{f.name}</option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-teal-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
-              {/* Refresh Button */}
+              {/* Refresh */}
               <button
                 onClick={() => fetchWeather()}
                 disabled={isLoading}
-                className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-400 hover:text-cyan-400 transition disabled:opacity-50"
+                className="p-2 bg-slate-800/80 hover:bg-teal-500/10 border border-slate-700 hover:border-teal-500/40 rounded-xl text-slate-400 hover:text-teal-400 transition cursor-pointer disabled:opacity-50"
                 title="Refresh weather"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
@@ -324,135 +335,121 @@ export const TrekkerDashboard = () => {
             </div>
           </div>
 
-          {/* Weather Metrics Grid */}
+          {/* Weather Metrics Grid — colorful tiles */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* Temperature */}
-            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
+            {/* Temperature — warm orange */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-500/25 rounded-xl p-4 hover-lift animate-fade-in-up delay-100">
               <div className="flex items-center gap-2 mb-2">
-                <Thermometer className="w-4 h-4 text-orange-400" />
+                <div className="p-1.5 bg-orange-500/20 rounded-lg">
+                  <Thermometer className="w-3.5 h-3.5 text-orange-400" />
+                </div>
                 <span className="text-[11px] text-slate-400 font-medium">Temperature</span>
               </div>
-              <div className="text-xl font-bold text-white">
-                {weather.temperature}°C
-              </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">
-                Feels like {weather.apparentTemperature}°C
-              </div>
+              <div className="text-2xl font-black text-white">{weather.temperature}°<span className="text-lg text-orange-400">C</span></div>
+              <div className="text-[10px] text-orange-400/70 mt-0.5">Feels like {weather.apparentTemperature}°C</div>
             </div>
 
-            {/* Precipitation */}
-            <div className={`border rounded-xl p-4 ${getSeverityBg(weather.weatherSeverity)}`}>
+            {/* Precipitation — dynamic severity color */}
+            <div className={`border rounded-xl p-4 hover-lift animate-fade-in-up delay-200 ${getSeverityBg(weather.weatherSeverity)}`}>
               <div className="flex items-center gap-2 mb-2">
-                <CloudRain className={`w-4 h-4 ${getSeverityColor(weather.weatherSeverity)}`} />
+                <div className={`p-1.5 rounded-lg ${getSeverityBg(weather.weatherSeverity)}`}>
+                  <CloudRain className={`w-3.5 h-3.5 ${getSeverityColor(weather.weatherSeverity)}`} />
+                </div>
                 <span className="text-[11px] text-slate-400 font-medium">Precipitation</span>
               </div>
-              <div className="text-xl font-bold text-white">
-                {weather.precipitation} mm
-              </div>
-              <div className={`text-[10px] mt-0.5 font-semibold ${getSeverityColor(weather.weatherSeverity)}`}>
-                {weather.monsoonSeverity?.label}
-              </div>
+              <div className="text-2xl font-black text-white">{weather.precipitation}<span className={`text-sm ml-1 ${getSeverityColor(weather.weatherSeverity)}`}>mm</span></div>
+              <div className={`text-[10px] mt-0.5 font-bold ${getSeverityColor(weather.weatherSeverity)}`}>{weather.monsoonSeverity?.label}</div>
             </div>
 
-            {/* Humidity */}
-            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
+            {/* Humidity — teal/cyan */}
+            <div className="bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-500/25 rounded-xl p-4 hover-lift animate-fade-in-up delay-300">
               <div className="flex items-center gap-2 mb-2">
-                <Droplets className="w-4 h-4 text-cyan-400" />
+                <div className="p-1.5 bg-teal-500/20 rounded-lg">
+                  <Droplets className="w-3.5 h-3.5 text-teal-400" />
+                </div>
                 <span className="text-[11px] text-slate-400 font-medium">Humidity</span>
               </div>
-              <div className="text-xl font-bold text-white">
-                {weather.humidity}%
-              </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">
+              <div className="text-2xl font-black text-white">{weather.humidity}<span className="text-lg text-teal-400">%</span></div>
+              <div className="text-[10px] text-teal-400/70 mt-0.5">
                 {weather.humidity >= 85 ? "High saturation" : weather.humidity >= 60 ? "Moderate" : "Low moisture"}
               </div>
             </div>
 
-            {/* Wind */}
-            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
+            {/* Wind — fresh green */}
+            <div className="bg-gradient-to-br from-emerald-500/10 to-green-500/5 border border-emerald-500/25 rounded-xl p-4 hover-lift animate-fade-in-up delay-400">
               <div className="flex items-center gap-2 mb-2">
-                <Wind className="w-4 h-4 text-emerald-400" />
+                <div className="p-1.5 bg-emerald-500/20 rounded-lg">
+                  <Wind className="w-3.5 h-3.5 text-emerald-400" />
+                </div>
                 <span className="text-[11px] text-slate-400 font-medium">Wind Speed</span>
               </div>
-              <div className="text-xl font-bold text-white">
-                {weather.windSpeed} km/h
-              </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">
-                Gusts up to {weather.windGusts} km/h
-              </div>
+              <div className="text-2xl font-black text-white">{weather.windSpeed}<span className="text-sm text-emerald-400 ml-1">km/h</span></div>
+              <div className="text-[10px] text-emerald-400/70 mt-0.5">Gusts {weather.windGusts} km/h</div>
             </div>
           </div>
 
-          {/* Monsoon severity indicator bar */}
-          <div className="mt-4 p-3 bg-slate-950/40 rounded-xl border border-slate-800/60">
+          {/* Monsoon Severity Bar */}
+          <div className="mt-4 p-4 bg-black/20 rounded-xl border border-white/5">
             <div className="flex items-center justify-between mb-2 text-xs">
-              <span className="text-slate-400 font-medium">Monsoon Severity Index</span>
-              <span className={`font-bold ${getSeverityColor(weather.weatherSeverity)}`}>
+              <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-teal-400" />
+                Monsoon Severity Index
+              </span>
+              <span className={`font-bold text-sm ${getSeverityColor(weather.weatherSeverity)}`}>
                 Level {weather.monsoonSeverity?.level} / 5
               </span>
             </div>
-            <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-800/80 h-2.5 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500"
-                style={{ width: `${(weather.monsoonSeverity?.level / 5) * 100}%` }}
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${(weather.monsoonSeverity?.level / 5) * 100}%`,
+                  background: "linear-gradient(90deg, #10b981, #f59e0b, #ef4444)"
+                }}
               />
+            </div>
+            <div className="flex justify-between text-[10px] text-slate-500 mt-1.5">
+              <span>☀️ Clear</span><span>🌧️ Heavy</span><span>⛈️ Extreme</span>
             </div>
           </div>
 
           {/* Trek Recommendations */}
           {weather.recommendation && (
-            <div className="mt-4 p-4 sm:p-5 bg-slate-950/60 rounded-xl border border-slate-800">
-              <div className="flex flex-col sm:flex-row gap-4 sm:items-start justify-between mb-4">
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${
-                    weather.recommendation.isSafe
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "bg-rose-500/10 text-rose-400"
-                  }`}>
-                    {weather.recommendation.isSafe ? (
-                      <ShieldCheck className="w-6 h-6" />
-                    ) : (
-                      <XCircle className="w-6 h-6" />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-base">
-                      {weather.recommendation.status}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {weather.recommendation.message}
-                    </p>
-                  </div>
+            <div className={`mt-4 p-4 sm:p-5 rounded-xl border ${weather.recommendation.isSafe ? "bg-emerald-500/5 border-emerald-500/25" : "bg-rose-500/5 border-rose-500/25"}`}>
+              <div className="flex items-start gap-3 mb-4">
+                <div className={`p-2.5 rounded-xl ${weather.recommendation.isSafe ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}>
+                  {weather.recommendation.isSafe ? <ShieldCheck className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h4 className={`font-bold text-base ${weather.recommendation.isSafe ? "text-emerald-300" : "text-rose-300"}`}>
+                    {weather.recommendation.status}
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{weather.recommendation.message}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800/80">
-                {/* Accessories */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/5">
                 <div>
-                  <h5 className="text-[11px] font-semibold text-cyan-400 mb-2 flex items-center gap-1.5">
-                    <Backpack className="w-3.5 h-3.5" />
-                    Recommended Gear
+                  <h5 className="text-[11px] font-bold text-teal-400 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Backpack className="w-3.5 h-3.5" /> Recommended Gear
                   </h5>
-                  <ul className="grid grid-cols-1 gap-1.5">
+                  <ul className="space-y-1.5">
                     {weather.recommendation.accessories.map((item, i) => (
                       <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full bg-cyan-500/50"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500/60 shrink-0" />
                         {item}
                       </li>
                     ))}
                   </ul>
                 </div>
-
-                {/* Precautions */}
                 <div>
-                  <h5 className="text-[11px] font-semibold text-amber-400 mb-2 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5" />
-                    Precautions
+                  <h5 className="text-[11px] font-bold text-amber-400 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Info className="w-3.5 h-3.5" /> Precautions
                   </h5>
-                  <ul className="grid grid-cols-1 gap-1.5">
+                  <ul className="space-y-1.5">
                     {weather.recommendation.precautions.map((item, i) => (
                       <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full bg-amber-500/50"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60 shrink-0" />
                         {item}
                       </li>
                     ))}
@@ -462,7 +459,7 @@ export const TrekkerDashboard = () => {
             </div>
           )}
 
-          {/* Cache/freshness indicator */}
+          {/* Cache indicator */}
           <div className="mt-3 flex items-center justify-end gap-2 text-[10px] text-slate-500">
             <span className={`w-1.5 h-1.5 rounded-full ${weather.cached ? "bg-amber-400" : "bg-emerald-400"}`} />
             {weather.cached ? "Cached data" : "Fresh data"} · Last updated: {new Date(weather.fetchedAt).toLocaleTimeString("en-IN")}
@@ -471,75 +468,92 @@ export const TrekkerDashboard = () => {
         </div>
       )}
 
-      {/* ═══ Interactive Fort Map ═══ */}
-      <div className="mb-8">
+      {/* Section Divider */}
+      <div className="my-8 h-px bg-gradient-to-r from-transparent via-teal-500/30 to-transparent" />
+
+      {/* ── FORT MAP ── */}
+      <div className="mb-8 animate-fade-in-up">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-white text-lg flex items-center gap-2">
-            <MapIcon className="w-5 h-5 text-cyan-400" />
-            Sahyadri Fort Network — Live Map
+            <div className="p-1.5 bg-sky-500/15 rounded-lg">
+              <MapIcon className="w-4 h-4 text-sky-400" />
+            </div>
+            Sahyadri Fort Network
+            <span className="text-slate-500">—</span>
+            <span className="text-sky-400">Live Map</span>
           </h2>
-          <span className="text-[11px] bg-cyan-500/10 text-cyan-300 font-semibold px-3 py-1 rounded-full border border-cyan-500/30">
-            18 Forts · Konkan & Deccan
+          <span className="text-[11px] bg-sky-500/10 text-sky-300 font-semibold px-3 py-1.5 rounded-full border border-sky-500/30">
+            🗺️ 18 Forts · Konkan & Deccan
           </span>
         </div>
-        <FortMap
-          className="h-[550px]"
-          onFortSelect={(fort) => handleFortChange(fort.slug)}
-          safeRoute={routeResult}
-          photoReports={reports}
-        />
+        <div className="rounded-2xl border border-sky-500/15 overflow-hidden shadow-2xl shadow-black/40 hover-glow transition-all duration-300">
+          <FortMap
+            className="h-[550px]"
+            onFortSelect={(fort) => handleFortChange(fort.slug)}
+            safeRoute={routeResult}
+            photoReports={reports}
+          />
+        </div>
       </div>
 
-      {/* ═══ Route Finder — Phase 5 Adaptive Routing ═══ */}
-      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 mb-8">
+      {/* Section Divider */}
+      <div className="my-8 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+
+      {/* ── ROUTE FINDER ── */}
+      <div className="rounded-2xl p-6 mb-8 animate-fade-in-up border border-emerald-500/20"
+        style={{ background: "linear-gradient(135deg, rgba(6,78,59,0.25) 0%, rgba(12,33,50,0.5) 100%)" }}>
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-bold text-white text-base flex items-center gap-2">
-            <Route className="w-5 h-5 text-emerald-400" />
+            <div className="p-1.5 bg-emerald-500/20 rounded-lg">
+              <Route className="w-4 h-4 text-emerald-400" />
+            </div>
             Adaptive Route Finder
           </h3>
-          <span className="text-[11px] bg-emerald-500/10 text-emerald-300 font-semibold px-3 py-1 rounded-full border border-emerald-500/30">
-            Dijkstra · Risk-Aware
+          <span className="text-[11px] bg-emerald-500/15 text-emerald-300 font-semibold px-3 py-1.5 rounded-full border border-emerald-500/30">
+            ⚡ Dijkstra · Risk-Aware
           </span>
         </div>
 
         {waypoints.length === 0 ? (
-          <p className="text-xs text-slate-500 italic">Select a fort to use route finder</p>
+          <p className="text-xs text-slate-500 italic py-4 text-center">
+            📍 Select a fort on the map to enable route finding
+          </p>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               {/* Start Waypoint */}
               <div>
-                <label className="block text-[11px] text-slate-400 font-medium mb-1.5">Start Waypoint</label>
+                <label className="block text-[11px] text-emerald-400/80 font-semibold mb-1.5 uppercase tracking-wider">🟢 Start Waypoint</label>
                 <div className="relative">
                   <select
                     value={startWaypoint}
                     onChange={(e) => setStartWaypoint(e.target.value)}
-                    className="w-full appearance-none bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-emerald-500 transition cursor-pointer"
+                    className="w-full appearance-none bg-slate-900/80 border border-emerald-500/25 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-emerald-400 transition cursor-pointer hover:border-emerald-500/40"
                   >
                     <option value="">Select start...</option>
                     {waypoints.filter((w) => w !== destWaypoint).map((wp) => (
                       <option key={wp} value={wp}>{wp}</option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-3.5 h-3.5 text-emerald-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
 
               {/* Destination Waypoint */}
               <div>
-                <label className="block text-[11px] text-slate-400 font-medium mb-1.5">Destination</label>
+                <label className="block text-[11px] text-rose-400/80 font-semibold mb-1.5 uppercase tracking-wider">🔴 Destination</label>
                 <div className="relative">
                   <select
                     value={destWaypoint}
                     onChange={(e) => setDestWaypoint(e.target.value)}
-                    className="w-full appearance-none bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-emerald-500 transition cursor-pointer"
+                    className="w-full appearance-none bg-slate-900/80 border border-rose-500/25 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-rose-400 transition cursor-pointer hover:border-rose-500/40"
                   >
                     <option value="">Select destination...</option>
                     {waypoints.filter((w) => w !== startWaypoint).map((wp) => (
                       <option key={wp} value={wp}>{wp}</option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-3.5 h-3.5 text-rose-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
 
@@ -548,7 +562,8 @@ export const TrekkerDashboard = () => {
                 <button
                   onClick={handleFindRoute}
                   disabled={!startWaypoint || !destWaypoint || isLoadingRoute}
-                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition"
+                  className="w-full py-2.5 px-4 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  style={{ background: (!startWaypoint || !destWaypoint || isLoadingRoute) ? undefined : "linear-gradient(135deg, #059669, #0d9488)" }}
                 >
                   {isLoadingRoute ? (
                     <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Computing...</>
@@ -571,35 +586,31 @@ export const TrekkerDashboard = () => {
 
             {/* Route Result — Safe */}
             {routeResult && routeResult.safe && (
-              <div className="p-4 bg-emerald-500/5 border border-emerald-500/30 rounded-xl">
+              <div className="p-4 bg-emerald-500/8 border border-emerald-500/30 rounded-xl animate-fade-in-up"
+                style={{ background: "rgba(16,185,129,0.06)" }}>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
-                    Safe Route Found
+                    ✅ Safe Route Found
                   </h4>
-                  <button
-                    onClick={clearRoute}
-                    className="text-[10px] text-slate-400 hover:text-slate-200 transition"
-                  >
-                    Clear
-                  </button>
+                  <button onClick={clearRoute} className="text-[10px] text-slate-400 hover:text-slate-200 transition cursor-pointer">Clear</button>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-300 mb-3">
-                  <span><strong>{routeResult.start}</strong> → <strong>{routeResult.destination}</strong></span>
-                  <span className="text-emerald-400 font-semibold">{routeResult.totalDistanceKm} km</span>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 mb-3">
+                  <span><strong className="text-white">{routeResult.start}</strong> → <strong className="text-white">{routeResult.destination}</strong></span>
+                  <span className="text-emerald-400 font-bold">{routeResult.totalDistanceKm} km</span>
                   <span className="text-slate-500">{routeResult.segmentCount} segment{routeResult.segmentCount !== 1 ? "s" : ""}</span>
                 </div>
                 <div className="space-y-1.5">
                   {routeResult.segments.map((seg, i) => (
-                    <div key={seg.trailId || i} className="flex items-center justify-between p-2 bg-slate-950/40 rounded-lg border border-slate-800/60 text-[11px]">
+                    <div key={seg.trailId || i} className="flex items-center justify-between p-2.5 bg-slate-950/50 rounded-lg border border-emerald-500/15 text-[11px]">
                       <div className="flex items-center gap-2">
-                        <span className="text-emerald-400 font-bold w-5">{i + 1}.</span>
+                        <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px]">{i + 1}</span>
                         <span className="text-slate-200">{seg.name}</span>
                       </div>
                       <div className="flex items-center gap-3 text-slate-400">
                         <span>{seg.distanceKm} km</span>
-                        <span className={seg.currentRiskScore >= 50 ? "text-amber-400" : "text-emerald-400"}>
-                          Risk {seg.currentRiskScore}%
+                        <span className={`font-semibold px-2 py-0.5 rounded-full text-[10px] ${seg.currentRiskScore >= 50 ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"}`}>
+                          {seg.currentRiskScore}% risk
                         </span>
                       </div>
                     </div>
@@ -610,21 +621,15 @@ export const TrekkerDashboard = () => {
 
             {/* Route Result — No Safe Route */}
             {routeResult && !routeResult.safe && (
-              <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+              <div className="p-4 bg-rose-500/8 border border-rose-500/30 rounded-xl animate-fade-in-up">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-rose-300 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    No Safe Route Available
+                    <AlertTriangle className="w-4 h-4" /> No Safe Route Available
                   </h4>
-                  <button
-                    onClick={clearRoute}
-                    className="text-[10px] text-slate-400 hover:text-slate-200 transition"
-                  >
-                    Clear
-                  </button>
+                  <button onClick={clearRoute} className="text-[10px] text-slate-400 hover:text-slate-200 transition cursor-pointer">Clear</button>
                 </div>
-                <p className="text-xs text-rose-300/80">
-                  {routeResult.message || "All connecting trails between these waypoints are currently closed, diverted, or at critical risk levels. Try a different start/destination or wait for conditions to improve."}
+                <p className="text-xs text-rose-300/80 leading-relaxed">
+                  {routeResult.message || "All connecting trails are currently closed, diverted, or at critical risk levels. Try a different route or wait for conditions to improve."}
                 </p>
               </div>
             )}
@@ -632,115 +637,150 @@ export const TrekkerDashboard = () => {
         )}
       </div>
 
-      {/* Grid of Key Features */}
+      {/* Section Divider */}
+      <div className="my-8 h-px bg-gradient-to-r from-transparent via-teal-500/30 to-transparent" />
+
+      {/* ── KEY STATS GRID ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Trail Status Card — Dynamic from API */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6">
+
+        {/* Trail Status Card */}
+        <div className="rounded-2xl p-6 hover-lift hover-glow animate-fade-in-up delay-100 border border-slate-700/50"
+          style={{ background: "linear-gradient(145deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95))" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-emerald-400" />
+            <h3 className="font-bold text-white text-base flex items-center gap-2">
+              <div className="p-1.5 bg-emerald-500/15 rounded-lg">
+                <MapPin className="w-4 h-4 text-emerald-400" />
+              </div>
               Active Trail Status
             </h3>
-            <span className="text-[11px] bg-emerald-500/15 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">
+            <span className="text-[11px] bg-emerald-500/15 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
               {liveTrails.length} Trail{liveTrails.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <div className="space-y-3 text-xs max-h-[280px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 text-xs max-h-[280px] overflow-y-auto pr-1">
             {liveTrails.length === 0 ? (
-              <p className="text-slate-500 text-xs italic">Select a fort to view trail status</p>
+              <p className="text-slate-500 text-xs italic py-6 text-center">📍 Select a fort to view trail status</p>
             ) : (
               liveTrails.slice(0, 6).map((trail) => (
-                <div key={trail._id} className="flex items-center justify-between p-2.5 bg-slate-950/50 rounded-xl border border-slate-800/80">
+                <div key={trail._id} className="flex items-center justify-between p-3 bg-slate-950/60 rounded-xl border border-slate-800/60 hover:border-slate-700/60 transition">
                   <div className="min-w-0 mr-2">
-                    <div className="font-semibold text-slate-200 truncate">{trail.name}</div>
-                    <div className="text-slate-400 text-[10px]">{trail.distanceKm} km · {trail.difficulty}</div>
+                    <div className="font-semibold text-slate-200 truncate text-[12px]">{trail.name}</div>
+                    <div className="text-slate-500 text-[10px] mt-0.5">{trail.distanceKm} km · <span className="text-slate-400">{trail.difficulty}</span></div>
                   </div>
                   {(() => {
-                      const riskScore = getTrailRiskScore(trail);
-                      const effectiveStatus = trail.status === "closed" || trail.status === "diverted"
-                        ? trail.status
-                        : riskScore >= 75 ? "closed" : riskScore >= 50 ? "caution" : trail.status;
-                      if (effectiveStatus === "closed" || effectiveStatus === "diverted") {
-                        return (
-                          <span className="text-rose-400 font-bold flex items-center gap-1 shrink-0">
-                            <AlertTriangle className="w-3.5 h-3.5" /> {effectiveStatus === "diverted" ? "Diverted" : "Closed"}
-                          </span>
-                        );
-                      } else if (effectiveStatus === "caution" || riskScore >= 30) {
-                        return (
-                          <span className="text-amber-400 font-bold flex items-center gap-1 shrink-0">
-                            <AlertTriangle className="w-3.5 h-3.5" /> Caution
-                          </span>
-                        );
-                      } else {
-                        return (
-                          <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Open
-                          </span>
-                        );
-                      }
-                    })()}
+                    const riskScore = getTrailRiskScore(trail);
+                    const effectiveStatus = trail.status === "closed" || trail.status === "diverted"
+                      ? trail.status
+                      : riskScore >= 75 ? "closed" : riskScore >= 50 ? "caution" : trail.status;
+                    if (effectiveStatus === "closed" || effectiveStatus === "diverted") {
+                      return (
+                        <span className="bg-rose-500/15 text-rose-400 font-bold flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg text-[10px] border border-rose-500/25">
+                          <AlertTriangle className="w-3 h-3" /> {effectiveStatus === "diverted" ? "Diverted" : "Closed"}
+                        </span>
+                      );
+                    } else if (effectiveStatus === "caution" || riskScore >= 30) {
+                      return (
+                        <span className="bg-amber-500/15 text-amber-400 font-bold flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg text-[10px] border border-amber-500/25">
+                          <AlertTriangle className="w-3 h-3" /> Caution
+                        </span>
+                      );
+                    } else {
+                      return (
+                        <span className="bg-emerald-500/15 text-emerald-400 font-bold flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg text-[10px] border border-emerald-500/25">
+                          <CheckCircle2 className="w-3 h-3" /> Open
+                        </span>
+                      );
+                    }
+                  })()}
                 </div>
               ))
             )}
           </div>
         </div>
 
-        {/* Erosion Risk Index — Dynamic from trail data */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6">
+        {/* Erosion Risk Index */}
+        <div className="rounded-2xl p-6 hover-lift hover-glow animate-fade-in-up delay-200 border border-slate-700/50"
+          style={{ background: "linear-gradient(145deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95))" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
-              <CloudRain className="w-4 h-4 text-cyan-400" />
+            <h3 className="font-bold text-white text-base flex items-center gap-2">
+              <div className="p-1.5 bg-sky-500/15 rounded-lg">
+                <CloudRain className="w-4 h-4 text-sky-400" />
+              </div>
               Erosion Risk Index
             </h3>
-            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${riskBadgeColors[riskLevel]}`}>
-              {riskLabels[riskLevel]}
-            </span>
-            {hasLiveRisk && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
-                <Activity className="w-3 h-3" /> Live
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${riskBadgeColors[riskLevel]}`}>
+                {riskLabels[riskLevel]}
               </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-400 mb-4">
-            Aggregated from {liveTrails.length} trail segment{liveTrails.length !== 1 ? "s" : ""} — precipitation, slope gradient, and volcanic rock mortar saturation.
-          </p>
-          <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden mb-2">
-            <div
-              className="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 h-full transition-all duration-500"
-              style={{ width: `${aggregateRisk}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-[10px] text-slate-400">
-            <span>Low (0%)</span>
-            <span className={`font-semibold ${
-              aggregateRisk >= 75 ? "text-rose-400" : aggregateRisk >= 50 ? "text-amber-400" : "text-emerald-400"
-            }`}>{aggregateRisk}% Avg Risk</span>
-            <span>Critical (100%)</span>
-          </div>
-        </div>
-
-        {/* Crowdsourced Visual Audit */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
-                <Camera className="w-4 h-4 text-emerald-400" />
-                Crowdsourced Audit
-              </h3>
-              {reports.length > 0 && (
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  {reports.length} Evidence Logged
+              {hasLiveRisk && (
+                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30 flex items-center gap-1">
+                  <Activity className="w-3 h-3" /> Live
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 mb-4">
+          </div>
+          <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+            Aggregated from {liveTrails.length} trail segment{liveTrails.length !== 1 ? "s" : ""} — precipitation, slope gradient, and volcanic rock mortar saturation.
+          </p>
+
+          {/* Risk gauge */}
+          <div className="relative mb-3">
+            <div className="w-full bg-slate-800/80 h-4 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${aggregateRisk}%`,
+                  background: aggregateRisk >= 75
+                    ? "linear-gradient(90deg, #f97316, #ef4444)"
+                    : aggregateRisk >= 50
+                      ? "linear-gradient(90deg, #f59e0b, #f97316)"
+                      : "linear-gradient(90deg, #10b981, #14b8a6)"
+                }}
+              />
+            </div>
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-white shadow-lg transition-all duration-700"
+              style={{
+                left: `calc(${aggregateRisk}% - 6px)`,
+                background: aggregateRisk >= 75 ? "#ef4444" : aggregateRisk >= 50 ? "#f97316" : "#10b981"
+              }}
+            />
+          </div>
+
+          <div className="flex justify-between text-[10px] text-slate-500 mt-2">
+            <span className="text-emerald-400/70">Safe (0%)</span>
+            <span className={`font-bold text-xs ${aggregateRisk >= 75 ? "text-rose-400" : aggregateRisk >= 50 ? "text-amber-400" : "text-emerald-400"}`}>
+              {aggregateRisk}% Avg Risk
+            </span>
+            <span className="text-rose-400/70">Critical (100%)</span>
+          </div>
+        </div>
+
+        {/* Crowdsourced Audit Card */}
+        <div className="rounded-2xl p-6 flex flex-col justify-between hover-lift hover-glow animate-fade-in-up delay-300 border border-emerald-500/15"
+          style={{ background: "linear-gradient(145deg, rgba(6,44,28,0.5), rgba(2,6,23,0.95))" }}>
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-500/20 rounded-lg">
+                  <Camera className="w-4 h-4 text-emerald-400" />
+                </div>
+                Crowdsourced Audit
+              </h3>
+              {reports.length > 0 && (
+                <span className="text-[10px] bg-emerald-500/15 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
+                  {reports.length} Logged
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
               Upload geotagged photos of mortar fissures, trail step rutting, rockfall, or masonry degradation as you trek.
             </p>
           </div>
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-950/40"
+            className="w-full py-3 px-4 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+            style={{ background: "linear-gradient(135deg, #059669, #0d9488)", boxShadow: "0 4px 20px rgba(5,150,105,0.3)" }}
           >
             <Camera className="w-4 h-4" />
             Submit Trail Photo Evidence
@@ -748,87 +788,78 @@ export const TrekkerDashboard = () => {
         </div>
       </div>
 
-      {/* ═══ Live Community Trail Evidence Feed ═══ */}
+      {/* ── LIVE EVIDENCE FEED ── */}
       {reports.length > 0 && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8">
+        <div className="rounded-3xl p-6 sm:p-8 mb-8 animate-fade-in-up border border-slate-700/40"
+          style={{ background: "linear-gradient(145deg, rgba(15,23,42,0.85), rgba(2,6,23,0.9))" }}>
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-500/15 border border-emerald-500/25 rounded-xl text-emerald-400">
                 <Camera className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-base flex items-center gap-2">
-                  Live Community Trail Evidence — {fortInfo?.name || "Fort Corridor"}
+                <h3 className="font-bold text-white text-base">
+                  Live Community Trail Evidence
+                  {fortInfo?.name && <span className="text-emerald-400"> — {fortInfo.name}</span>}
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Real-time geotagged hazard photos verified by on-trail Sahyadri trekkers
                 </p>
               </div>
             </div>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 hover:bg-emerald-500/15"
             >
-              <Camera className="w-3.5 h-3.5" />
-              Add Evidence
+              <Camera className="w-3.5 h-3.5" /> Add Evidence
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {reports.slice(0, 6).map((report) => {
-              const severityColor =
-                report.severity === "critical"
-                  ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
-                  : report.severity === "high"
-                  ? "bg-orange-500/20 text-orange-300 border-orange-500/30"
-                  : report.severity === "moderate"
-                  ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+              const severityStyles = {
+                critical: { badge: "bg-rose-500/25 text-rose-200 border-rose-500/40", card: "border-rose-500/20" },
+                high:     { badge: "bg-orange-500/25 text-orange-200 border-orange-500/40", card: "border-orange-500/20" },
+                moderate: { badge: "bg-amber-500/25 text-amber-200 border-amber-500/40", card: "border-amber-500/20" },
+                low:      { badge: "bg-emerald-500/25 text-emerald-200 border-emerald-500/40", card: "border-emerald-500/20" },
+              };
+              const style = severityStyles[report.severity] || severityStyles.low;
 
               return (
                 <div
                   key={report._id}
-                  className="bg-slate-950/70 border border-slate-800/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition"
+                  className={`bg-slate-950/70 border rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover-lift ${style.card}`}
                 >
-                  <div>
-                    {report.imageUrl && (
-                      <div className="relative h-40 w-full overflow-hidden bg-slate-900">
-                        <img
-                          src={report.imageUrl}
-                          alt={report.hazardType}
-                          className="w-full h-full object-cover hover:scale-105 transition duration-300"
-                        />
-                        <span
-                          className={`absolute top-2.5 right-2.5 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border backdrop-blur-sm ${severityColor}`}
-                        >
-                          {report.severity}
-                        </span>
-                        <span className="absolute bottom-2.5 left-2.5 text-[10px] font-bold bg-slate-950/80 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800 capitalize">
-                          {report.hazardType}
-                        </span>
+                  {report.imageUrl && (
+                    <div className="relative h-40 w-full overflow-hidden bg-slate-900">
+                      <img
+                        src={report.imageUrl}
+                        alt={report.hazardType}
+                        className="w-full h-full object-cover hover:scale-105 transition duration-400"
+                      />
+                      <span className={`absolute top-2.5 right-2.5 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border backdrop-blur-md ${style.badge}`}>
+                        {report.severity}
+                      </span>
+                      <span className="absolute bottom-2.5 left-2.5 text-[10px] font-bold bg-black/70 text-slate-200 px-2.5 py-1 rounded-lg border border-white/10 capitalize backdrop-blur-sm">
+                        {report.hazardType}
+                      </span>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    {report.description && (
+                      <p className="text-xs text-slate-300 line-clamp-2 mb-2 leading-relaxed">{report.description}</p>
+                    )}
+                    {report.aiTriage?.hazardAssessment && (
+                      <div className="bg-sky-950/50 border border-sky-500/25 rounded-xl p-2.5 mb-2.5 text-[11px] text-sky-200">
+                        <span className="font-bold text-sky-300">🤖 AI Triage:</span>{" "}
+                        {report.aiTriage.hazardAssessment}
                       </div>
                     )}
-                    <div className="p-4">
-                      {report.description && (
-                        <p className="text-xs text-slate-300 line-clamp-2 mb-2 leading-relaxed">
-                          {report.description}
-                        </p>
-                      )}
-
-                      {report.aiTriage?.hazardAssessment && (
-                        <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl p-2.5 mb-2.5 text-[11px] text-sky-200">
-                          <span className="font-bold text-sky-300">🤖 AI Triage:</span>{" "}
-                          {report.aiTriage.hazardAssessment}
-                        </div>
-                      )}
-                    </div>
                   </div>
 
-                  <div className="px-4 pb-4 pt-1 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
-                    <span>By {report.user?.username || "Sahyadri Trekker"}</span>
-                    <span className="text-slate-500">
-                      {report.createdAt ? new Date(report.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recent"}
-                    </span>
+                  <div className="px-4 pb-4 pt-1 border-t border-slate-800/40 flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="text-slate-400">By <span className="font-semibold">{report.user?.username || "Sahyadri Trekker"}</span></span>
+                    <span>{report.createdAt ? new Date(report.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recent"}</span>
                   </div>
                 </div>
               );

@@ -13,7 +13,9 @@ import AuthorityDashboard from "./pages/AuthorityDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
-import { Loader2 } from "lucide-react";
+import { ToastContainer } from "./components/Toast";
+import ScrollToTop from "./components/ScrollToTop";
+import { Mountain } from "lucide-react";
 
 export function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -50,8 +52,28 @@ export function App() {
   if (isCheckingAuth) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-200">
-        <Loader2 className="w-10 h-10 animate-spin text-emerald-500 mb-4" />
-        <p className="text-sm font-medium tracking-wide">Connecting to FortFlux Eco-Monitor...</p>
+        {/* Branded Loading Screen */}
+        <div className="relative flex items-center justify-center mb-8">
+          {/* Animated rings */}
+          <div className="absolute w-20 h-20 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s" }} />
+          <div className="absolute w-16 h-16 rounded-full border border-emerald-500/10" />
+          {/* Orbiting dot */}
+          <div className="absolute w-3 h-3 rounded-full bg-emerald-400 animate-orbit" />
+          {/* Center icon */}
+          <div className="relative p-4 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border border-emerald-500/30 rounded-2xl animate-pulse-glow">
+            <Mountain className="w-8 h-8 text-emerald-400" />
+          </div>
+        </div>
+
+        <h2 className="text-lg font-bold text-white tracking-tight mb-1">FortFlux</h2>
+        <p className="text-sm text-slate-400 font-medium tracking-wide">
+          Connecting to Sahyadri Eco-Monitor...
+        </p>
+
+        {/* Loading bar */}
+        <div className="mt-6 w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 rounded-full animate-shimmer" style={{ width: "100%" }} />
+        </div>
       </div>
     );
   }
@@ -119,6 +141,10 @@ export function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+
+        {/* Global UI overlays */}
+        <ToastContainer />
+        <ScrollToTop />
       </div>
     </BrowserRouter>
   );

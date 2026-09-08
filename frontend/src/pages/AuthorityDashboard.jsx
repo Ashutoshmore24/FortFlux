@@ -260,7 +260,9 @@ export const AuthorityDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Authority Banner */}
-      <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-6 sm:p-8 mb-8 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-6 sm:p-8 mb-8 relative overflow-hidden animate-fade-in-up">
+        {/* Animated gradient accent */}
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-rose-500/5 animate-gradient-shift pointer-events-none" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -328,7 +330,7 @@ export const AuthorityDashboard = () => {
           {alertCisterns.map((cistern) => (
             <div
               key={cistern._id}
-              className="p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+              className="p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fade-in-up hover-glow"
             >
               <div className="flex items-start gap-3.5">
                 <div className="p-2.5 bg-rose-500/20 rounded-xl text-rose-400 shrink-0">
@@ -374,7 +376,7 @@ export const AuthorityDashboard = () => {
       {/* Carrying-Capacity Throttle & Simulation Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Sliders panel */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 hover-glow animate-fade-in-up delay-100">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2.5">
               <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
@@ -457,7 +459,7 @@ export const AuthorityDashboard = () => {
         </div>
 
         {/* Dynamic Risk Gauge & Actions */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover-glow animate-fade-in-up delay-200">
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold text-white text-base">
@@ -725,8 +727,7 @@ export const AuthorityDashboard = () => {
           </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 animate-fade-in-up">
         {/* Map (2/3 width) */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
@@ -758,7 +759,7 @@ export const AuthorityDashboard = () => {
         </div>
 
         {/* Trail Management Panel (1/3 width) */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 hover-glow">
           <div className="flex items-center gap-2.5 mb-5">
             <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
               <Navigation className="w-5 h-5" />
@@ -877,8 +878,11 @@ export const AuthorityDashboard = () => {
         </div>
       </div>
 
+      {/* Section Divider */}
+      <div className="my-8 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+
       {/* ═══ Incoming Field Audits & AI Visual Triage (Phase 6) ═══ */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8 animate-fade-in-up hover-glow">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-400">

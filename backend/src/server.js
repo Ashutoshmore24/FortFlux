@@ -49,4 +49,16 @@ connectDB().then(() => {
     httpServer.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
-});
+
+    // Gracefully handle port-already-in-use errors
+    httpServer.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`\n❌ Port ${PORT} is already in use.`);
+            console.error(`   Another server instance is still running.`);
+            console.error(`   To fix: run  npx kill-port ${PORT}  then restart.\n`);
+            process.exit(1);
+        } else {
+            throw err;
+        }
+    });
+});

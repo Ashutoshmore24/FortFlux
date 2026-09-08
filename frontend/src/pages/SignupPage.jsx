@@ -49,14 +49,22 @@ export const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-xl bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] rounded-full bg-teal-500/[0.04] blur-3xl animate-gradient-shift" />
+        <div className="absolute -bottom-1/4 -left-1/4 w-[500px] h-[500px] rounded-full bg-emerald-500/[0.04] blur-3xl animate-gradient-shift" style={{ animationDelay: "3s" }} />
+        <div className="absolute top-1/3 right-1/3 w-[350px] h-[350px] rounded-full bg-violet-500/[0.02] blur-3xl animate-gradient-shift" style={{ animationDelay: "5s" }} />
+      </div>
+
+      {/* Signup Card */}
+      <div className="w-full max-w-xl bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden animate-scale-in">
         {/* Accent Bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 text-emerald-400">
+          <div className="inline-flex p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 text-emerald-400 animate-float">
             <Mountain className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Create Your Account</h1>
@@ -67,7 +75,7 @@ export const SignupPage = () => {
 
         {/* Error Alert */}
         {authError && (
-          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center gap-2.5 text-rose-300 text-xs">
+          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center gap-2.5 text-rose-300 text-xs animate-fade-in-up">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{authError}</span>
           </div>
@@ -78,7 +86,7 @@ export const SignupPage = () => {
           type="button"
           onClick={handleGoogleSignup}
           disabled={isGoogleLoggingIn || isSigningUp}
-          className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-slate-800 text-sm font-semibold rounded-xl shadow-lg transition flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200"
+          className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-slate-800 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
         >
           {isGoogleLoggingIn ? (
             <>
@@ -102,7 +110,7 @@ export const SignupPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Role Switcher Cards */}
-          <div>
+          <div className="animate-fade-in-up delay-100">
             <label className="block text-xs font-semibold text-slate-300 mb-2">
               Select Your Access Role
             </label>
@@ -111,9 +119,9 @@ export const SignupPage = () => {
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: "trekker" })}
-                className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between relative ${
+                className={`p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between relative cursor-pointer hover-lift ${
                   formData.role === "trekker"
-                    ? "bg-cyan-500/10 border-cyan-500/60 shadow-lg shadow-cyan-950/40"
+                    ? "bg-cyan-500/10 border-cyan-500/60 shadow-lg shadow-cyan-950/40 scale-[1.02]"
                     : "bg-slate-950/40 border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100"
                 }`}
               >
@@ -138,9 +146,9 @@ export const SignupPage = () => {
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: "authority" })}
-                className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between relative ${
+                className={`p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between relative cursor-pointer hover-lift ${
                   formData.role === "authority"
-                    ? "bg-amber-500/10 border-amber-500/60 shadow-lg shadow-amber-950/40"
+                    ? "bg-amber-500/10 border-amber-500/60 shadow-lg shadow-amber-950/40 scale-[1.02]"
                     : "bg-slate-950/40 border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100"
                 }`}
               >
@@ -165,7 +173,7 @@ export const SignupPage = () => {
 
           {/* Conditional Organization Field for Authority */}
           {formData.role === "authority" && (
-            <div className="p-3.5 bg-amber-500/5 border border-amber-500/20 rounded-2xl animate-in fade-in duration-200">
+            <div className="p-3.5 bg-amber-500/5 border border-amber-500/20 rounded-2xl animate-fade-in-up">
               <label className="block text-xs font-semibold text-amber-300 mb-1.5">
                 Department / Authority Organization
               </label>
@@ -178,14 +186,14 @@ export const SignupPage = () => {
                   placeholder="e.g. Maharashtra Forest Dept, ASI Western Circle"
                   value={formData.organization}
                   onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200"
                 />
               </div>
             </div>
           )}
 
           {/* Username */}
-          <div>
+          <div className="animate-fade-in-up delay-200">
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Full Name or Username
             </label>
@@ -199,13 +207,13 @@ export const SignupPage = () => {
                 placeholder="Tanaji Malusare"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
               />
             </div>
           </div>
 
           {/* Email */}
-          <div>
+          <div className="animate-fade-in-up delay-300">
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Email Address
             </label>
@@ -219,13 +227,13 @@ export const SignupPage = () => {
                 placeholder="tanaji@sahyadri.org"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
               />
             </div>
           </div>
 
           {/* Password */}
-          <div>
+          <div className="animate-fade-in-up delay-400">
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Password (at least 6 characters)
             </label>
@@ -240,12 +248,12 @@ export const SignupPage = () => {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -256,7 +264,7 @@ export const SignupPage = () => {
           <button
             type="submit"
             disabled={isSigningUp || isGoogleLoggingIn}
-            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/60 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/60 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] cursor-pointer animate-fade-in-up delay-500"
           >
             {isSigningUp ? (
               <>
@@ -281,5 +289,3 @@ export const SignupPage = () => {
 };
 
 export default SignupPage;
-
-
