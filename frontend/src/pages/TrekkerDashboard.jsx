@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useWeatherStore } from "../store/useWeatherStore";
 import { useFortStore } from "../store/useFortStore";
@@ -76,6 +76,15 @@ export const TrekkerDashboard = () => {
   const [startWaypoint, setStartWaypoint] = useState("");
   const [destWaypoint, setDestWaypoint] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const fortParam = searchParams.get("fort");
+
+  // If URL has ?fort=slug, select it
+  useEffect(() => {
+    if (fortParam) {
+      handleFortChange(fortParam);
+    }
+  }, [fortParam]);
 
   // Fetch forts list + weather on mount & start auto-refresh
   useEffect(() => {
