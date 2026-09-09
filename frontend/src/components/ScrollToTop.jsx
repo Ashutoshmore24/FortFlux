@@ -26,10 +26,10 @@ export const ScrollToTop = () => {
       className="
         fixed bottom-6 left-6 z-[9998]
         w-11 h-11 rounded-2xl
-        bg-slate-800/80 backdrop-blur-xl border border-slate-700/60
-        text-slate-300 hover:text-emerald-400
-        hover:border-emerald-500/40 hover:bg-slate-800
-        shadow-xl shadow-black/30
+        bg-white/90 backdrop-blur-xl border border-[#E2ECE4]
+        text-slate-700 hover:text-emerald-700
+        hover:border-emerald-400 hover:bg-white
+        shadow-lg
         flex items-center justify-center
         transition-all duration-300 cursor-pointer
         animate-fade-in-up

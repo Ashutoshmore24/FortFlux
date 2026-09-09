@@ -7,9 +7,9 @@ export const ProtectedRoute = () => {
 
   if (isCheckingAuth) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-200">
-        <Loader2 className="w-10 h-10 animate-spin text-emerald-500 mb-4" />
-        <p className="text-sm font-medium tracking-wide">Authenticating with FortFlux...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F5F8F4] text-[#132A22]">
+        <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
+        <p className="text-sm font-bold tracking-wide">Authenticating with FortFlux...</p>
       </div>
     );
   }

@@ -53,8 +53,8 @@ export default function HistoryPage() {
 
     if (isLoadingHistory && !fortHistory) {
         return (
-            <div className="flex justify-center items-center h-screen bg-slate-950">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+            <div className="flex justify-center items-center h-screen bg-[#F5F8F4]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
             </div>
         );
     }
@@ -92,7 +92,6 @@ export default function HistoryPage() {
             (err) => {
                 setIsLocatingUser(false);
                 console.warn("Geolocation permission error/denied:", err);
-                // Graceful fallback to destination only, letting Google Maps ask on device
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}`, "_blank", "noopener,noreferrer");
             },
             {
@@ -129,90 +128,89 @@ export default function HistoryPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 font-sans">
+        <div className="min-h-screen bg-[#F5F8F4] text-slate-800 p-4 md:p-8 font-sans">
             <div className="max-w-6xl mx-auto space-y-10">
 
                 {/* Top Back Navigation Bar */}
                 <div className="flex items-center justify-between">
                     <Link
                         to="/dashboard"
-                        className="inline-flex items-center bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full text-emerald-400 hover:bg-slate-800 hover:text-emerald-300 transition-all font-medium border border-slate-700/60 shadow-lg text-sm"
+                        className="inline-flex items-center bg-white px-4 py-2 rounded-full text-emerald-800 hover:bg-[#F2F7F4] hover:text-emerald-950 transition-all font-bold border border-[#E2ECE4] shadow-xs text-sm"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Interactive Map
                     </Link>
-                    <div className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="flex items-center gap-2 text-xs font-bold px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                         <span>{details.fortId?.district || "Maharashtra"} • {details.fortId?.elevation || 1100}m MSL</span>
                     </div>
                 </div>
 
                 {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* HERO BANNER SECTION (Proper Fitting + Local Image + UNESCO)    */}
+                {/* HERO BANNER SECTION (Natural Photography + Warm Sandstone Accent) */}
                 {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="relative w-full h-[48vh] md:h-[54vh] min-h-[380px] rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group bg-slate-900">
+                <div className="relative w-full h-[48vh] md:h-[54vh] min-h-[380px] rounded-3xl overflow-hidden border border-[#E2ECE4] shadow-md group bg-slate-100">
                     <img
                         src={details.heroImage || details.fortId?.imageUrl || "/forts/sinhagad.webp"}
                         alt={details.fortId?.name || slug}
                         className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000 ease-out"
                         onError={(e) => {
-                            // Fallback gracefully if format fails
                             if (e.currentTarget.src !== details.fortId?.imageUrl && details.fortId?.imageUrl) {
                                 e.currentTarget.src = details.fortId.imageUrl;
                             }
                         }}
                     />
 
-                    {/* Multi-tier Gradient protection for crystal-clear readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-transparent"></div>
+                    {/* Gradient protection for crystal-clear readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent"></div>
 
                     {/* Hero Content */}
                     <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 space-y-3 z-10">
                         <div className="flex flex-wrap items-center gap-2.5">
-                            <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-3.5 py-1 rounded-full text-xs font-bold border border-emerald-500/40 backdrop-blur-md shadow-sm">
-                                <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> HERITAGE FORTIFICATION
+                            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-3.5 py-1 rounded-full text-xs font-bold border border-white/30 backdrop-blur-md shadow-xs">
+                                <Sparkles className="w-3.5 h-3.5 text-emerald-300" /> HERITAGE FORTIFICATION
                             </div>
 
-                            {/* UNESCO World Heritage Site Badge */}
+                            {/* UNESCO World Heritage Site Badge (Warm Sandstone Accent) */}
                             {details.isUNESCO && (
-                                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/30 via-yellow-500/25 to-amber-500/30 text-amber-200 px-3.5 py-1 rounded-full text-xs font-black border border-amber-400/60 backdrop-blur-md shadow-lg shadow-amber-950/50 tracking-wider">
-                                    <Landmark className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                                <div className="inline-flex items-center gap-2 bg-amber-500/85 text-white px-3.5 py-1 rounded-full text-xs font-black border border-amber-300 backdrop-blur-md shadow-md tracking-wider">
+                                    <Landmark className="w-3.5 h-3.5 text-amber-200 shrink-0" />
                                     <span>UNESCO WORLD HERITAGE SITE</span>
                                 </div>
                             )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight drop-shadow-2xl">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight drop-shadow-md">
                                 {details.fortId?.name || details.name}
                             </h1>
                             {details.isUNESCO && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/50 text-xs md:text-sm font-bold backdrop-blur-md shadow-md shadow-amber-950/30">
-                                    <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/20 text-amber-200 border border-amber-400/40 text-xs md:text-sm font-bold backdrop-blur-md">
+                                    <Award className="w-4 h-4 text-amber-300 shrink-0" />
                                     UNESCO Heritage
                                 </span>
                             )}
                         </div>
 
-                        <p className="text-slate-300 text-sm md:text-base font-medium max-w-2xl drop-shadow-md leading-relaxed">
+                        <p className="text-white/90 text-sm md:text-base font-medium max-w-2xl drop-shadow-sm leading-relaxed">
                             {details.heroSubtitle}
                         </p>
                     </div>
                 </div>
 
                 {/* Historical & Environmental Overview */}
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-5">
-                    <div className="flex items-center gap-3 border-b border-slate-800/80 pb-4">
-                        <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                            <BookOpen className="w-6 h-6 text-emerald-400" />
+                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-5">
+                    <div className="flex items-center gap-3 border-b border-[#E2ECE4] pb-4">
+                        <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200">
+                            <BookOpen className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-100">Historical & Environmental Overview</h2>
-                            <p className="text-xs text-slate-400">Architectural heritage, strategic military history, and preservation status</p>
+                            <h2 className="text-xl font-extrabold text-[#132A22]">Historical & Environmental Overview</h2>
+                            <p className="text-xs text-[#52685E] font-medium">Architectural heritage, strategic military history, and preservation status</p>
                         </div>
                     </div>
 
-                    <div className="text-slate-300 text-base leading-relaxed space-y-4">
+                    <div className="text-slate-700 text-base leading-relaxed space-y-4 font-normal">
                         <p>
                             {details.overview || details.fortId?.description}
                         </p>
@@ -222,34 +220,34 @@ export default function HistoryPage() {
                     </div>
                 </div>
 
-                 {/* ═══════════════════════════════════════════════════════════════ */}
+                {/* ═══════════════════════════════════════════════════════════════ */}
                 {/* CHRONOLOGICAL EVENTS TIMELINE                                   */}
                 {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-                        <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                            <History className="w-6 h-6 text-emerald-400" />
+                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
+                    <div className="flex items-center gap-3 border-b border-[#E2ECE4] pb-4">
+                        <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200">
+                            <History className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-100">Chronological Events & Sovereign Milestones</h2>
-                            <p className="text-xs text-slate-400">Historical milestones, siege timelines, and ruler transitions</p>
+                            <h2 className="text-xl font-extrabold text-[#132A22]">Chronological Events & Sovereign Milestones</h2>
+                            <p className="text-xs text-[#52685E] font-medium">Historical milestones, siege timelines, and ruler transitions</p>
                         </div>
                     </div>
                     <Timeline events={details.timeline} />
                 </div>
 
                 {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* KEY LANDMARKS TO VISIT (Updated with Modern Theme & Fonts)     */}
+                {/* KEY LANDMARKS TO VISIT (Light Environmental Theme)             */}
                 {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/90 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
+                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
                     <div>
-                        <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
+                        <div className="flex items-center gap-2 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-1">
                             <Landmark className="w-4 h-4" /> Architectural Highlights
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-extrabold tracking-wide text-white uppercase font-sans">
+                        <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#132A22] uppercase font-sans">
                             KEY LANDMARKS TO VISIT
                         </h2>
-                        <p className="text-slate-400 text-sm mt-1">
+                        <p className="text-[#52685E] text-sm mt-1 font-medium">
                             Iconic structures, architectural marvels, and prime vantage points across {details.name}
                         </p>
                     </div>
@@ -259,47 +257,46 @@ export default function HistoryPage() {
                         {details.landmarks?.map((lm, idx) => (
                             <div
                                 key={idx}
-                                className="group relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/80 shadow-xl hover:border-emerald-500/60 hover:shadow-emerald-950/20 transition-all duration-300 flex flex-col cursor-pointer"
+                                className="group relative rounded-2xl overflow-hidden border border-[#E2ECE4] bg-white shadow-xs hover:border-emerald-500 hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer hover-lift"
                                 onClick={() => setSelectedPhoto(lm.imageUrl)}
                             >
-                                <div className="h-52 md:h-56 w-full overflow-hidden relative bg-slate-950">
+                                <div className="h-52 md:h-56 w-full overflow-hidden relative bg-slate-100">
                                     <img
                                         src={lm.imageUrl}
                                         alt={lm.name}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         onError={(e) => {
-                                            // Fallback to fort hero image if landmark link errors out
                                             e.currentTarget.src = details.heroImage || "/forts/sinhagad.webp";
                                         }}
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
 
                                     {/* Category Tag */}
                                     {lm.category && (
-                                        <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-400 border border-emerald-500/30">
+                                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-800 border border-[#E2ECE4] shadow-xs">
                                             {lm.category}
                                         </div>
                                     )}
 
                                     {/* Inspect / View Button */}
-                                    <div className="absolute top-3 right-3 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-semibold text-slate-200 border border-white/10 flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                                        <Eye className="w-3 h-3 text-emerald-400" /> View
+                                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-700 border border-[#E2ECE4] flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity shadow-xs">
+                                        <Eye className="w-3 h-3 text-emerald-600" /> View
                                     </div>
                                 </div>
 
-                                <div className="p-5 flex-1 flex flex-col justify-between space-y-3 bg-slate-900/90">
+                                <div className="p-5 flex-1 flex flex-col justify-between space-y-3 bg-white">
                                     <div>
                                         <div className="flex items-center justify-between gap-2 mb-1.5">
-                                            <h3 className="text-white font-bold text-base md:text-lg leading-snug">
+                                            <h3 className="text-[#132A22] font-bold text-base md:text-lg leading-snug">
                                                 {lm.name}
                                             </h3>
                                             {lm.duration && (
-                                                <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700/50">
-                                                    <Clock className="w-3 h-3 text-amber-400" /> {lm.duration}
+                                                <span className="text-[11px] font-semibold text-amber-800 shrink-0 flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                                    <Clock className="w-3 h-3 text-amber-600" /> {lm.duration}
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
+                                        <p className="text-slate-600 text-xs md:text-sm leading-relaxed font-normal">
                                             {lm.description}
                                         </p>
                                     </div>
@@ -311,29 +308,29 @@ export default function HistoryPage() {
                     {/* Side-by-Side Highlight Boxes: Must-See Landmarks & Best Photo Spots */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                         {/* Box 1: Must-See Landmarks (Emerald Accent) */}
-                        <div className="bg-slate-900/80 rounded-xl p-5 border border-slate-800 border-l-4 border-l-emerald-500 shadow-lg space-y-4">
-                            <div className="flex items-center gap-2 text-emerald-400 font-bold text-base md:text-lg">
-                                <span className="text-emerald-400 text-lg">⭐</span> Must-See Landmarks
+                        <div className="bg-emerald-50/70 rounded-xl p-5 border border-emerald-200 border-l-4 border-l-emerald-600 shadow-xs space-y-3">
+                            <div className="flex items-center gap-2 text-emerald-900 font-bold text-base md:text-lg">
+                                <span>⭐</span> Must-See Landmarks
                             </div>
-                            <ul className="space-y-2.5 text-sm text-slate-300">
+                            <ul className="space-y-2 text-sm text-emerald-950 font-medium">
                                 {details.mustSeeLandmarks?.map((item, idx) => (
                                     <li key={idx} className="flex items-start gap-2.5">
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                                         <span>{item}</span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
 
-                        {/* Box 2: Best Photo Spots (Amber Accent) */}
-                        <div className="bg-slate-900/80 rounded-xl p-5 border border-slate-800 border-l-4 border-l-amber-500 shadow-lg space-y-4">
-                            <div className="flex items-center gap-2 text-amber-400 font-bold text-base md:text-lg">
-                                <span className="text-amber-400 text-lg">📸</span> Best Photo Spots
+                        {/* Box 2: Best Photo Spots (Sandstone/Amber Accent) */}
+                        <div className="bg-amber-50/70 rounded-xl p-5 border border-amber-200 border-l-4 border-l-amber-600 shadow-xs space-y-3">
+                            <div className="flex items-center gap-2 text-amber-950 font-bold text-base md:text-lg">
+                                <span>📸</span> Best Photo Spots
                             </div>
-                            <ul className="space-y-2.5 text-sm text-slate-300">
+                            <ul className="space-y-2 text-sm text-amber-950 font-medium">
                                 {details.photoSpots?.map((spot, idx) => (
                                     <li key={idx} className="flex items-start gap-2.5">
-                                        <span className="text-amber-400 font-bold">•</span>
+                                        <span className="text-amber-600 font-bold">•</span>
                                         <span>{spot}</span>
                                     </li>
                                 ))}
@@ -346,19 +343,19 @@ export default function HistoryPage() {
                 {/* TURN-BY-TURN DIRECTIONS + GOOGLE MAPS DIRECT NAVIGATION        */}
                 {/* ═══════════════════════════════════════════════════════════════ */}
                 <div className="space-y-6">
-                    <div className="rounded-2xl overflow-hidden border border-purple-800/40 shadow-2xl bg-slate-900/90">
+                    <div className="rounded-2xl overflow-hidden border border-[#E2ECE4] shadow-xs bg-white">
                         {/* Header Banner */}
-                        <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                                <Compass className="w-6 h-6 text-purple-200 shrink-0" />
+                                <Compass className="w-6 h-6 text-white shrink-0" />
                                 <div>
                                     <h3 className="text-lg md:text-xl font-bold text-white tracking-wide flex items-center gap-2">
                                         Turn-by-Turn Directions
-                                        <span className="text-xs bg-purple-900/70 text-purple-200 font-semibold px-2.5 py-0.5 rounded-full border border-purple-400/30">
+                                        <span className="text-xs bg-white/20 text-white font-semibold px-2.5 py-0.5 rounded-full border border-white/30">
                                             {details.directions?.length || 5} steps
                                         </span>
                                     </h3>
-                                    <p className="text-purple-200/80 text-xs">
+                                    <p className="text-emerald-100 text-xs font-medium">
                                         {details.coordinates?.trailhead?.name || details.fortId?.baseVillage} → {details.name} Summit
                                     </p>
                                 </div>
@@ -370,19 +367,19 @@ export default function HistoryPage() {
                                     type="button"
                                     onClick={handleRouteOnGoogleMaps}
                                     disabled={isLocatingUser}
-                                    className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-600/70 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all shadow-lg hover:shadow-emerald-500/25 active:scale-95 cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-emerald-900 font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all shadow-sm active:scale-95 cursor-pointer"
                                     title="Get your current location and show route to this fort on Google Maps"
                                 >
                                     {isLocatingUser ? (
                                         <>
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-950" />
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700" />
                                             <span>Getting Location...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Navigation2 className="w-3.5 h-3.5" />
+                                            <Navigation2 className="w-3.5 h-3.5 text-emerald-700" />
                                             <span>Route on Google Maps</span>
-                                            <ExternalLink className="w-3 h-3 opacity-70" />
+                                            <ExternalLink className="w-3 h-3 opacity-60" />
                                         </>
                                     )}
                                 </button>
@@ -390,39 +387,39 @@ export default function HistoryPage() {
                                 <button
                                     type="button"
                                     onClick={handleOpenWebsiteMap}
-                                    className="inline-flex items-center gap-1.5 bg-purple-900/80 hover:bg-purple-800 text-purple-200 font-semibold px-3 py-1.5 rounded-xl text-xs transition-all border border-purple-400/30 cursor-pointer shadow-md active:scale-95"
+                                    className="inline-flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-3 py-1.5 rounded-xl text-xs transition-all border border-emerald-600/50 cursor-pointer shadow-xs active:scale-95"
                                     title="Directly open our interactive website map for this fort"
                                 >
-                                    <MapPin className="w-3.5 h-3.5 text-purple-300" />
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-300" />
                                     <span>Fort Pin</span>
                                 </button>
                             </div>
                         </div>
 
                         {/* Trailhead Quick Summary Bar */}
-                        <div className="bg-slate-950/80 px-6 py-2.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-300">
+                        <div className="bg-[#F8FAF8] px-6 py-2.5 border-b border-[#E2ECE4] flex flex-wrap items-center justify-between gap-4 text-xs text-slate-700 font-medium">
                             <div className="flex items-center gap-2">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                                <MapPin className="w-3.5 h-3.5 text-emerald-700" />
                                 <span><strong>Trailhead:</strong> {details.coordinates?.trailhead?.name || details.fortId?.baseVillage}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Mountain className="w-3.5 h-3.5 text-purple-400" />
+                                <Mountain className="w-3.5 h-3.5 text-teal-700" />
                                 <span><strong>Summit Elevation:</strong> {details.fortId?.elevation || 1100}m MSL</span>
                             </div>
-                            <div className="flex items-center gap-2 font-mono text-slate-400">
+                            <div className="flex items-center gap-2 font-mono text-slate-500">
                                 <span>GPS: {details.coordinates?.lat?.toFixed(4)}, {details.coordinates?.lng?.toFixed(4)}</span>
                             </div>
                         </div>
 
                         {/* Step Items List */}
-                        <div className="divide-y divide-slate-800/80">
+                        <div className="divide-y divide-[#E2ECE4]">
                             {details.directions?.map((dir, idx) => (
                                 <div
                                     key={idx}
-                                    className="p-4 md:px-6 flex items-center justify-between hover:bg-slate-800/40 transition-colors"
+                                    className="p-4 md:px-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
                                             {dir.type === "turn-right" ? (
                                                 <ArrowUpRight className="w-5 h-5" />
                                             ) : dir.type === "turn-left" ? (
@@ -433,21 +430,21 @@ export default function HistoryPage() {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">
+                                                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                                                     Step {dir.step || idx + 1}
                                                 </span>
                                                 {dir.terrain && (
-                                                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60">
+                                                    <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                                                         {dir.terrain}
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="text-slate-200 text-sm font-medium">
+                                            <div className="text-slate-800 text-sm font-semibold">
                                                 {dir.title}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right text-xs md:text-sm text-slate-400 shrink-0 ml-4 font-mono">
+                                    <div className="text-right text-xs md:text-sm text-slate-500 shrink-0 ml-4 font-mono font-medium">
                                         {dir.distance} • {dir.duration}
                                     </div>
                                 </div>
@@ -455,67 +452,65 @@ export default function HistoryPage() {
                         </div>
                     </div>
 
-                    {/* ═══════════════════════════════════════════════════════════ */}
-                    {/* ROUTE INFORMATION SECTION (Upgraded to Dark Slate Theme)   */}
-                    {/* ═══════════════════════════════════════════════════════════ */}
-                    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-                        <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+                    {/* ROUTE INFORMATION SECTION */}
+                    <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
+                        <div className="flex items-center justify-between border-b border-[#E2ECE4] pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
-                                    <Car className="w-6 h-6 text-amber-400" />
+                                <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
+                                    <Car className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">Route & Transit Guide</h3>
-                                    <p className="text-xs text-slate-400">Access routes, motorable roads, public transport, and parking amenities</p>
+                                    <h3 className="text-xl font-bold text-[#132A22]">Route & Transit Guide</h3>
+                                    <p className="text-xs text-[#52685E] font-medium">Access routes, motorable roads, public transport, and parking amenities</p>
                                 </div>
                             </div>
-                            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700/60 hidden sm:inline-flex items-center gap-1.5">
-                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Verified Trail Access
+                            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 hidden sm:inline-flex items-center gap-1.5">
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Trail Access
                             </span>
                         </div>
 
                         {/* 4 Pillars Structured Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* 1. Trek Route */}
-                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4.5 space-y-2 hover:border-slate-700 transition-colors">
-                                <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
-                                    <Compass className="w-4 h-4 text-emerald-400" />
+                            <div className="bg-[#F8FAF8] border border-[#E2ECE4] rounded-xl p-4.5 space-y-2 hover:border-emerald-300 transition-colors">
+                                <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                                    <Compass className="w-4 h-4 text-emerald-600" />
                                     <span>Trail Approach & Route</span>
                                 </div>
-                                <p className="text-slate-300 text-sm leading-relaxed">
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
                                     {details.routeInfo?.summary}
                                 </p>
                             </div>
 
                             {/* 2. Motorable Road */}
-                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4.5 space-y-2 hover:border-slate-700 transition-colors">
-                                <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
-                                    <Car className="w-4 h-4 text-cyan-400" />
+                            <div className="bg-[#F8FAF8] border border-[#E2ECE4] rounded-xl p-4.5 space-y-2 hover:border-teal-300 transition-colors">
+                                <div className="flex items-center gap-2 text-teal-800 font-bold text-sm">
+                                    <Car className="w-4 h-4 text-teal-600" />
                                     <span>Road & Motorable Status</span>
                                 </div>
-                                <p className="text-slate-300 text-sm leading-relaxed">
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
                                     {details.routeInfo?.motorable}
                                 </p>
                             </div>
 
                             {/* 3. Public Transit */}
-                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4.5 space-y-2 hover:border-slate-700 transition-colors">
-                                <div className="flex items-center gap-2 text-purple-400 font-semibold text-sm">
-                                    <Bus className="w-4 h-4 text-purple-400" />
+                            <div className="bg-[#F8FAF8] border border-[#E2ECE4] rounded-xl p-4.5 space-y-2 hover:border-purple-300 transition-colors">
+                                <div className="flex items-center gap-2 text-purple-800 font-bold text-sm">
+                                    <Bus className="w-4 h-4 text-purple-600" />
                                     <span>Public Transit & Connectivity</span>
                                 </div>
-                                <p className="text-slate-300 text-sm leading-relaxed">
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
                                     {details.routeInfo?.transport}
                                 </p>
                             </div>
 
                             {/* 4. Parking & Base Amenities */}
-                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4.5 space-y-2 hover:border-slate-700 transition-colors">
-                                <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
-                                    <MapPin className="w-4 h-4 text-amber-400" />
+                            <div className="bg-[#F8FAF8] border border-[#E2ECE4] rounded-xl p-4.5 space-y-2 hover:border-amber-300 transition-colors">
+                                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                                    <MapPin className="w-4 h-4 text-amber-600" />
                                     <span>Base Parking & Amenities</span>
                                 </div>
-                                <p className="text-slate-300 text-sm leading-relaxed">
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
                                     {details.routeInfo?.parking}
                                 </p>
                             </div>
@@ -523,57 +518,55 @@ export default function HistoryPage() {
                     </div>
                 </div>
 
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* FULL INFORMATION & ARCHITECTURE SECTION                         */}
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-                        <div className="p-2.5 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                            <Info className="w-6 h-6 text-blue-400" />
+                {/* FULL INFORMATION & ARCHITECTURE SECTION */}
+                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
+                    <div className="flex items-center gap-3 border-b border-[#E2ECE4] pb-4">
+                        <div className="p-2.5 bg-sky-50 text-sky-700 rounded-xl border border-sky-200">
+                            <Info className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-100">Full Information & Architecture</h2>
-                            <p className="text-xs text-slate-400">Geographic parameters, elevation, and key architectural sections</p>
+                            <h2 className="text-xl font-bold text-[#132A22]">Full Information & Architecture</h2>
+                            <p className="text-xs text-[#52685E] font-medium">Geographic parameters, elevation, and key architectural sections</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Geographic Parameters List */}
-                        <div className="bg-slate-950/60 p-5 rounded-xl border border-slate-800/80 space-y-4">
-                            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+                        <div className="bg-[#F8FAF8] p-5 rounded-xl border border-[#E2ECE4] space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-[#52685E]">
                                 Geographic Attributes
                             </h3>
                             <ul className="space-y-4">
-                                <li className="flex items-center gap-3 text-slate-300">
-                                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-700 border border-emerald-200">
                                         <MapPin className="w-4 h-4" />
                                     </div>
                                     <span>
-                                        <strong className="text-slate-100 font-medium">Region:</strong> {details.fortId?.region || "Sahyadri — Western Ghats"}
+                                        <strong className="text-[#132A22] font-semibold">Region:</strong> {details.fortId?.region || "Sahyadri — Western Ghats"}
                                     </span>
                                 </li>
-                                <li className="flex items-center gap-3 text-slate-300">
-                                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-700 border border-emerald-200">
                                         <Navigation className="w-4 h-4" />
                                     </div>
                                     <span>
-                                        <strong className="text-slate-100 font-medium">District:</strong> {details.fortId?.district || "Maharashtra"}
+                                        <strong className="text-[#132A22] font-semibold">District:</strong> {details.fortId?.district || "Maharashtra"}
                                     </span>
                                 </li>
-                                <li className="flex items-center gap-3 text-slate-300">
-                                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-700 border border-emerald-200">
                                         <Mountain className="w-4 h-4" />
                                     </div>
                                     <span>
-                                        <strong className="text-slate-100 font-medium">Elevation:</strong> {details.fortId?.elevation ? `${details.fortId.elevation} meters MSL` : "1,100 m MSL"}
+                                        <strong className="text-[#132A22] font-semibold">Elevation:</strong> {details.fortId?.elevation ? `${details.fortId.elevation} meters MSL` : "1,100 m MSL"}
                                     </span>
                                 </li>
-                                <li className="flex items-center gap-3 text-slate-300">
-                                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                                <li className="flex items-center gap-3 text-slate-700">
+                                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-700 border border-emerald-200">
                                         <Map className="w-4 h-4" />
                                     </div>
                                     <span>
-                                        <strong className="text-slate-100 font-medium">Base Village:</strong> {details.fortId?.baseVillage || "Local Base Village"}
+                                        <strong className="text-[#132A22] font-semibold">Base Village:</strong> {details.fortId?.baseVillage || "Local Base Village"}
                                     </span>
                                 </li>
                             </ul>
@@ -581,29 +574,29 @@ export default function HistoryPage() {
 
                         {/* Fort Sections Breakdown */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-[#52685E]">
                                 Architectural Sections
                             </h3>
                             {details.fortId?.sections && details.fortId.sections.length > 0 ? (
                                 details.fortId.sections.map((sec, idx) => (
-                                    <div key={idx} className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/40">
-                                        <h4 className="font-bold text-emerald-400 text-sm mb-1">{sec.name}</h4>
-                                        <p className="text-xs text-slate-300 leading-relaxed">{sec.description}</p>
+                                    <div key={idx} className="bg-[#F8FAF8] p-4 rounded-xl border border-[#E2ECE4]">
+                                        <h4 className="font-bold text-emerald-800 text-sm mb-1">{sec.name}</h4>
+                                        <p className="text-xs text-slate-600 leading-relaxed font-normal">{sec.description}</p>
                                     </div>
                                 ))
                             ) : (
                                 <div className="space-y-3">
-                                    <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/40">
-                                        <h4 className="font-bold text-emerald-400 text-sm mb-1">Main Entrance Fortifications</h4>
-                                        <p className="text-xs text-slate-300 leading-relaxed">Multi-tiered stone bastion gates designed to withstand artillery fire.</p>
+                                    <div className="bg-[#F8FAF8] p-4 rounded-xl border border-[#E2ECE4]">
+                                        <h4 className="font-bold text-emerald-800 text-sm mb-1">Main Entrance Fortifications</h4>
+                                        <p className="text-xs text-slate-600 leading-relaxed font-normal">Multi-tiered stone bastion gates designed to withstand artillery fire.</p>
                                     </div>
-                                    <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/40">
-                                        <h4 className="font-bold text-emerald-400 text-sm mb-1">Balekilla (Upper Citadel)</h4>
-                                        <p className="text-xs text-slate-300 leading-relaxed">The command stronghold situated at the apex vantage of the fortress ridge.</p>
+                                    <div className="bg-[#F8FAF8] p-4 rounded-xl border border-[#E2ECE4]">
+                                        <h4 className="font-bold text-emerald-800 text-sm mb-1">Balekilla (Upper Citadel)</h4>
+                                        <p className="text-xs text-slate-600 leading-relaxed font-normal">The command stronghold situated at the apex vantage of the fortress ridge.</p>
                                     </div>
-                                    <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/40">
-                                        <h4 className="font-bold text-emerald-400 text-sm mb-1">Water Harvest Tanks</h4>
-                                        <p className="text-xs text-slate-300 leading-relaxed">Perennial rock-cut freshwater cisterns engineered to sustain long military sieges.</p>
+                                    <div className="bg-[#F8FAF8] p-4 rounded-xl border border-[#E2ECE4]">
+                                        <h4 className="font-bold text-emerald-800 text-sm mb-1">Water Harvest Tanks</h4>
+                                        <p className="text-xs text-slate-600 leading-relaxed font-normal">Perennial rock-cut freshwater cisterns engineered to sustain long military sieges.</p>
                                     </div>
                                 </div>
                             )}
@@ -611,28 +604,26 @@ export default function HistoryPage() {
                     </div>
                 </div>
 
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* ENVIRONMENTAL & EROSION RESILIENCE MONITOR                      */}
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                {/* ENVIRONMENTAL & EROSION RESILIENCE MONITOR */}
+                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2ECE4] pb-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-                                <Mountain className="w-6 h-6 text-yellow-400" />
+                            <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
+                                <Mountain className="w-6 h-6" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-xl font-bold text-slate-100">Environmental & Erosion Resilience Monitor</h2>
-                                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    <h2 className="text-xl font-bold text-[#132A22]">Environmental & Erosion Resilience Monitor</h2>
+                                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                                         Scientific Climate Model
                                     </span>
                                 </div>
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-[#52685E] font-medium">
                                     Longitudinal monsoon precipitation exposure, trail soil loss & architectural preservation (2016–2025)
                                 </p>
                             </div>
                         </div>
-                        <span className="text-xs text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800 self-start sm:self-auto font-mono">
+                        <span className="text-xs text-slate-600 bg-slate-50 px-3 py-1 rounded-full border border-slate-200 self-start sm:self-auto font-mono font-medium">
                             {details.environmentalProfile?.typology || "Sahyadri Heritage Fort"}
                         </span>
                     </div>
@@ -645,23 +636,20 @@ export default function HistoryPage() {
                     />
                 </div>
 
-
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* COMMUNITY PHOTO GALLERY (Authentic Trekker Photos & Lightbox)  */}
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                {/* COMMUNITY PHOTO GALLERY */}
+                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2ECE4] pb-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                                <Camera className="w-6 h-6 text-indigo-400" />
+                            <div className="p-2.5 bg-teal-50 text-teal-700 rounded-xl border border-teal-200">
+                                <Camera className="w-6 h-6" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold text-slate-100">Community Gallery (Google Maps Uploads)</h2>
-                                <p className="text-xs text-slate-400">Authentic photographs contributed by Sahyadri trekkers, mountaineers, and historians</p>
+                                <h2 className="text-xl font-bold text-[#132A22]">Community Gallery</h2>
+                                <p className="text-xs text-[#52685E] font-medium">Authentic photographs contributed by Sahyadri trekkers, mountaineers, and historians</p>
                             </div>
                         </div>
-                        <span className="text-xs text-slate-300 bg-slate-800 px-3.5 py-1.5 rounded-full flex items-center gap-2 self-start md:self-auto border border-slate-700/60 font-medium">
-                            <Users className="w-4 h-4 text-emerald-400" /> 24+ Verified Trekker Contributions
+                        <span className="text-xs text-slate-700 bg-slate-50 px-3.5 py-1.5 rounded-full flex items-center gap-2 self-start md:self-auto border border-slate-200 font-semibold">
+                            <Users className="w-4 h-4 text-emerald-600" /> 24+ Verified Trekker Contributions
                         </span>
                     </div>
 
@@ -669,7 +657,7 @@ export default function HistoryPage() {
                         {details.communityPhotos?.map((img, idx) => (
                             <div
                                 key={idx}
-                                className="group relative rounded-2xl overflow-hidden aspect-square border border-slate-800 hover:border-emerald-500/60 transition-all duration-300 cursor-pointer shadow-lg bg-slate-950"
+                                className="group relative rounded-2xl overflow-hidden aspect-square border border-[#E2ECE4] hover:border-emerald-500 transition-all duration-300 cursor-pointer shadow-xs hover-lift bg-slate-100"
                                 onClick={() => setSelectedPhoto(img.url)}
                             >
                                 <img
@@ -678,27 +666,26 @@ export default function HistoryPage() {
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     loading="lazy"
                                     onError={(e) => {
-                                        // Fallback to local hero image
                                         e.currentTarget.src = details.heroImage || "/forts/sinhagad.webp";
                                     }}
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-white shadow">
+                                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] font-bold text-white shadow">
                                                 {img.user?.charAt(0) || "U"}
                                             </div>
-                                            <span className="text-xs font-semibold text-slate-200 drop-shadow-md">
+                                            <span className="text-xs font-semibold text-white drop-shadow-sm">
                                                 {img.user}
                                             </span>
                                         </div>
                                         {img.date && (
-                                            <span className="text-[10px] text-slate-400">
+                                            <span className="text-[10px] text-white/80">
                                                 {img.date}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-[11px] text-slate-300 line-clamp-2 leading-tight">
+                                    <p className="text-[11px] text-white/90 line-clamp-2 leading-tight">
                                         {img.caption}
                                     </p>
                                 </div>
@@ -710,14 +697,14 @@ export default function HistoryPage() {
                 {/* Full-Screen Photo Modal / Lightbox */}
                 {selectedPhoto && (
                     <div
-                        className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4"
+                        className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
                         onClick={() => setSelectedPhoto(null)}
                     >
                         <div
-                            className="relative max-w-5xl max-h-[92vh] rounded-2xl overflow-hidden shadow-2xl border border-slate-700 bg-slate-950 flex flex-col"
+                            className="relative max-w-5xl max-h-[92vh] rounded-2xl overflow-hidden shadow-2xl border border-[#E2ECE4] bg-white flex flex-col"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="relative overflow-hidden flex items-center justify-center bg-black">
+                            <div className="relative overflow-hidden flex items-center justify-center bg-slate-100">
                                 <img
                                     src={selectedPhoto}
                                     alt="Enlarged view"
@@ -725,17 +712,17 @@ export default function HistoryPage() {
                                 />
                                 <button
                                     onClick={() => setSelectedPhoto(null)}
-                                    className="absolute top-4 right-4 bg-slate-900/90 hover:bg-slate-800 text-white rounded-full p-2.5 text-sm border border-slate-700 shadow-xl transition-all cursor-pointer"
+                                    className="absolute top-4 right-4 bg-white/90 hover:bg-white text-slate-800 rounded-full p-2.5 text-sm shadow-xl transition-all cursor-pointer"
                                     title="Close viewer"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
-                            <div className="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                                <span className="flex items-center gap-2">
-                                    <Camera className="w-4 h-4 text-emerald-400" /> High-Resolution Sahyadri Archival View
+                            <div className="p-4 bg-white border-t border-[#E2ECE4] flex items-center justify-between text-xs text-slate-600">
+                                <span className="flex items-center gap-2 font-medium">
+                                    <Camera className="w-4 h-4 text-emerald-600" /> High-Resolution Sahyadri Archival View
                                 </span>
-                                <span>Press ESC or click anywhere to exit</span>
+                                <span>Click anywhere to exit</span>
                             </div>
                         </div>
                     </div>
@@ -744,30 +731,30 @@ export default function HistoryPage() {
                 {/* Website Interactive Map Modal */}
                 {isMapModalOpen && (
                     <div
-                        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+                        className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
                         onClick={() => setIsMapModalOpen(false)}
                     >
                         <div
-                            className="relative w-full max-w-5xl bg-slate-900 border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]"
+                            className="relative w-full max-w-5xl bg-white border border-[#E2ECE4] rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
-                            <div className="p-4 px-6 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-4">
+                            <div className="p-4 px-6 bg-[#F8FAF8] border-b border-[#E2ECE4] flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 flex items-center justify-center shrink-0">
-                                        <MapPin className="w-5 h-5 text-purple-400" />
+                                    <div className="w-9 h-9 rounded-xl bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center shrink-0">
+                                        <MapPin className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-white font-bold text-base md:text-lg">
+                                            <h3 className="text-[#132A22] font-bold text-base md:text-lg">
                                                 {details.fortId?.name || details.name}
                                             </h3>
-                                            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                Website Map Component
+                                            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                Interactive Map
                                             </span>
                                         </div>
-                                        <p className="text-xs text-slate-400">
-                                            Interactive 3D Satellite & Terrain view with live trails, water cisterns & erosion risk
+                                        <p className="text-xs text-[#52685E] font-medium">
+                                            Satellite & Topo view with live trails & erosion risk
                                         </p>
                                     </div>
                                 </div>
@@ -775,14 +762,14 @@ export default function HistoryPage() {
                                 <div className="flex items-center gap-2 shrink-0">
                                     <Link
                                         to={`/dashboard?fort=${slug}`}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-emerald-400 border border-slate-700/80 transition-all shadow"
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-all shadow-xs"
                                     >
                                         <span>Full Dashboard Map</span>
                                         <ExternalLink className="w-3.5 h-3.5" />
                                     </Link>
                                     <button
                                         onClick={() => setIsMapModalOpen(false)}
-                                        className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                                        className="p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                                         title="Close map viewer"
                                     >
                                         <X className="w-5 h-5" />
@@ -791,7 +778,7 @@ export default function HistoryPage() {
                             </div>
 
                             {/* Embedded FortMap Component */}
-                            <div className="w-full h-[65vh] min-h-[420px] relative bg-slate-950">
+                            <div className="w-full h-[65vh] min-h-[420px] relative bg-slate-50">
                                 <FortMap className="w-full h-full" />
                             </div>
                         </div>

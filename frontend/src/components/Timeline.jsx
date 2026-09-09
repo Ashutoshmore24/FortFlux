@@ -4,19 +4,19 @@ export default function Timeline({ events }) {
     if (!events || events.length === 0) return null;
 
     return (
-        <div className="relative border-l border-emerald-500/30 ml-3 md:ml-6 mt-4">
+        <div className="relative border-l-2 border-emerald-200 ml-3 md:ml-6 mt-4">
             {events.map((event, index) => (
                 <div key={index} className="mb-8 ml-6 group">
-                    <span className="absolute flex items-center justify-center w-6 h-6 bg-slate-900 rounded-full -left-3 ring-4 ring-slate-950 border border-emerald-500/50 group-hover:bg-emerald-500/20 transition-colors duration-300">
-                        <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                    <span className="absolute flex items-center justify-center w-6 h-6 bg-white rounded-full -left-[13px] ring-4 ring-[#F5F8F4] border-2 border-emerald-500 group-hover:border-emerald-700 transition-colors duration-300 shadow-xs">
+                        <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                     </span>
-                    <h3 className="flex items-center mb-1 text-lg font-semibold text-emerald-400">
+                    <h3 className="flex items-center mb-1 text-lg font-bold text-[#132A22]">
                         {event.title}
                     </h3>
-                    <time className="block mb-2 text-sm font-normal leading-none text-slate-400">
+                    <time className="inline-block mb-2 text-xs font-bold tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
                         {event.year}
                     </time>
-                    <p className="text-base font-normal text-slate-300">
+                    <p className="text-sm font-normal text-slate-700 leading-relaxed">
                         {event.description}
                     </p>
                 </div>

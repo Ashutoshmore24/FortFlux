@@ -54,16 +54,16 @@ export function App() {
 
   if (isCheckingAuth) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-200">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F5F8F4] text-slate-800">
         {/* Branded Loading Screen */}
-        <div className="relative flex items-center justify-center mb-8">
+        <div className="relative flex items-center justify-center mb-6">
           {/* Animated rings */}
-          <div className="absolute w-24 h-24 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s" }} />
-          <div className="absolute w-20 h-20 rounded-full border border-emerald-500/10" />
+          <div className="absolute w-24 h-24 rounded-full border border-emerald-600/20 animate-ping" style={{ animationDuration: "2s" }} />
+          <div className="absolute w-20 h-20 rounded-full border border-emerald-600/15" />
           {/* Orbiting dot */}
-          <div className="absolute w-3 h-3 rounded-full bg-emerald-400 animate-orbit" />
+          <div className="absolute w-3 h-3 rounded-full bg-emerald-600 animate-orbit" />
           {/* Center logo */}
-          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 p-0.5 bg-slate-900 shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/10 animate-pulse-glow flex items-center justify-center">
+          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-600/30 p-0.5 bg-white shadow-lg shadow-emerald-700/10 ring-4 ring-emerald-600/10 animate-pulse-glow flex items-center justify-center">
             <img
               src="/fortflux_logo.jpeg"
               alt="FortFlux Logo"
@@ -76,14 +76,14 @@ export function App() {
           </div>
         </div>
 
-        <h2 className="text-lg font-bold text-white tracking-tight mb-1">FortFlux</h2>
-        <p className="text-sm text-slate-400 font-medium tracking-wide">
+        <h2 className="text-xl font-extrabold text-[#132A22] tracking-tight mb-1">FortFlux</h2>
+        <p className="text-xs text-[#52685E] font-medium tracking-wide">
           Connecting to Sahyadri Eco-Monitor...
         </p>
 
         {/* Loading bar */}
-        <div className="mt-6 w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 rounded-full animate-shimmer" style={{ width: "100%" }} />
+        <div className="mt-6 w-48 h-1.5 bg-[#E2ECE4] rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 rounded-full animate-shimmer" style={{ width: "100%" }} />
         </div>
       </div>
     );
@@ -91,7 +91,7 @@ export function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500/30 selection:text-emerald-300">
+      <div className="min-h-screen bg-[#F5F8F4] text-slate-800 flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
         <Navbar />
 
         <main className="flex-1">

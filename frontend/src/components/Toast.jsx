@@ -11,24 +11,24 @@ const ICON_MAP = {
 
 const COLOR_MAP = {
   success: {
-    bg: "bg-emerald-500/10 border-emerald-500/40",
-    icon: "text-emerald-400",
+    bg: "bg-white/95 border-emerald-300",
+    icon: "text-emerald-600",
     bar: "bg-emerald-500",
   },
   error: {
-    bg: "bg-rose-500/10 border-rose-500/40",
-    icon: "text-rose-400",
+    bg: "bg-white/95 border-rose-300",
+    icon: "text-rose-600",
     bar: "bg-rose-500",
   },
   warning: {
-    bg: "bg-amber-500/10 border-amber-500/40",
-    icon: "text-amber-400",
+    bg: "bg-white/95 border-amber-300",
+    icon: "text-amber-600",
     bar: "bg-amber-500",
   },
   info: {
-    bg: "bg-cyan-500/10 border-cyan-500/40",
-    icon: "text-cyan-400",
-    bar: "bg-cyan-500",
+    bg: "bg-white/95 border-teal-300",
+    icon: "text-teal-600",
+    bar: "bg-teal-500",
   },
 };
 
@@ -45,27 +45,28 @@ const ToastItem = ({ toast, onDismiss }) => {
   return (
     <div
       className={`
-        flex items-start gap-3 px-4 py-3.5 rounded-2xl border backdrop-blur-xl
-        shadow-2xl shadow-black/30 min-w-[300px] max-w-[420px]
+        relative flex items-start gap-3 px-4 py-3.5 rounded-2xl border backdrop-blur-xl
+        shadow-lg min-w-[300px] max-w-[420px]
         ${colors.bg}
         ${isExiting ? "animate-slide-down" : "animate-slide-up"}
       `}
       role="alert"
     >
       <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${colors.icon}`} />
-      <p className="text-sm text-slate-200 flex-1 leading-relaxed">{toast.message}</p>
+      <p className="text-sm font-medium text-slate-800 flex-1 leading-relaxed">{toast.message}</p>
       <button
         onClick={handleDismiss}
-        className="text-slate-500 hover:text-slate-300 transition shrink-0 mt-0.5"
+        aria-label="Dismiss toast"
+        className="text-slate-400 hover:text-slate-700 transition shrink-0 mt-0.5 cursor-pointer"
       >
         <X className="w-4 h-4" />
       </button>
 
       {/* Auto-dismiss progress bar */}
       {toast.duration > 0 && (
-        <div className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full overflow-hidden">
+        <div className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full overflow-hidden bg-slate-100">
           <div
-            className={`h-full ${colors.bar} opacity-40 rounded-full`}
+            className={`h-full ${colors.bar} rounded-full`}
             style={{
               animation: `toastProgress ${toast.duration}ms linear forwards`,
             }}

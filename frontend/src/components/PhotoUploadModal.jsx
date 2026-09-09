@@ -165,44 +165,45 @@ export const PhotoUploadModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md">
+            <div className="bg-white border border-[#E2ECE4] rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 relative">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition"
+                    aria-label="Close modal"
+                    className="absolute top-5 right-5 p-2 rounded-xl bg-[#F5F8F4] hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400">
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700">
                         <Camera className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-extrabold text-white">
+                        <h2 className="text-xl font-extrabold text-[#132A22]">
                             Submit Trail Field Evidence
                         </h2>
-                        <p className="text-xs text-slate-400">
-                            Geotagged crowdsourced reports for <strong>{fortName}</strong>
+                        <p className="text-xs text-slate-500">
+                            Geotagged crowdsourced reports for <strong className="text-emerald-700">{fortName}</strong>
                         </p>
                     </div>
                 </div>
 
                 {successMessage ? (
                     <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
-                        <div className="p-4 bg-emerald-500/20 text-emerald-400 rounded-full">
+                        <div className="p-4 bg-emerald-100 text-emerald-700 rounded-full">
                             <CheckCircle2 className="w-12 h-12 animate-bounce" />
                         </div>
-                        <h3 className="text-lg font-bold text-white">Evidence Submitted!</h3>
-                        <p className="text-xs text-emerald-300 max-w-sm">{successMessage}</p>
+                        <h3 className="text-lg font-bold text-[#132A22]">Evidence Submitted!</h3>
+                        <p className="text-xs text-emerald-700 max-w-sm">{successMessage}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Error banner */}
                         {error && (
-                            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4 shrink-0" />
                                 {error}
                             </div>
@@ -210,11 +211,11 @@ export const PhotoUploadModal = ({
 
                         {/* File Upload Box */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-300 mb-2">
-                                Trail Photo Evidence <span className="text-rose-400">*</span>
+                            <label className="block text-xs font-bold text-slate-700 mb-2">
+                                Trail Photo Evidence <span className="text-rose-500">*</span>
                             </label>
                             {previewUrl ? (
-                                <div className="relative rounded-2xl overflow-hidden border border-slate-700 h-48 bg-slate-950 flex items-center justify-center">
+                                <div className="relative rounded-2xl overflow-hidden border border-[#E2ECE4] h-48 bg-[#F5F8F4] flex items-center justify-center">
                                     <img
                                         src={previewUrl}
                                         alt="Evidence preview"
@@ -226,7 +227,7 @@ export const PhotoUploadModal = ({
                                             setFile(null);
                                             setPreviewUrl("");
                                         }}
-                                        className="absolute top-3 right-3 p-1.5 bg-slate-900/80 text-rose-400 hover:text-white rounded-lg border border-slate-700 transition"
+                                        className="absolute top-3 right-3 p-1.5 bg-white/90 text-rose-600 hover:text-rose-800 rounded-lg border border-[#E2ECE4] shadow-sm transition cursor-pointer"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -234,10 +235,10 @@ export const PhotoUploadModal = ({
                             ) : (
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-2xl p-6 text-center cursor-pointer transition bg-slate-950/40 hover:bg-slate-950/80"
+                                    className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center cursor-pointer transition bg-[#F8FAF8] hover:bg-emerald-50/40"
                                 >
                                     <UploadCloud className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                                    <div className="text-xs font-bold text-slate-200">
+                                    <div className="text-xs font-bold text-slate-800">
                                         Click to upload or drag photo here
                                     </div>
                                     <div className="text-[11px] text-slate-500 mt-1">
@@ -256,7 +257,7 @@ export const PhotoUploadModal = ({
 
                         {/* Hazard Category Selector */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-300 mb-2">
+                            <label className="block text-xs font-bold text-slate-700 mb-2">
                                 Hazard Category
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -272,9 +273,9 @@ export const PhotoUploadModal = ({
                                         key={cat.id}
                                         type="button"
                                         onClick={() => setHazardType(cat.id)}
-                                        className={`p-2.5 rounded-xl text-left border transition ${hazardType === cat.id
-                                            ? "bg-emerald-500/15 border-emerald-500/60 text-emerald-300"
-                                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200"
+                                        className={`p-2.5 rounded-xl text-left border transition cursor-pointer ${hazardType === cat.id
+                                            ? "bg-emerald-50 border-emerald-500 text-emerald-900 shadow-xs"
+                                            : "bg-[#F8FAF8] border-[#E2ECE4] text-slate-600 hover:border-emerald-300 hover:text-slate-900 hover:bg-white"
                                             }`}
                                     >
                                         <div className="text-xs font-bold">{cat.label}</div>
@@ -288,13 +289,13 @@ export const PhotoUploadModal = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Trail Selector */}
                             <div>
-                                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                     Affected Trail Segment
                                 </label>
                                 <select
                                     value={selectedTrailId}
                                     onChange={(e) => setSelectedTrailId(e.target.value)}
-                                    className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                                    className="w-full bg-[#F8FAF8] border border-[#E2ECE4] text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:bg-white cursor-pointer shadow-xs"
                                 >
                                     {trails.map((t) => (
                                         <option key={t._id} value={t._id}>
@@ -307,21 +308,21 @@ export const PhotoUploadModal = ({
 
                             {/* Severity Selector */}
                             <div>
-                                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                     Observed Severity
                                 </label>
                                 <div className="grid grid-cols-4 gap-1.5">
                                     {[
-                                        { id: "low", label: "Low", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" },
-                                        { id: "moderate", label: "Mod", color: "text-amber-400 bg-amber-500/10 border-amber-500/30" },
-                                        { id: "high", label: "High", color: "text-orange-400 bg-orange-500/10 border-orange-500/30" },
-                                        { id: "critical", label: "Crit", color: "text-rose-400 bg-rose-500/10 border-rose-500/30" },
+                                        { id: "low", label: "Low", color: "text-emerald-800 bg-emerald-100 border-emerald-400 font-bold" },
+                                        { id: "moderate", label: "Mod", color: "text-amber-800 bg-amber-100 border-amber-400 font-bold" },
+                                        { id: "high", label: "High", color: "text-orange-800 bg-orange-100 border-orange-400 font-bold" },
+                                        { id: "critical", label: "Crit", color: "text-rose-800 bg-rose-100 border-rose-400 font-bold" },
                                     ].map((s) => (
                                         <button
                                             key={s.id}
                                             type="button"
                                             onClick={() => setSeverity(s.id)}
-                                            className={`py-2 px-1 rounded-xl text-xs font-bold border transition text-center ${severity === s.id ? s.color : "bg-slate-800/80 border-slate-700 text-slate-400"
+                                            className={`py-2 px-1 rounded-xl text-xs font-bold border transition text-center cursor-pointer ${severity === s.id ? s.color : "bg-[#F8FAF8] border-[#E2ECE4] text-slate-600 hover:bg-white"
                                                 }`}
                                         >
                                             {s.label}
@@ -332,11 +333,11 @@ export const PhotoUploadModal = ({
                         </div>
 
                         {/* Geolocation Tag */}
-                        <div className="flex items-center justify-between p-3 bg-slate-950 rounded-2xl border border-slate-800 text-xs">
+                        <div className="flex items-center justify-between p-3 bg-[#F8FAF8] rounded-2xl border border-[#E2ECE4] text-xs">
                             <div className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-emerald-400" />
+                                <MapPin className="w-4 h-4 text-emerald-600" />
                                 <div>
-                                    <div className="font-semibold text-slate-200">
+                                    <div className="font-semibold text-[#132A22]">
                                         GPS Geotag Location
                                     </div>
                                     <div className="text-[10px] text-slate-500">
@@ -350,12 +351,12 @@ export const PhotoUploadModal = ({
                                 type="button"
                                 onClick={handleCaptureLocation}
                                 disabled={isLocating}
-                                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[11px] font-semibold transition flex items-center gap-1"
+                                className="px-3 py-1.5 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-[#E2ECE4] rounded-xl text-[11px] font-semibold transition flex items-center gap-1 shadow-xs cursor-pointer"
                             >
                                 {isLocating ? (
-                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
                                 ) : (
-                                    <MapPin className="w-3 h-3" />
+                                    <MapPin className="w-3 h-3 text-emerald-600" />
                                 )}
                                 Auto-GPS
                             </button>
@@ -363,7 +364,7 @@ export const PhotoUploadModal = ({
 
                         {/* Description */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                 Trekker Field Observations
                             </label>
                             <textarea
@@ -371,21 +372,21 @@ export const PhotoUploadModal = ({
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={3}
                                 placeholder="Describe current ground conditions (e.g. boulder fell after rain, slippery rock stairway, broken support chain)..."
-                                className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500"
+                                className="w-full bg-[#F8FAF8] border border-[#E2ECE4] text-slate-800 text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500 focus:bg-white shadow-xs"
                             />
                         </div>
 
                         {/* AI Triage Heuristic Preview Card */}
-                        <div className="p-3.5 bg-cyan-950/30 border border-cyan-500/30 rounded-2xl flex items-start gap-3 text-xs">
-                            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                        <div className="p-3.5 bg-teal-50/70 border border-teal-200/80 rounded-2xl flex items-start gap-3 text-xs">
+                            <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                             <div>
-                                <div className="font-bold text-cyan-300 flex items-center gap-1.5">
+                                <div className="font-bold text-teal-900 flex items-center gap-1.5">
                                     <span>AI Vision Triage Preview</span>
-                                    <span className="text-[10px] bg-cyan-500/20 text-cyan-200 px-1.5 py-0.5 rounded font-mono">
+                                    <span className="text-[10px] bg-teal-200/60 text-teal-900 px-1.5 py-0.5 rounded font-mono font-bold">
                                         91% Confidence
                                     </span>
                                 </div>
-                                <div className="text-[11px] text-slate-300 mt-0.5">
+                                <div className="text-[11px] text-slate-700 mt-0.5">
                                     {aiPreview.recommendation}
                                 </div>
                             </div>
@@ -395,7 +396,7 @@ export const PhotoUploadModal = ({
                         <button
                             type="submit"
                             disabled={!file || isUploading}
-                            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-extrabold rounded-2xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-950/50"
+                            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-white text-xs font-extrabold rounded-2xl flex items-center justify-center gap-2 transition shadow-md shadow-emerald-900/10 cursor-pointer disabled:cursor-not-allowed"
                         >
                             {isUploading ? (
                                 <>
