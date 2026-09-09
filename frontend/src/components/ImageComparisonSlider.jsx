@@ -44,7 +44,7 @@ export default function ImageComparisonSlider({ beforeImageUrl, afterImageUrl, b
         <div className="flex flex-col gap-3">
             <div
                 ref={containerRef}
-                className="relative w-full aspect-video rounded-xl overflow-hidden select-none touch-none cursor-crosshair group ring-1 ring-slate-800"
+                className="relative w-full aspect-video rounded-xl overflow-hidden select-none touch-none cursor-crosshair group ring-1 ring-[#E2ECE4] shadow-md"
                 onMouseDown={(e) => {
                     setIsDragging(true);
                     handleMove(e.clientX);
@@ -62,14 +62,14 @@ export default function ImageComparisonSlider({ beforeImageUrl, afterImageUrl, b
                         className="w-full h-full object-cover"
                         draggable={false}
                     />
-                    <div className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-slate-200 border border-slate-700/50 shadow-lg">
+                    <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 border border-[#E2ECE4] shadow-md">
                         {afterLabel}
                     </div>
                 </div>
 
                 {/* Before Image (Clipped overlay) */}
                 <div
-                    className="absolute inset-0 right-0 overflow-hidden bg-slate-950"
+                    className="absolute inset-0 right-0 overflow-hidden bg-[#F5F8F4]"
                     style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
                 >
                     <img
@@ -79,24 +79,24 @@ export default function ImageComparisonSlider({ beforeImageUrl, afterImageUrl, b
                         style={{ width: '100%', height: '100%' }}
                         draggable={false}
                     />
-                    <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-slate-200 border border-slate-700/50 shadow-lg">
+                    <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 border border-[#E2ECE4] shadow-md">
                         {beforeLabel}
                     </div>
                 </div>
 
                 {/* Slider Handle */}
                 <div
-                    className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize hover:bg-emerald-400 transition-colors duration-200"
+                    className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize hover:bg-emerald-500 transition-colors duration-200"
                     style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
                 >
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-2xl shadow-black/50 text-slate-900 border border-slate-200">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg text-emerald-800 border border-[#E2ECE4]">
                         <MoveHorizontal className="w-4 h-4" />
                     </div>
                 </div>
             </div>
 
             {caption && (
-                <p className="text-sm text-slate-400 text-center italic mt-2">
+                <p className="text-sm text-slate-600 text-center italic mt-2">
                     {caption}
                 </p>
             )}

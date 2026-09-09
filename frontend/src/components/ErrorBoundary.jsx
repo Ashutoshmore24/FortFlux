@@ -24,17 +24,17 @@ export class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-[70vh] flex items-center justify-center p-6 text-center">
-          <div className="max-w-md w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4">
+          <div className="max-w-md w-full bg-white border border-[#E2ECE4] rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            <h2 className="text-xl font-bold text-[#132A22] mb-2">Something went wrong</h2>
+            <p className="text-xs text-slate-600 mb-6 leading-relaxed">
               {this.state.error?.message || "An unexpected error occurred while rendering this view."}
             </p>
             <button
               onClick={this.handleReset}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-950/50 transition cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
               Reload Page
