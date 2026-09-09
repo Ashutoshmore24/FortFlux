@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadAvatar } from "../controllers/user.controller.js";
+import { uploadAvatar, uploadBanner, removeBanner } from "../controllers/user.controller.js";
 import { protectRoute } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/upload.js";
 import multer from "multer";
@@ -12,17 +12,29 @@ const handleAvatarUpload = (req, res, next) => {
 
   uploadSingle(req, res, (err) => {
     if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading (e.g., file too large)
       return res.status(400).json({ message: `Upload error: ${err.message}` });
     } else if (err) {
-      // An unknown error occurred or our custom fileFilter error
       return res.status(400).json({ message: err.message });
     }
-    // Everything went fine
+    next();
+  });
+};
+
+const handleBannerUpload = (req, res, next) => {
+  const uploadSingle = upload.single("banner");
+
+  uploadSingle(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ message: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ message: err.message });
+    }
     next();
   });
 };
 
 router.post("/:id/avatar", protectRoute, handleAvatarUpload, uploadAvatar);
+router.post("/:id/banner", protectRoute, handleBannerUpload, uploadBanner);
+router.delete("/:id/banner", protectRoute, removeBanner);
 
 export default router;

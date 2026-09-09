@@ -1,5 +1,5 @@
 import express from "express";
-import { login, signup, logout, checkAuth, updateProfile, googleLogin } from "../controllers/auth.controller.js";
+import { login, signup, logout, checkAuth, updateProfile, googleLogin, demoLogin } from "../controllers/auth.controller.js";
 import { protectRoute, requireRole } from "../middlewares/auth.middleware.js";
 import { authRateLimiter } from "../middlewares/arcjet.middleware.js";
 
@@ -10,6 +10,7 @@ router.post("/signup", authRateLimiter, signup);
 router.post("/login", authRateLimiter, login);
 router.post("/logout", logout);
 router.post("/google", authRateLimiter, googleLogin);
+router.post("/demo", demoLogin);
 
 router.get("/check", protectRoute, checkAuth);
 router.put("/profile", protectRoute, updateProfile);

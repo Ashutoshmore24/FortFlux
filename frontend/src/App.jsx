@@ -12,6 +12,7 @@ import TrekkerDashboard from "./pages/TrekkerDashboard";
 import AuthorityDashboard from "./pages/AuthorityDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import HistoryPage from "./pages/HistoryPage";
+import LandingPage from "./pages/LandingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -124,19 +125,8 @@ export function App() {
                 }
               />
 
-              {/* Default Route: Redirect based on auth/role */}
-              <Route
-                path="/"
-                element={
-                  !authUser ? (
-                    <Navigate to="/login" replace />
-                  ) : authUser.role === "authority" ? (
-                    <Navigate to="/authority" replace />
-                  ) : (
-                    <Navigate to="/dashboard" replace />
-                  )
-                }
-              />
+              {/* Public Hero & Impact Showcase Landing Page */}
+              <Route path="/" element={<LandingPage />} />
 
               {/* Authenticated Protected Routes */}
               <Route element={<ProtectedRoute />}>

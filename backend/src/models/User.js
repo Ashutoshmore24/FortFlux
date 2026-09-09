@@ -65,6 +65,14 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    bannerUrl: {
+        type: String,
+        default: ""
+    },
+    bannerCloudinaryId: {
+        type: String,
+        default: ""
+    },
     stats: {
         treksCompleted: { type: Number, default: 0 },
         photosContributed: { type: Number, default: 0 },
