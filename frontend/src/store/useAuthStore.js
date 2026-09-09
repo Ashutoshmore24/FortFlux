@@ -87,11 +87,18 @@ export const useAuthStore = create((set) => ({
       set({ authUser: normalizeUser(res.data) });
       return { success: true };
     } catch (error) {
+      console.error("Firebase Google Sign-In error:", error);
       let message = "Google sign-in failed. Please try again.";
-      if (error.code === "auth/popup-closed-by-user") {
-        message = "Sign-in popup was closed. Please try again.";
+      if (error.code === "auth/unauthorized-domain") {
+        message = "Domain not authorized: Please add fortflux.onrender.com to Firebase Console -> Authentication -> Settings -> Authorized domains.";
+      } else if (error.code === "auth/popup-blocked") {
+        message = "Sign-in popup was blocked by your browser. Please allow popups for fortflux.onrender.com.";
+      } else if (error.code === "auth/popup-closed-by-user") {
+        message = "Sign-in popup was closed before completing. Please try again.";
       } else if (error.code === "auth/cancelled-popup-request") {
         message = "Sign-in was cancelled. Please try again.";
+      } else if (error.code === "auth/network-request-failed") {
+        message = "Network connection failed. Please check your internet connection and try again.";
       } else if (error.response?.data?.message) {
         message = error.response.data.message;
       }
