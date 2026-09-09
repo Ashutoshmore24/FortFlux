@@ -1,12 +1,21 @@
 import jwt from "jsonwebtoken";
 import ENV from "./env.js";
 
-export const getCookieOptions = () => ({
-    maxAge: 4 * 24 * 60 * 60 * 1000, // 4 days in ms
-    httpOnly: true, // prevents XSS attacks — not accessible via JS
-    sameSite: "strict", // prevents CSRF attacks
-    secure: ENV.NODE_ENV !== "development", // HTTPS only in production
-});
+export const getCookieOptions = () => {
+    const isProduction = ENV.NODE_ENV === "production";
+    const isCrossOrigin = Boolean(
+        ENV.CLIENT_URL &&
+        !ENV.CLIENT_URL.includes("localhost") &&
+        !ENV.CLIENT_URL.includes("127.0.0.1")
+    );
+
+    return {
+        maxAge: 4 * 24 * 60 * 60 * 1000, // 4 days in ms
+        httpOnly: true, // prevents XSS attacks — not accessible via JS
+        sameSite: isCrossOrigin ? "none" : "lax",
+        secure: isProduction || isCrossOrigin,
+    };
+};
 
 const generateToken = (userId, role = "trekker", res = null) => {
     const token = jwt.sign(

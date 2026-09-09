@@ -1,7 +1,7 @@
 // ── MapTiler + MapLibre Configuration ──
 // Centralizes all map configuration. Never hard-code API keys here.
 
-export const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+export const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY || "982Xo8OxjE6zO6UViea9";
 
 // ── Map Styles (Only Satellite & Terrain — Dark Mode Removed) ──
 export const MAP_STYLES = {

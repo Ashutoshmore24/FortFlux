@@ -1,3 +1,6 @@
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import ENV from './lib/env.js';
 import express, { urlencoded } from 'express';
@@ -14,14 +17,45 @@ import userRoutes from './routes/user.route.js';
 import reportRoutes from './routes/report.route.js';
 import { globalRateLimiter } from './middlewares/arcjet.middleware.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
+
 const app = express();
 const httpServer = createServer(app);
 
 const PORT = ENV.PORT || 6000;
 
-// Middleware
+// Trust reverse proxy headers on Render (for rate-limiting client IP and HTTPS cookies)
+app.set("trust proxy", 1);
+
+// Dynamic CORS configuration
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+];
+if (ENV.CLIENT_URL) {
+    ENV.CLIENT_URL.split(",").forEach((url) => {
+        const trimmed = url.trim().replace(/\/$/, "");
+        if (trimmed && !allowedOrigins.includes(trimmed)) {
+            allowedOrigins.push(trimmed);
+        }
+    });
+}
+
 app.use(cors({
-    origin: ENV.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (
+            allowedOrigins.includes(origin) ||
+            allowedOrigins.includes("*") ||
+            origin.endsWith(".onrender.com")
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
 app.use(express.json());
@@ -47,6 +81,19 @@ app.use("/api/reports", reportRoutes);
 app.all("/api/*path", (req, res) => {
     res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
 });
+
+// Serve frontend build in production or when frontend/dist exists
+if (fs.existsSync(frontendDistPath)) {
+    app.use(express.static(frontendDistPath));
+
+    // Handle React SPA client-side routing (Express 5 compatible)
+    app.use((req, res, next) => {
+        if (req.method === 'GET' && !req.path.startsWith('/api')) {
+            return res.sendFile(path.join(frontendDistPath, 'index.html'));
+        }
+        next();
+    });
+}
 
 // Connect to DB, initialize Socket.IO, then start server
 connectDB().then(() => {
