@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: fortflux
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 4d
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: ARCJET_KEY
+        sync: false
+      - key: ARCJET_ENV
+        value: production
+      - key: VITE_MAPTILER_API_KEY
+        value: 982Xo8OxjE6zO6UViea9
