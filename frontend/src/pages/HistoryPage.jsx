@@ -15,7 +15,6 @@ import {
     Map,
     BookOpen,
     Camera,
-    Users,
     MapPin,
     Navigation,
     Info,
@@ -634,64 +633,6 @@ export default function HistoryPage() {
                         fortName={details.name}
                         isUNESCO={details.isUNESCO}
                     />
-                </div>
-
-                {/* COMMUNITY PHOTO GALLERY */}
-                <div className="bg-white border border-[#E2ECE4] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2ECE4] pb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-teal-50 text-teal-700 rounded-xl border border-teal-200">
-                                <Camera className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-[#132A22]">Community Gallery</h2>
-                                <p className="text-xs text-[#52685E] font-medium">Authentic photographs contributed by Sahyadri trekkers, mountaineers, and historians</p>
-                            </div>
-                        </div>
-                        <span className="text-xs text-slate-700 bg-slate-50 px-3.5 py-1.5 rounded-full flex items-center gap-2 self-start md:self-auto border border-slate-200 font-semibold">
-                            <Users className="w-4 h-4 text-emerald-600" /> 24+ Verified Trekker Contributions
-                        </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {details.communityPhotos?.map((img, idx) => (
-                            <div
-                                key={idx}
-                                className="group relative rounded-2xl overflow-hidden aspect-square border border-[#E2ECE4] hover:border-emerald-500 transition-all duration-300 cursor-pointer shadow-xs hover-lift bg-slate-100"
-                                onClick={() => setSelectedPhoto(img.url)}
-                            >
-                                <img
-                                    src={img.url}
-                                    alt={img.caption || `Community upload ${idx + 1}`}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                        e.currentTarget.src = details.heroImage || "/forts/sinhagad.webp";
-                                    }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
-                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[10px] font-bold text-white shadow">
-                                                {img.user?.charAt(0) || "U"}
-                                            </div>
-                                            <span className="text-xs font-semibold text-white drop-shadow-sm">
-                                                {img.user}
-                                            </span>
-                                        </div>
-                                        {img.date && (
-                                            <span className="text-[10px] text-white/80">
-                                                {img.date}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-[11px] text-white/90 line-clamp-2 leading-tight">
-                                        {img.caption}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
 
                 {/* Full-Screen Photo Modal / Lightbox */}

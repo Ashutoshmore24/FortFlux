@@ -12,7 +12,6 @@ import riskRoutes from './routes/risk.route.js';
 import routingRoutes from './routes/routing.route.js';
 import userRoutes from './routes/user.route.js';
 import reportRoutes from './routes/report.route.js';
-import { seedCommunityEvidence } from './controllers/report.controller.js';
 import { globalRateLimiter } from './middlewares/arcjet.middleware.js';
 
 const app = express();
@@ -50,17 +49,9 @@ app.all("/api/*path", (req, res) => {
 });
 
 // Connect to DB, initialize Socket.IO, then start server
-connectDB().then(async () => {
+connectDB().then(() => {
     // Phase 7: Attach Socket.IO to the HTTP server
     initSocket(httpServer);
-
-    // Auto-seed community reports and sync to Cloudinary if needed
-    try {
-        console.log("🚀 Server initiating community evidence Cloudinary sync...");
-        await seedCommunityEvidence();
-    } catch (err) {
-        console.error("Auto-seeding error:", err.message);
-    }
 
     httpServer.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
