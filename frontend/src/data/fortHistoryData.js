@@ -129,21 +129,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Monumental Gateway",
                 duration: "20 min",
                 description: "Main triple-tiered entrance portal facing north toward Pune city with strategic vantage loopholes.",
-                imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Pune_darwaja.jpg/800px-Pune_darwaja.jpg",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973895/fortflux/landmarks/sinhagad/s4rgzez7srokccbvwd1h.jpg",
             },
             {
                 name: "Tanaji Malusare Samadhi & Memorial",
                 category: "Historic Memorial",
                 duration: "25 min",
                 description: "Revered bust and marble memorial honoring the supreme sacrifice of the Maratha general during the 1670 siege.",
-                imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Tanaji_Malusare_Memorial%2C_Sinhagad_fort.jpg/800px-Tanaji_Malusare_Memorial%2C_Sinhagad_fort.jpg",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973895/fortflux/landmarks/sinhagad/ijq9zxew9mabm5rbroqc.jpg",
             },
             {
                 name: "Kalyan Darwaja & Western Bastions",
                 category: "Defensive Ramparts",
                 duration: "30 min",
                 description: "Steep southern gate facing Kalyan village, offering breathtaking panoramic views of the Khadakwasla backwaters.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973895/fortflux/landmarks/sinhagad/ermtm4vkzwvx61blg1aw.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -190,21 +190,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Natural Basalt Needle",
                 duration: "45 min",
                 description: "Spectacular natural rock eyelet window carved by wind erosion along a fortified knife-edge spur with double-bastioned walls.",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973888/fortflux/landmarks/rajgad/rvxypdyzlc8q7v4vveve.jpg",
             },
             {
                 name: "Balekilla (Highest Citadel)",
                 category: "Royal Command Center",
                 duration: "60 min",
                 description: "The apex citadel reached via thrilling 70-degree rock-hewn steps with safety railings, containing Shivaji Maharaj's royal palace ruins.",
-                imageUrl: "https://images.unsplash.com/photo-1582299863456-6205bd0c1cc5?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973888/fortflux/landmarks/rajgad/h1wkofdaqgnusvbmsau4.jpg",
             },
             {
                 name: "Padmavati Temple & Royal Lake",
                 category: "Plateau Architecture",
                 duration: "30 min",
                 description: "Central administrative plateau featuring the historical Padmavati Temple, stone barracks, and perennial freshwater reservoir.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973889/fortflux/landmarks/rajgad/escgx4n4pinjnffjd2kk.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -250,21 +250,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Fortified Cliff Ridge",
                 duration: "45 min",
                 description: "Dramatic narrow defensive ridge descending toward the west with 1,000-foot vertical cliffs on both sides and rock-cut watchtowers.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973898/fortflux/landmarks/torna/i1bbzrn7xskvphjv6zoo.jpg",
             },
             {
                 name: "Mengai Devi Temple",
                 category: "Historic Sanctuary",
                 duration: "30 min",
                 description: "Spacious stone temple dedicated to Goddess Mengai on the main plateau, traditionally used as overnight shelter by trekkers.",
-                imageUrl: "https://images.unsplash.com/photo-1637775510619-a1b7e28f3289?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973898/fortflux/landmarks/torna/mhpdhmxlpqvtpojp34iu.jpg",
             },
             {
                 name: "Budhla Machi & Rock Monolith",
                 category: "Basalt Monolith",
                 duration: "45 min",
                 description: "Massive natural rock formation resembling an inverted earthen pot (Budhla), housing rock-cut water cisterns and bastions.",
-                imageUrl: "https://images.unsplash.com/photo-1620619864275-520e722650ee?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973896/fortflux/landmarks/torna/jyfizk9s5cyn1g31sns2.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -310,21 +310,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Heroic Monument",
                 duration: "25 min",
                 description: "Bronze statue honoring Murarbaji Deshpande, who valiantly fought with 700 Mavlas until his martyrdom against Diler Khan's siege.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973874/fortflux/landmarks/purandar/wsvoou6vjbnm3ingo5si.jpg",
             },
             {
                 name: "Kedareshwar Mahadev Temple",
                 category: "Summit Shiva Temple",
                 duration: "40 min",
                 description: "Ancient stone shrine located at the absolute pinnacle of Balekilla, offering panoramic 360° views across Saswad plains.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973872/fortflux/landmarks/purandar/n3uceyqr1rwkndvkldjo.jpg",
             },
             {
                 name: "Bini Darwaja & Khandkada",
                 category: "Fortress Gateway",
                 duration: "20 min",
                 description: "Grand arched entrance portal through which visitors enter the garrison quarters, featuring sturdy defensive bastions.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973872/fortflux/landmarks/purandar/y3rctw8i3wrfm9al9cza.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -369,21 +369,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Fortified Spur",
                 duration: "45 min",
                 description: "1.5 km long narrow fortified spur jutting dramatically into the valley, built to command both Konkan and Desh plains.",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973868/fortflux/landmarks/lohagad/pkw7bmclgupjuri4t8cm.jpg",
             },
             {
                 name: "Maha Darwaja",
                 category: "Monumental Gate",
                 duration: "25 min",
                 description: "Monumental arched entrance gate built in 1789 by Nana Phadnavis, featuring intricate carvings of peacocks and protective bastions.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973885/fortflux/landmarks/raigad/vlgojlakjbxktiuksld2.jpg",
             },
             {
                 name: "Laxmi Kothi & Ancient Granaries",
                 category: "Subterranean Vaults",
                 duration: "20 min",
                 description: "Multi-chambered stone granaries and royal treasury vaults used to secure weapons, grains, and gold during wartime.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973868/fortflux/landmarks/lohagad/geto8sn0wthvpjw9e1cq.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -428,21 +428,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Seasonal Waterfall Trail",
                 duration: "50 min",
                 description: "Thrilling carved stone steps through which mountain stream torrents cascade directly underfoot during the monsoon season.",
-                imageUrl: "https://images.unsplash.com/photo-1582299863456-6205bd0c1cc5?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973901/fortflux/landmarks/visapur/ldb1hjhyluia7fg2ktqb.jpg",
             },
             {
                 name: "Peshwa Palace Ruins & Stone Grinders",
                 category: "Peshwa Citadel",
                 duration: "35 min",
                 description: "Sprawling ruins of the Peshwa administrative palace featuring carved archways, stone water channels, and massive cannon mortar grinders.",
-                imageUrl: "https://images.unsplash.com/photo-1637775510619-a1b7e28f3289?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973900/fortflux/landmarks/visapur/t8a7jfvxd0f02jo4aa83.jpg",
             },
             {
                 name: "Western Fortified Ramparts",
                 category: "Panoramic Bastions",
                 duration: "40 min",
                 description: "Intact perimeter battlements that look directly across the saddle to Lohagad and Pawna reservoir below.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973900/fortflux/landmarks/visapur/htj6jtgashf4qzfvkx9d.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -487,21 +487,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Cliff Staircase",
                 duration: "30 min",
                 description: "Thrilling stone staircase carved directly into the sheer basalt rock pinnacle, secured with iron handrails.",
-                imageUrl: "https://images.unsplash.com/photo-1620619864275-520e722650ee?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973897/fortflux/landmarks/tikona/tqbtud4xymq6151jmqzw.jpg",
             },
             {
                 name: "Trimbakeshwar Mahadev Temple",
                 category: "Hilltop Temple",
                 duration: "20 min",
                 description: "Ancient rock-hewn Shiva shrine crowning the summit plateau, surrounded by a natural freshwater pond.",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973897/fortflux/landmarks/tikona/ftbr1jledmffn4cut5it.jpg",
             },
             {
                 name: "Pawna Lake Viewpoint Bastion",
                 category: "Observation Point",
                 duration: "25 min",
                 description: "Unobstructed bird's-eye view of turquoise Pawna reservoir and the pyramidal peak of Tung Fort across the water.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973896/fortflux/landmarks/tikona/rvuqebnm0xin9fiichuv.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -552,14 +552,14 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Coronation Hall",
                 duration: "45 min",
                 description: "Acoustically designed royal court where Shivaji Maharaj was crowned Chhatrapati; whispers from the entrance carry clearly to the throne.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973874/fortflux/landmarks/raigad/dk5mrsgsiihyoaefwqnf.jpg",
             },
             {
                 name: "Takmak Tok (Precipice Point)",
                 category: "Historic Cliff Point",
                 duration: "35 min",
                 description: "1,200-foot sheer vertical overhang once used for military punishments, offering sweeping views of the Konkan valley.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973890/fortflux/landmarks/raigad/ekxohovogustekpxtxiy.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -605,21 +605,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Revered Shrine",
                 duration: "30 min",
                 description: "Historic temple commissioned by Shivaji Maharaj, housing the holy idol of Goddess Bhavani brought from Nepal.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788948985/fortflux/community_evidence/pratapgad/xms1hinmojrhivewi2pf.jpg",
             },
             {
                 name: "Afzal Tower & Meeting Site",
                 category: "Historic Battleground",
                 duration: "25 min",
                 description: "The fortified watch bastion overlooking the valley where the fateful meeting between Shivaji Maharaj and Afzal Khan occurred.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788948985/fortflux/community_evidence/pratapgad/n444lkulv0b97lppwimw.jpg",
             },
             {
                 name: "Upper Citadel (Balekilla)",
                 category: "Command Stronghold",
                 duration: "35 min",
                 description: "Highest citadel housing the Kedareshwar Temple and equestrian bronze statue of Shivaji Maharaj unveiled by Jawaharlal Nehru in 1957.",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788948991/fortflux/community_evidence/pratapgad/qvzbqnoep2we2obop3vm.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -663,21 +663,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Patron Shrine",
                 duration: "20 min",
                 description: "Spacious historic shrine honoring the patron goddess Mangalai on the wide plateau.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973863/fortflux/landmarks/ajinkyatara/qehb9mubkhtbnl7n2j7k.jpg",
             },
             {
                 name: "Southern Bastion & Satara Overlook",
                 category: "Panoramic Bastion",
                 duration: "30 min",
                 description: "Massive rounded stone bastions offering an aerial 360-degree view of Satara city and surrounding valleys.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973862/fortflux/landmarks/ajinkyatara/anz7de9ag3lczp0gwjyp.jpg",
             },
             {
                 name: "Tara Rani Palace Ruins",
                 category: "Royal Residence",
                 duration: "25 min",
                 description: "Remains of the royal chambers and administrative water tanks used during Maharani Tarabai's regency.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973863/fortflux/landmarks/ajinkyatara/cygh9l87lizjwp2pe5eu.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -718,21 +718,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Monumental Portal",
                 duration: "30 min",
                 description: "Masterpiece of military engineering with three sequential arched doorways, intricate Persian inscriptions, and defensive loopholes.",
-                imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Teen_Darwaja_Panhala.jpg/800px-Teen_Darwaja_Panhala.jpg",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973873/fortflux/landmarks/panhala/v6pyjggr7jov8ohqcak2.jpg",
             },
             {
                 name: "Sajja Kothi (Punishment Tower)",
                 category: "Historic Pavilion",
                 duration: "35 min",
                 description: "Two-story Mughal-style viewing pavilion where Prince Sambhaji was once detained and from where Shivaji planned his daring escape.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973872/fortflux/landmarks/panhala/e1do2wqgmxyr9k9y4bxf.jpg",
             },
             {
                 name: "Ambarkhana (Royal Granaries)",
                 category: "Ancient Granary",
                 duration: "25 min",
                 description: "Enormous 16th-century stone granaries capable of storing 25,000 khandis of grain to sustain garrisons during prolonged sieges.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973870/fortflux/landmarks/panhala/fitmlbzshraemgccyztg.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -775,21 +775,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Birthplace Memorial",
                 duration: "40 min",
                 description: "Two-story stone memorial palace where Shivaji Maharaj was born and spent his early childhood years under Jijabai's guidance.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973893/fortflux/landmarks/shivneri/qhmat3upwfd5w0esgtqg.jpg",
             },
             {
                 name: "Seven Sequential Defense Gates",
                 category: "Military Gateways",
                 duration: "45 min",
                 description: "Seven consecutive stone gate portals (Maha, Parvan, Pir, Hathi, Shivabai, Mena, Kulambkat) engineered to trap besieging armies.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973893/fortflux/landmarks/shivneri/fbpyyz6hmzqbqzovqjhe.jpg",
             },
             {
                 name: "Badami Talao & Ganga-Jamuna Cisterns",
                 category: "Rock-Cut Water Reservoir",
                 duration: "25 min",
                 description: "Almond-shaped freshwater reservoir and pristine rock-hewn perennial springs supplying water throughout the year.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973891/fortflux/landmarks/shivneri/bwcaclpvel92mchrcawz.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -833,21 +833,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Geological Wonder",
                 duration: "60 min",
                 description: "A breathtaking semicircular concave cliff with an 1,800-foot vertical drop, famous for the rare circular rainbow phenomenon (Brocken Spectre).",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973866/fortflux/landmarks/harishchandragad/lqx1rushtdphu5urj0z3.jpg",
             },
             {
                 name: "Kedareshwar Cave & Giant Shiva Linga",
                 category: "Ancient Rock Cave",
                 duration: "30 min",
                 description: "Natural rock cave housing a five-foot Shiva Linga surrounded by ice-cold waist-deep water, supported by a single remaining stone pillar.",
-                imageUrl: "https://images.unsplash.com/photo-1582299863456-6205bd0c1cc5?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973866/fortflux/landmarks/harishchandragad/ah12biiiahlnkpa3u5dt.jpg",
             },
             {
                 name: "Harishchandreshwar Temple Complex",
                 category: "6th-Century Hemadpanthi Temple",
                 duration: "40 min",
                 description: "Magnificent monolithic stone temple dedicated to Lord Shiva, carved in medieval Hemadpanthi architecture.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973863/fortflux/landmarks/harishchandragad/hslpzos7nvmm29ksyrjo.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -891,21 +891,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Upper Twin Fortress",
                 duration: "45 min",
                 description: "The higher twin citadel featuring a semi-circular rock bastion, ancient water cisterns, and sweeping views of Duke's Nose and Karnala.",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973891/fortflux/landmarks/rajmachi/ystughmbcvnxmskanxqu.jpg",
             },
             {
                 name: "Manaranjan Citadel",
                 category: "Twin Citadel",
                 duration: "35 min",
                 description: "The western fortress containing intact stone fortification walls, carved stone gateways, and historical ammunition granaries.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973891/fortflux/landmarks/rajmachi/lgoksv6yjzvy3tkltyse.jpg",
             },
             {
                 name: "Kalbhairavnath Temple & Udaysagar Lake",
                 category: "Village Shrine & Lake",
                 duration: "25 min",
                 description: "Ancient stone temple dedicated to Kalbhairav nestled in the saddle village of Udhewadi, beside a serene mountain pond.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973891/fortflux/landmarks/rajmachi/dymypkmoivoq6yw1mtur.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -947,21 +947,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Naval Camouflage Gate",
                 duration: "25 min",
                 description: "Ingeniously engineered entrance portal built into an inward-turning curve of the wall, invisible to enemy warships until just 10 meters away.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973893/fortflux/landmarks/sindhudurg/gyhgis95ffiwpuxke0hq.jpg",
             },
             {
                 name: "Chhatrapati Shivaji Maharaj Temple & Footprints",
                 category: "Living Heritage Shrine",
                 duration: "35 min",
                 description: "Built by his son Chhatrapati Rajaram in 1695, housing an idol of Shivaji as a seafaring warrior along with his actual footprints preserved in stone.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973893/fortflux/landmarks/sindhudurg/ukremczbernaqsa0ekah.jpg",
             },
             {
                 name: "Ocean Ramparts & Sweet Water Wells",
                 category: "Maritime Engineering",
                 duration: "40 min",
                 description: "42 sea-facing bastions with functioning sweet freshwater wells (Dudh Bav, Sakhar Bav, Dahi Bav) amidst the saline ocean.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973895/fortflux/landmarks/sindhudurg/wopdultqrjvwidjnqnzl.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -1005,21 +1005,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Naval Fortifications",
                 duration: "40 min",
                 description: "Three concentric lines of 40-foot defensive walls made of interlocking stone blocks that absorbed cannonball impacts from naval artillery.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973900/fortflux/landmarks/vijaydurg/f18wvckmynnmtdgocgdq.jpg",
             },
             {
                 name: "Submerged Defense Wall (Undersea Wall)",
                 category: "Marine Engineering",
                 duration: "30 min",
                 description: "A 400-meter long underwater masonry wall built across the mouth of the bay just below sea level to run enemy warships aground.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973898/fortflux/landmarks/vijaydurg/ogdd4zahgtzj4w7klxpe.jpg",
             },
             {
                 name: "Flag Bastion & Naval Shipyard Docks",
                 category: "Naval Headquarters",
                 duration: "35 min",
                 description: "Command flag bastion and wet dock basins where Maratha warships (Gurabs and Gallivats) were constructed and repaired.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973898/fortflux/landmarks/vijaydurg/limq5vp2tke1kenqahvv.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -1062,21 +1062,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Historic Artillery",
                 duration: "30 min",
                 description: "One of India's largest bronze cannons weighing 22 tons, engineered using a five-metal alloy (Panchadhatu) that remains cool even under blazing sun.",
-                imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973870/fortflux/landmarks/murud-janjira/hrskih0m72t91muntrek.jpg",
             },
             {
                 name: "Submarine Sweetwater Reservoir",
                 category: "Engineering Marvel",
                 duration: "35 min",
                 description: "A deep freshwater lake located inside a fortress surrounded by salty ocean water, fed by subterranean freshwater springs.",
-                imageUrl: "https://images.unsplash.com/photo-1623351980312-326938dc40d9?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973870/fortflux/landmarks/murud-janjira/qz3iyph9bpvjp7d85pbz.jpg",
             },
             {
                 name: "22 Rounded Ocean Bastions & Palace Ruins",
                 category: "Citadel Bastions",
                 duration: "45 min",
                 description: "Imposing semicircular stone bastions and the ruins of the Siddi Nawab's multi-story palace overlooking the open sea.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973870/fortflux/landmarks/murud-janjira/g2tzc6a51bvhzfks5hso.jpg",
             }
         ],
         mustSeeLandmarks: [
@@ -1119,21 +1119,21 @@ export const FORT_HISTORY_DETAILS = {
                 category: "Defensive Ramparts",
                 duration: "45 min",
                 description: "One of the most well-preserved fort perimeter walks in Maharashtra, complete with intact battlements and cannon embrasures.",
-                imageUrl: "https://images.unsplash.com/photo-1598418042502-0e24ec172c3d?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973866/fortflux/landmarks/korigad/ievv9ebihar5egldlolp.jpg",
             },
             {
                 name: "Korai Devi Temple",
                 category: "Hilltop Temple",
                 duration: "25 min",
                 description: "Vibrant hilltop temple dedicated to patron goddess Korai Devi, recently renovated with a peaceful stone courtyard.",
-                imageUrl: "https://images.unsplash.com/photo-1620833118683-16a300a0fc15?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973866/fortflux/landmarks/korigad/q9ppasxarsulfa7klyda.jpg",
             },
             {
                 name: "Twin Freshwater Plateau Lakes",
                 category: "Mountain Lakes",
                 duration: "25 min",
                 description: "Two serene mountain lakes on the plateau that remain brimming with fresh water throughout the year.",
-                imageUrl: "https://images.unsplash.com/photo-1574768396263-d4d16d001de1?auto=format&fit=crop&w=800&q=80",
+                imageUrl: "https://res.cloudinary.com/dvx9cw0sy/image/upload/v1788973868/fortflux/landmarks/korigad/jjqxyuuczl53o3q1k6p6.jpg",
             }
         ],
         mustSeeLandmarks: [
