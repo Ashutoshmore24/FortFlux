@@ -6,10 +6,12 @@ import { auth, googleProvider } from "../config/firebase";
 const normalizeUser = (user) => {
   if (!user) return null;
   const avatar = user.avatarUrl || user.profilePic || "";
+  const banner = user.bannerUrl || "";
   return {
     ...user,
     avatarUrl: avatar,
     profilePic: avatar,
+    bannerUrl: banner,
   };
 };
 
@@ -21,6 +23,7 @@ export const useAuthStore = create((set) => ({
   isGoogleLoggingIn: false,
   isUpdatingProfile: false,
   isUploadingAvatar: false,
+  isUploadingBanner: false,
   authError: null,
 
   clearError: () => set({ authError: null }),
@@ -99,6 +102,36 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  demoLogin: async (role = "trekker") => {
+    set({ isLoggingIn: true, authError: null });
+    try {
+      const res = await axiosInstance.post("/auth/demo", { role });
+      set({ authUser: normalizeUser(res.data) });
+      return { success: true, role: res.data.role };
+    } catch (error) {
+      console.warn("Backend demo login failed, activating guest fallback session:", error?.message);
+      const fallbackUser = {
+        _id: `guest-${role}-${Date.now()}`,
+        username: role === "authority" ? "Chief Ranger Deshmukh (Demo)" : "Sahyadri Trekker (Demo)",
+        email: role === "authority" ? "demo.authority@fortflux.org" : "demo.trekker@fortflux.org",
+        role: role === "authority" ? "authority" : "trekker",
+        organization: role === "authority" ? "Maharashtra Forest Department" : "Sahyadri Trail Club",
+        bio: role === "authority" ? "Sahyadri Western Ghats Division — Trail Safety & Hazard Command" : "Passionate Sahyadri high-altitude trekker.",
+        experienceLevel: role === "authority" ? "expert" : "intermediate",
+        avatarUrl: role === "authority"
+          ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+          : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+        profilePic: role === "authority"
+          ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+          : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+      };
+      set({ authUser: normalizeUser(fallbackUser) });
+      return { success: true, role: fallbackUser.role };
+    } finally {
+      set({ isLoggingIn: false });
+    }
+  },
+
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
@@ -144,6 +177,41 @@ export const useAuthStore = create((set) => ({
       return { success: false, message };
     } finally {
       set({ isUploadingAvatar: false });
+    }
+  },
+
+  uploadBanner: async (userId, file) => {
+    set({ isUploadingBanner: true, authError: null });
+    try {
+      const formData = new FormData();
+      formData.append("banner", file);
+
+      const res = await axiosInstance.post(`/users/${userId}/banner`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      set({ authUser: normalizeUser(res.data) });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to upload banner photo.";
+      set({ authError: message });
+      return { success: false, message };
+    } finally {
+      set({ isUploadingBanner: false });
+    }
+  },
+
+  removeBanner: async (userId) => {
+    set({ isUploadingBanner: true, authError: null });
+    try {
+      const res = await axiosInstance.delete(`/users/${userId}/banner`);
+      set({ authUser: normalizeUser(res.data) });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to remove banner.";
+      set({ authError: message });
+      return { success: false, message };
+    } finally {
+      set({ isUploadingBanner: false });
     }
   },
 }));

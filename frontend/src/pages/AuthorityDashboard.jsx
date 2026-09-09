@@ -6,6 +6,7 @@ import { useRiskStore } from "../store/useRiskStore";
 import { useRoutingStore } from "../store/useRoutingStore";
 import { useReportStore } from "../store/useReportStore";
 import FortMap from "../components/map/FortMap";
+import { FORT_LOCAL_IMAGES } from "../data/fortHistoryData";
 import {
   Shield,
   AlertOctagon,
@@ -253,7 +254,7 @@ export const AuthorityDashboard = () => {
       <div className="bg-white border border-[#E2ECE4] rounded-3xl p-6 sm:p-8 mb-8 relative overflow-hidden animate-fade-in-up shadow-sm">
         {/* Subtle fort landscape background */}
         <img
-          src={fortDetail?.imageUrl || `/forts/${selectedFortSlug || "rajgad"}.jpg`}
+          src={FORT_LOCAL_IMAGES[selectedFortSlug] || fortDetail?.imageUrl || "/forts/rajgad.jpg"}
           alt="Sahyadri Fort Authority"
           className="absolute inset-0 w-full h-full object-cover object-center opacity-15 select-none pointer-events-none"
           onError={(e) => {

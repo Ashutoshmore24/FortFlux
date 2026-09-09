@@ -27,11 +27,12 @@ export const connectSocket = () => {
         return socket;
     }
 
-    // Determine the backend URL — in dev, Vite proxies /api but socket.io
-    // needs to connect directly. In production, same origin is used.
+    // Determine backend URL: In dev connect to http://localhost:6000 directly for rock-solid WebSocket telemetry
     const backendUrl = import.meta.env.VITE_API_BASE_URL
         ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
-        : "";
+        : (typeof window !== "undefined" && window.location.hostname === "localhost"
+            ? "http://localhost:6000"
+            : "");
 
     socket = io(backendUrl, {
         // Send cookies (JWT) with the connection handshake
@@ -40,21 +41,30 @@ export const connectSocket = () => {
         transports: ["polling", "websocket"],
         // Reconnection settings
         reconnection: true,
-        reconnectionAttempts: 10,
+        reconnectionAttempts: 20,
         reconnectionDelay: 1000,
-        reconnectionDelayMax: 10000,
+        reconnectionDelayMax: 5000,
     });
 
     socket.on("connect", () => {
         console.log("⚡ Socket connected:", socket.id);
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("socket:connection", { detail: { connected: true } }));
+        }
     });
 
     socket.on("disconnect", (reason) => {
         console.log("⚡ Socket disconnected:", reason);
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("socket:connection", { detail: { connected: false } }));
+        }
     });
 
     socket.on("connect_error", (error) => {
         console.warn("⚡ Socket connection error:", error.message);
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("socket:connection", { detail: { connected: false } }));
+        }
     });
 
     return socket;

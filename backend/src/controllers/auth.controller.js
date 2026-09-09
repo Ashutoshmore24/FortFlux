@@ -247,4 +247,46 @@ const googleLogin = async (req, res) => {
     }
 };
 
-export { login, signup, logout, checkAuth, updateProfile, googleLogin };
+const demoLogin = async (req, res) => {
+    try {
+        const { role = "trekker" } = req.body;
+        const userRole = role === "authority" ? "authority" : "trekker";
+        const email = userRole === "authority" ? "demo.authority@fortflux.org" : "demo.trekker@fortflux.org";
+        const username = userRole === "authority" ? "Chief Ranger Deshmukh (Demo)" : "Sahyadri Trekker (Demo)";
+        const organization = userRole === "authority" ? "Maharashtra Forest Department" : "Sahyadri Trail Club";
+
+        let user = await User.findOne({ email });
+        if (!user) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash("FortFluxDemo2026!", salt);
+            user = new User({
+                username,
+                email,
+                password: hashedPassword,
+                role: userRole,
+                organization,
+                bio: userRole === "authority"
+                    ? "Sahyadri Western Ghats Division — Trail Safety & Hazard Command"
+                    : "Passionate Sahyadri high-altitude trekker and environmental enthusiast.",
+                experienceLevel: userRole === "authority" ? "expert" : "intermediate",
+                avatarUrl: userRole === "authority"
+                    ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+                    : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+                profilePic: userRole === "authority"
+                    ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+                    : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+            });
+            await user.save();
+        }
+
+        // Generate JWT token and set cookie
+        generateToken(user._id, user.role, res);
+
+        return res.status(200).json(sanitizeUser(user));
+    } catch (error) {
+        console.error("Error in demoLogin controller:", error.message);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export { login, signup, logout, checkAuth, updateProfile, googleLogin, demoLogin };

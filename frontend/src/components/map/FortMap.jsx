@@ -115,6 +115,11 @@ const FortMap = ({
     // Store current data for re-adding after style changes
     const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC, reports: EMPTY_FC });
     const stateRef = useRef({ showTrails: true, showCisterns: true, showReports: true, terrainEnabled: false });
+    const onFortSelectRef = useRef(onFortSelect);
+
+    useEffect(() => {
+        onFortSelectRef.current = onFortSelect;
+    }, [onFortSelect]);
 
     // Keep stateRef in sync
     useEffect(() => {
@@ -601,7 +606,6 @@ const FortMap = ({
 
         map.on("load", handleMapReady);
         map.on("style.load", handleMapReady);
-        map.on("styledata", handleMapReady);
 
         // ── Camera orientation tracking ──
         const updateCameraState = () => {
@@ -625,11 +629,21 @@ const FortMap = ({
             if (!e.features?.length) return;
             const props = e.features[0].properties;
             const coords = e.features[0].geometry.coordinates.slice();
+
             // Show popup
             popupRef.current
                 .setLngLat(coords)
                 .setHTML(getFortPopupHTML(props))
                 .addTo(map);
+
+            // Direct smooth zoom into clicked fort
+            map.flyTo({
+                center: coords,
+                zoom: FORT_ZOOM,
+                speed: FORT_FLY_SPEED,
+                essential: true,
+            });
+
             // Trigger fort selection via Zustand store
             const fortObj = {
                 _id: props.id,
@@ -643,7 +657,7 @@ const FortMap = ({
                 location: { coordinates: coords },
             };
             selectFort(fortObj);
-            if (onFortSelect) onFortSelect(fortObj);
+            if (onFortSelectRef.current) onFortSelectRef.current(fortObj);
         };
 
         map.on("click", LAYERS.fortCircles, handleFortClick);
@@ -759,122 +773,112 @@ const FortMap = ({
             map.remove();
             mapRef.current = null;
         };
-    }, [addSourcesAndLayers, onFortSelect, selectFort]);
+    }, []);
 
     // ══════════════════════════════════════════════════════
     // Update GeoJSON sources when data changes
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const fortSrc = map.getSource(SOURCES.forts);
         if (fortSrc) fortSrc.setData(fortsGeoJSON);
-    }, [fortsGeoJSON, addSourcesAndLayers]);
+    }, [fortsGeoJSON, mapReady]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const trailSrc = map.getSource(SOURCES.trails);
         if (trailSrc) trailSrc.setData(trailsGeoJSON);
-    }, [trailsGeoJSON, addSourcesAndLayers]);
+    }, [trailsGeoJSON, mapReady]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const cisternSrc = map.getSource(SOURCES.cisterns);
         if (cisternSrc) cisternSrc.setData(cisternsGeoJSON);
-    }, [cisternsGeoJSON, addSourcesAndLayers]);
+    }, [cisternsGeoJSON, mapReady]);
 
     // Update safe route source when route changes
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const routeSrc = map.getSource("safe-route-source");
         if (routeSrc) routeSrc.setData(routeGeoJSON);
-    }, [routeGeoJSON, addSourcesAndLayers]);
+    }, [routeGeoJSON, mapReady]);
 
     // Update severed trails source when severed trails change
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const severedSrc = map.getSource("severed-trails-source");
         if (severedSrc) severedSrc.setData(severedGeoJSON);
-    }, [severedGeoJSON, addSourcesAndLayers]);
+    }, [severedGeoJSON, mapReady]);
 
     // Update diversion route source when diversion changes
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const diversionSrc = map.getSource("diversion-route-source");
         if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
-    }, [diversionGeoJSON, addSourcesAndLayers]);
+    }, [diversionGeoJSON, mapReady]);
 
     // Update photo reports source when photo reports change
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-
-        if (map.isStyleLoaded()) {
-            addSourcesAndLayers(map);
-        }
+        if (!map || !mapReady) return;
         const reportSrc = map.getSource("reports-source");
         if (reportSrc) reportSrc.setData(reportsGeoJSON);
-    }, [reportsGeoJSON, addSourcesAndLayers]);
+    }, [reportsGeoJSON, mapReady]);
 
     // ══════════════════════════════════════════════════════
-    // Fit bounds to all forts on initial data load
+    // Fit bounds to all forts on initial data load (if no fort pre-selected)
     // ══════════════════════════════════════════════════════
     const hasFittedRef = useRef(false);
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady || hasFittedRef.current || forts.length === 0) return;
 
+        // If a fort is already selected, let the selectedFort flyTo handle it
+        if (selectedFort?.slug) {
+            hasFittedRef.current = true;
+            return;
+        }
+
         const bounds = computeFortBounds(forts);
         if (bounds) {
             map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 1000 });
             hasFittedRef.current = true;
         }
-    }, [forts, mapReady]);
+    }, [forts, mapReady, selectedFort?.slug]);
 
     // ══════════════════════════════════════════════════════
     // Fly to selected fort
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !selectedFort?.location?.coordinates) return;
+        if (!map || !mapReady || !selectedFort) return;
 
-        const [lng, lat] = selectedFort.location.coordinates;
-        map.flyTo({
-            center: [lng, lat],
-            zoom: FORT_ZOOM,
-            speed: FORT_FLY_SPEED,
-            essential: true,
-        });
-    }, [selectedFort?.slug, mapReady]);
+        let coords = selectedFort.location?.coordinates;
+        if (!coords && selectedFort.coordinates) coords = selectedFort.coordinates;
+        if (!coords && selectedFort.lat && selectedFort.lng) coords = [selectedFort.lng, selectedFort.lat];
+        if (!coords && forts && forts.length > 0) {
+            const match = forts.find((f) => f.slug === selectedFort.slug);
+            coords = match?.location?.coordinates;
+        }
+
+        if (coords && Array.isArray(coords) && coords.length >= 2) {
+            const [lng, lat] = coords;
+            if (!isNaN(lng) && !isNaN(lat)) {
+                map.flyTo({
+                    center: [lng, lat],
+                    zoom: FORT_ZOOM,
+                    speed: FORT_FLY_SPEED,
+                    essential: true,
+                });
+            }
+        }
+    }, [selectedFort?.slug, mapReady, forts]);
 
     // ══════════════════════════════════════════════════════
     // Layer visibility toggles

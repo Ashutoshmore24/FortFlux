@@ -4,6 +4,7 @@ import {
     getFortReports,
     getRecentReports,
     updateReportStatus,
+    handleSeedCommunityEvidence,
 } from "../controllers/report.controller.js";
 import { protectRoute, requireRole } from "../middlewares/auth.middleware.js";
 import { reportRateLimiter } from "../middlewares/arcjet.middleware.js";
@@ -12,6 +13,8 @@ import upload from "../middlewares/upload.js";
 const router = express.Router();
 
 // Public / Authenticated read routes
+router.get("/seed-community", handleSeedCommunityEvidence);
+router.post("/seed-community", handleSeedCommunityEvidence);
 router.get("/recent", getRecentReports);
 router.get("/fort/:slug", getFortReports);
 

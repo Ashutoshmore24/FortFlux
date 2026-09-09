@@ -1,9 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { User, Mail, Building, Camera, Loader2, Save, Shield, Compass, MapPin, Calendar, CheckCircle2, Edit2, X } from "lucide-react";
+import { User, Mail, Building, Camera, Loader2, Save, Shield, Compass, MapPin, Calendar, CheckCircle2, Edit2, X, Image as ImageIcon, RotateCcw } from "lucide-react";
 
 export const ProfilePage = () => {
-  const { authUser, updateProfile, uploadAvatar, isUpdatingProfile, isUploadingAvatar } = useAuthStore();
+  const {
+    authUser,
+    updateProfile,
+    uploadAvatar,
+    uploadBanner,
+    removeBanner,
+    isUpdatingProfile,
+    isUploadingAvatar,
+    isUploadingBanner,
+  } = useAuthStore();
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({
     fullName: authUser?.fullName || "",
@@ -14,7 +23,9 @@ export const ProfilePage = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [imgError, setImgError] = useState(false);
+  const [bannerImgError, setBannerImgError] = useState(false);
   const fileInputRef = useRef(null);
+  const bannerFileInputRef = useRef(null);
 
   useEffect(() => {
     setFormData({
@@ -50,6 +61,46 @@ export const ProfilePage = () => {
     }
 
     e.target.value = null;
+  };
+
+  const handleBannerChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg("Invalid file type. Only jpg, png, and webp are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("Banner image must be less than 5MB.");
+      return;
+    }
+
+    const res = await uploadBanner(authUser._id, file);
+    if (res.success) {
+      setSuccessMsg("Cover banner updated successfully!");
+      setBannerImgError(false);
+    } else {
+      setErrorMsg(res.message || "Failed to update banner.");
+    }
+
+    e.target.value = null;
+  };
+
+  const handleResetBanner = async () => {
+    setErrorMsg("");
+    setSuccessMsg("");
+    const res = await removeBanner(authUser._id);
+    if (res.success) {
+      setSuccessMsg("Banner reset to default contrast gradient.");
+      setBannerImgError(false);
+    } else {
+      setErrorMsg(res.message || "Failed to reset banner.");
+    }
   };
 
   const handleSaveProfile = async (e) => {
@@ -107,32 +158,89 @@ export const ProfilePage = () => {
           </div>
         )}
 
-        {/* 1. Header Section with Sahyadri Cover Landscape */}
+        {/* 1. Header Section with Customizable Banner & Default Contrast Gradient */}
         <div className="bg-white border border-[#E2ECE4] rounded-3xl overflow-hidden shadow-xs">
-          <div className="h-44 relative overflow-hidden bg-slate-200">
-            <img
-              src="/forts/rajgad.jpg"
-              alt="Sahyadri Cover"
-              className="w-full h-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-slate-900/30" />
-            {/* Edit Button */}
-            {!isEditMode && (
-              <button
-                onClick={() => setIsEditMode(true)}
-                className="absolute top-4 right-4 py-2 px-4 bg-white/90 hover:bg-white text-slate-800 text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer backdrop-blur-xs"
-              >
-                <Edit2 className="w-3.5 h-3.5 text-emerald-700" />
-                Edit Profile
-              </button>
+          <div className="h-44 sm:h-48 relative overflow-hidden bg-gradient-to-r from-[#0b2416] via-[#04421b] to-[#0f5c2b]">
+            {/* Custom Banner Image or Default Rich Contrast Gradient */}
+            {authUser?.bannerUrl && !bannerImgError ? (
+              <img
+                src={authUser.bannerUrl}
+                alt="Profile Cover Banner"
+                className="w-full h-full object-cover object-center"
+                onError={() => setBannerImgError(true)}
+              />
+            ) : (
+              <div className="w-full h-full relative overflow-hidden bg-gradient-to-r from-[#0b2416] via-[#04421b] to-[#0f5c2b]">
+                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+                <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-emerald-400/15 blur-2xl" />
+                <div className="absolute -bottom-8 -left-8 w-48 h-48 rounded-full bg-teal-400/15 blur-xl" />
+              </div>
             )}
+
+            {/* Subtle Gradient Shadow */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+
+            {/* Top Right Action Controls: Edit Banner & Edit Profile */}
+            <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+              <input
+                ref={bannerFileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleBannerChange}
+              />
+
+              {/* Edit Banner Button */}
+              <button
+                onClick={() => bannerFileInputRef.current?.click()}
+                disabled={isUploadingBanner}
+                className="py-2 px-3.5 bg-black/40 hover:bg-black/60 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer backdrop-blur-md border border-white/20 disabled:opacity-50"
+                title="Upload custom banner photo"
+              >
+                {isUploadingBanner ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Edit Banner</span>
+                  </>
+                )}
+              </button>
+
+              {/* Reset to Default Gradient Button (only when custom banner exists) */}
+              {authUser?.bannerUrl && (
+                <button
+                  onClick={handleResetBanner}
+                  disabled={isUploadingBanner}
+                  className="py-2 px-3 bg-black/40 hover:bg-black/60 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer backdrop-blur-md border border-white/20"
+                  title="Reset to default gradient banner"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Reset</span>
+                </button>
+              )}
+
+              {/* Edit Profile Details Button */}
+              {!isEditMode && (
+                <button
+                  onClick={() => setIsEditMode(true)}
+                  className="py-2 px-4 bg-white/95 hover:bg-white text-slate-800 text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer backdrop-blur-xs"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Edit Profile</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="px-6 sm:px-10 pb-8 relative">
-            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16 sm:-mt-20">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
 
-              {/* Avatar */}
-              <div className="relative group shrink-0">
+              {/* Avatar (only the circular avatar overlaps the bottom edge of banner) */}
+              <div className="relative group shrink-0 -mt-16 sm:-mt-20">
                 <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center relative">
                   {displayAvatar && !imgError ? (
                     <img
@@ -176,12 +284,12 @@ export const ProfilePage = () => {
                 />
               </div>
 
-              {/* Title Info */}
-              <div className="text-center sm:text-left flex-1 mb-2">
-                <h1 className="text-3xl font-extrabold text-[#132A22] tracking-tight">
+              {/* Title Info — positioned completely below the banner in the clean white section */}
+              <div className="text-center sm:text-left flex-1 pt-2 sm:pt-4">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#132A22] tracking-tight">
                   {authUser?.fullName || authUser?.username}
                 </h1>
-                <p className="text-[#52685E] font-medium mt-0.5 flex items-center justify-center sm:justify-start gap-2">
+                <p className="text-[#52685E] font-medium text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-2">
                   @{authUser?.username}
                   {authUser?.authProvider === "google" && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
@@ -189,7 +297,7 @@ export const ProfilePage = () => {
                     </span>
                   )}
                 </p>
-                <div className="mt-3">
+                <div className="mt-2.5">
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${authUser?.role === "authority"
                       ? "bg-amber-50 border-amber-200 text-amber-900"
                       : "bg-emerald-50 border-emerald-200 text-emerald-800"

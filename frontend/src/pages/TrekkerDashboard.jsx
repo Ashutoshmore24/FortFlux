@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useWeatherStore } from "../store/useWeatherStore";
@@ -8,6 +8,7 @@ import { useRoutingStore } from "../store/useRoutingStore";
 import { useReportStore } from "../store/useReportStore";
 import FortMap from "../components/map/FortMap";
 import PhotoUploadModal from "../components/PhotoUploadModal";
+import { FORT_LOCAL_IMAGES } from "../data/fortHistoryData";
 import {
   Compass,
   CloudRain,
@@ -35,6 +36,9 @@ import {
   History,
   BookOpen,
   ArrowUpRight,
+  Sparkles,
+  Radio,
+  Zap,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -102,6 +106,17 @@ export const TrekkerDashboard = () => {
     };
   }, []);
 
+  const handleFortChange = useCallback((slug) => {
+    if (!slug) return;
+    setSelectedFort(slug);
+    const mapFort = forts.find((f) => f.slug === slug);
+    if (mapFort) setMapFort(mapFort);
+  }, [forts, setSelectedFort, setMapFort]);
+
+  const handleMapFortSelect = useCallback((fort) => {
+    if (fort?.slug) handleFortChange(fort.slug);
+  }, [handleFortChange]);
+
   // Fetch fort detail + live risk when selected fort changes
   useEffect(() => {
     if (selectedFortSlug) {
@@ -110,18 +125,17 @@ export const TrekkerDashboard = () => {
       fetchFortReports(selectedFortSlug);
       // Start polling risk every 2 minutes
       startPolling(selectedFortSlug, 2 * 60 * 1000);
-      // Sync with useFortStore selectedFort
+    }
+    return () => stopPolling();
+  }, [selectedFortSlug]);
+
+  // Sync with useFortStore selectedFort when forts or selectedFortSlug change
+  useEffect(() => {
+    if (selectedFortSlug && forts.length > 0) {
       const matching = forts.find((f) => f.slug === selectedFortSlug);
       if (matching) setMapFort(matching);
     }
-    return () => stopPolling();
   }, [selectedFortSlug, forts]);
-
-  const handleFortChange = (slug) => {
-    setSelectedFort(slug);
-    const mapFort = forts.find((f) => f.slug === slug);
-    if (mapFort) setMapFort(mapFort);
-  };
 
   // Dynamic trail data from selected fort
   const liveTrails = fortDetail?.trails || [];
@@ -203,117 +217,150 @@ export const TrekkerDashboard = () => {
     }
   };
 
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-      {/* ── LIGHT ENVIRONMENTAL WELCOME BANNER ── */}
-      <div className="relative rounded-3xl p-6 sm:p-8 mb-8 overflow-hidden animate-fade-in-up border border-[#E2ECE4] shadow-sm bg-white">
-        {/* Prominent Sahyadri Fort Landscape Background with Natural Light Overlay */}
+      {/* ── ENHANCED SAHYADRI ENVIRONMENTAL WELCOME BANNER ── */}
+      <div className="relative rounded-3xl p-6 sm:p-8 mb-8 overflow-hidden animate-fade-in-up border border-emerald-900/15 shadow-[0_12px_40px_rgba(16,185,129,0.07)] bg-gradient-to-br from-white/95 via-emerald-50/60 to-white/90 backdrop-blur-xl">
+        {/* Prominent Sahyadri Fort Landscape Background with Atmospheric Depth */}
         <img
-          src={fortDetail?.imageUrl || `/forts/${selectedFortSlug || "rajgad"}.jpg`}
+          src="/bg-image_for_landingpage.jpg"
           alt={fortInfo?.name || "Sahyadri Fort"}
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-30 select-none"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-75 select-none transition-transform duration-700 hover:scale-105"
           onError={(e) => {
             e.currentTarget.onerror = null;
-            e.currentTarget.src = "/forts/rajgad.jpg";
+            e.currentTarget.src = "/bg-image_for_landingpage.jpg";
           }}
         />
         {/* Soft mist light gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#FFFFFF]/95 via-[#FFFFFF]/85 to-[#FFFFFF]/45 pointer-events-none" />
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/98 via-white/90 to-white/60 pointer-events-none" />
+        
+        {/* Environmental Atmospheric Ambient Glows */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
+        
+        {/* Top Radiant Specular Gradient Line */}
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 shadow-[0_1px_8px_rgba(16,185,129,0.3)]" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
-                <Compass className="w-3.5 h-3.5 text-emerald-600" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Left Column: Greeting, Badges, and Stats */}
+          <div className="max-w-2xl">
+            {/* Top Badges Deck */}
+            <div className="flex flex-wrap items-center gap-2 mb-3.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 text-xs font-bold shadow-2xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                </span>
+                <Compass className="w-3.5 h-3.5 text-emerald-700" />
                 Trekker Field Portal
               </span>
-              {authUser?.role === "authority" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
-                  <Shield className="w-3 h-3 text-amber-600" /> Authority viewing Trekker mode
-                </span>
-              )}
             </div>
 
-            <div className="flex items-center gap-3 mb-1.5">
-              {(authUser?.avatarUrl || authUser?.profilePic) && (
-                <img
-                  src={authUser?.avatarUrl || authUser?.profilePic}
-                  alt={authUser?.username}
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-emerald-500/40 shadow-xs shrink-0"
-                />
+            {/* Personalized Avatar & Title */}
+            <div className="flex items-center gap-3.5 mb-2">
+              {(authUser?.avatarUrl || authUser?.profilePic) ? (
+                <div className="relative shrink-0">
+                  <img
+                    src={authUser?.avatarUrl || authUser?.profilePic}
+                    alt={authUser?.username}
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-emerald-600/40 shadow-sm ring-2 ring-emerald-500/20"
+                  />
+                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-2xs" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-emerald-950 text-emerald-300 flex items-center justify-center border-2 border-emerald-500/30 shadow-sm shrink-0 font-bold text-lg">
+                  {authUser?.username?.[0]?.toUpperCase() || "T"}
+                </div>
               )}
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#132A22]">
-                Hey, <span className="text-emerald-700">{authUser?.username}!</span>
-                <span className="text-2xl ml-2">🏔️</span>
-              </h1>
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[#132A22]">
+                  {getTimeGreeting()},{" "}
+                  <span className="bg-gradient-to-r from-emerald-800 via-teal-700 to-emerald-900 bg-clip-text text-transparent">
+                    {authUser?.username || "Trekker"}!
+                  </span>
+                  
+                </h1>
+                <p className="text-[11px] text-emerald-700 font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-amber-500" /> Active Heritage Monitoring • {liveTrails.length} Documented Trails
+                </p>
+              </div>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#52685E] mt-1 max-w-xl leading-relaxed font-medium">
-              Live trail telemetry, monsoon erosion metrics, and crowdsourced hazard tracking across Sahyadri heritage fortresses.
+            <p className="text-xs sm:text-sm text-[#455D52] mt-2 leading-relaxed font-medium">
+              Real-time micro-climate telemetry, basalt rock friction tracking, and crowdsourced hazard reporting across Sahyadri fortress ecosystems.
             </p>
 
-            {/* Quick stat pills */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-[#E2ECE4] text-[#132A22] text-[11px] font-semibold shadow-xs">
-                <Leaf className="w-3.5 h-3.5 text-emerald-600" /> 18 Forts Monitored
+            {/* Bottom Interactive Feature Bar */}
+            <div className="flex flex-wrap items-center gap-2.5 mt-5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-emerald-900/10 text-[#132A22] text-[11px] font-bold shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                18 Fortresses Online
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-[#E2ECE4] text-[#132A22] text-[11px] font-semibold shadow-xs">
-                <Activity className="w-3.5 h-3.5 text-teal-600" /> Live Environmental Feed
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-[#E2ECE4] text-[#132A22] text-[11px] font-semibold shadow-xs">
-                <Route className="w-3.5 h-3.5 text-sky-600" /> AI Adaptive Routing
-              </span>
-              {selectedFortSlug && (
-                <Link
-                  to={`/forts/${selectedFortSlug}/history`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 transition-all text-[11px] font-bold shadow-xs cursor-pointer"
-                >
-                  <History className="w-3.5 h-3.5 text-purple-600" /> Fort History & Satellite Timeline
-                </Link>
-              )}
+
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-emerald-900/10 text-[#132A22] text-[11px] font-semibold shadow-2xs">
+                <Radio className="w-3.5 h-3.5 text-teal-600" />
+                Open-Meteo Sync
+              </span> 
             </div>
           </div>
 
-          {/* Live Weather Badge */}
-          <div className="flex items-center gap-3.5 bg-white/95 backdrop-blur-md border border-[#E2ECE4] p-4 sm:p-5 rounded-2xl shadow-xs min-w-[220px] shrink-0">
+          {/* Simple Live Weather Badge (Clean and non-redundant with full section below) */}
+          <div className="flex items-center gap-3.5 bg-white/90 backdrop-blur-md border border-emerald-900/10 p-4 sm:p-5 rounded-2xl shadow-xs min-w-[210px] shrink-0">
             {isLoading && !weather ? (
               <div className="flex items-center gap-3 animate-pulse w-full">
                 <div className="w-10 h-10 bg-slate-100 rounded-xl shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-slate-100 rounded w-24" />
-                  <div className="h-4 bg-slate-100 rounded w-32" />
+                  <div className="h-3 bg-slate-100 rounded w-20" />
+                  <div className="h-4 bg-slate-100 rounded w-28" />
                 </div>
               </div>
             ) : error ? (
               <div className="flex items-center gap-3">
-                <AlertTriangle className="w-8 h-8 text-amber-600 shrink-0" />
+                <AlertTriangle className="w-7 h-7 text-amber-600 shrink-0" />
                 <div>
-                  <div className="text-xs text-slate-500">Weather</div>
-                  <div className="text-sm font-bold text-amber-700">Unavailable</div>
-                  <button onClick={() => fetchWeather()} className="text-[11px] text-emerald-700 hover:text-emerald-800 flex items-center gap-1 mt-0.5 transition cursor-pointer font-semibold">
-                    <RefreshCw className="w-3 h-3" /> Retry
+                  <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Forecast</div>
+                  <div className="text-xs font-bold text-amber-700">Offline</div>
+                  <button
+                    type="button"
+                    onClick={() => fetchWeather()}
+                    className="text-[10px] text-emerald-700 hover:text-emerald-800 flex items-center gap-1 mt-0.5 font-semibold cursor-pointer"
+                  >
+                    <RefreshCw className="w-2.5 h-2.5" /> Retry
                   </button>
                 </div>
               </div>
             ) : weather ? (
               <div className="flex items-center gap-3">
-                <div className="text-3xl shrink-0 animate-float">{weather.weatherIcon}</div>
+                <div className="text-3xl p-1.5 bg-emerald-50 rounded-xl border border-emerald-100 shrink-0 animate-float">
+                  {weather.weatherIcon}
+                </div>
                 <div>
-                  <div className="text-[10px] text-[#52685E] uppercase tracking-wider font-bold">Current Forecast</div>
-                  <div className={`text-sm font-bold mt-0.5 ${getSeverityColor(weather.weatherSeverity)}`}>
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                    Current Forecast
+                  </div>
+                  <div className={`text-sm font-extrabold mt-0.5 ${getSeverityColor(weather.weatherSeverity)}`}>
                     {weather.monsoonSeverity?.label || weather.weatherDescription}
                   </div>
-                  <div className="text-[11px] text-emerald-700 font-bold">{fortInfo?.name || "Sahyadri Corridor"}</div>
+                  <div className="text-xs text-emerald-800 font-bold mt-0.5 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-emerald-600" />
+                    {fortInfo?.name || fortDetail?.name || "Rajgad Fort"}
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <CloudRain className="w-8 h-8 text-emerald-600 shrink-0 animate-pulse" />
+                <CloudRain className="w-7 h-7 text-emerald-600 shrink-0 animate-pulse" />
                 <div>
-                  <div className="text-xs text-slate-500">Current Forecast</div>
-                  <div className="text-sm font-bold text-[#132A22]">Loading...</div>
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Current Forecast</div>
+                  <div className="text-xs font-bold text-slate-700">Loading...</div>
                 </div>
               </div>
             )}
@@ -338,8 +385,9 @@ export const TrekkerDashboard = () => {
 
         {/* Scrollable Fort Cards Row */}
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-          {availableForts.slice(0, 10).map((f) => {
+          {availableForts.map((f) => {
             const isSelected = f.slug === selectedFortSlug;
+            const fortImg = FORT_LOCAL_IMAGES[f.slug] || f.imageUrl || `/forts/${f.slug}.jpg`;
             return (
               <button
                 key={f.slug}
@@ -352,12 +400,12 @@ export const TrekkerDashboard = () => {
               >
                 <div className="h-24 w-full relative overflow-hidden bg-slate-100">
                   <img
-                    src={`/forts/${f.slug}.jpg`}
+                    src={fortImg}
                     alt={f.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = `/forts/${f.slug}.webp`;
+                      e.currentTarget.src = "/forts/rajgad.jpg";
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -588,7 +636,7 @@ export const TrekkerDashboard = () => {
         <div className="rounded-2xl border border-[#E2ECE4] overflow-hidden shadow-sm transition-all duration-300 bg-white">
           <FortMap
             className="h-[550px]"
-            onFortSelect={(fort) => handleFortChange(fort.slug)}
+            onFortSelect={handleMapFortSelect}
             safeRoute={routeResult}
             photoReports={reports}
           />
