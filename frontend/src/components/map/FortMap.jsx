@@ -54,19 +54,30 @@ import {
 // ── Empty GeoJSON (used as initial source data) ──
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
+// ── Helper: check if map stylesheet is loaded and ready for sources/layers ──
+const isStyleReady = (map) => {
+    try {
+        if (!map) return false;
+        if (map.style && map.style._loaded) return true;
+        return Boolean(typeof map.getStyle === "function" && map.getStyle());
+    } catch {
+        return false;
+    }
+};
+
 // ── Helper: safe layer existence check ──
 const hasLayer = (map, id) => {
     try {
-        if (!map || !map.isStyleLoaded || !map.isStyleLoaded()) return false;
-        return !!map.getLayer(id);
+        if (!isStyleReady(map)) return false;
+        return Boolean(map.getLayer && map.getLayer(id));
     } catch {
         return false;
     }
 };
 const hasSource = (map, id) => {
     try {
-        if (!map || !map.isStyleLoaded || !map.isStyleLoaded()) return false;
-        return !!map.getSource(id);
+        if (!isStyleReady(map)) return false;
+        return Boolean(map.getSource && map.getSource(id));
     } catch {
         return false;
     }
@@ -213,7 +224,7 @@ const FortMap = ({
     // Called on initial load AND after every style change
     // ══════════════════════════════════════════════════════
     const addSourcesAndLayers = useCallback((map) => {
-        if (!map || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !isStyleReady(map)) return;
         const data = dataRef.current;
         const state = stateRef.current;
 
@@ -639,19 +650,18 @@ const FortMap = ({
 
         // ── On style / map loaded ──
         const handleMapReady = () => {
-            if (!map.isStyleLoaded || !map.isStyleLoaded()) {
-                map.once("style.load", () => {
-                    addSourcesAndLayers(map);
-                    setMapReady(true);
-                });
-                return;
-            }
+            if (!isStyleReady(map)) return;
             addSourcesAndLayers(map);
             setMapReady(true);
         };
 
         map.on("load", handleMapReady);
         map.on("style.load", handleMapReady);
+
+        // In case style was already parsed/ready synchronously
+        if (isStyleReady(map)) {
+            handleMapReady();
+        }
 
         // ── Camera orientation tracking ──
         const updateCameraState = () => {
@@ -826,7 +836,7 @@ const FortMap = ({
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
             if (!hasSource(map, SOURCES.forts) || !hasLayer(map, LAYERS.fortCircles)) {
                 addSourcesAndLayers(map);
@@ -840,7 +850,7 @@ const FortMap = ({
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
             if (!hasSource(map, SOURCES.trails) || !hasLayer(map, LAYERS.trailLines)) {
                 addSourcesAndLayers(map);
@@ -854,7 +864,7 @@ const FortMap = ({
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
             if (!hasSource(map, SOURCES.cisterns) || !hasLayer(map, LAYERS.cisternCircles)) {
                 addSourcesAndLayers(map);
@@ -869,50 +879,62 @@ const FortMap = ({
     // Update safe route source when route changes
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "safe-route-source")) {
+                addSourcesAndLayers(map);
+            }
             const routeSrc = map.getSource("safe-route-source");
             if (routeSrc) routeSrc.setData(routeGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating safe route:", err);
         }
-    }, [routeGeoJSON, mapReady]);
+    }, [routeGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update severed trails source when severed trails change
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "severed-trails-source")) {
+                addSourcesAndLayers(map);
+            }
             const severedSrc = map.getSource("severed-trails-source");
             if (severedSrc) severedSrc.setData(severedGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating severed trails:", err);
         }
-    }, [severedGeoJSON, mapReady]);
+    }, [severedGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update diversion route source when diversion changes
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "diversion-route-source")) {
+                addSourcesAndLayers(map);
+            }
             const diversionSrc = map.getSource("diversion-route-source");
             if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating diversion route:", err);
         }
-    }, [diversionGeoJSON, mapReady]);
+    }, [diversionGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update photo reports source when photo reports change
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "reports-source")) {
+                addSourcesAndLayers(map);
+            }
             const reportSrc = map.getSource("reports-source");
             if (reportSrc) reportSrc.setData(reportsGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating reports:", err);
         }
-    }, [reportsGeoJSON, mapReady]);
+    }, [reportsGeoJSON, mapReady, addSourcesAndLayers]);
 
     // ══════════════════════════════════════════════════════
     // Fit bounds to all forts on initial data load (if no fort pre-selected)
@@ -968,7 +990,7 @@ const FortMap = ({
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
             if (hasLayer(map, LAYERS.trailLines)) {
                 map.setLayoutProperty(LAYERS.trailLines, "visibility", showTrails ? "visible" : "none");
@@ -980,7 +1002,7 @@ const FortMap = ({
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
             if (hasLayer(map, LAYERS.cisternCircles)) {
                 map.setLayoutProperty(LAYERS.cisternCircles, "visibility", showCisterns ? "visible" : "none");
@@ -992,7 +1014,7 @@ const FortMap = ({
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        if (!map || !mapReady || !isStyleReady(map)) return;
         try {
             if (hasLayer(map, "reports-glow")) {
                 map.setLayoutProperty("reports-glow", "visibility", showReports ? "visible" : "none");
