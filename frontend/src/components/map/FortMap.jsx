@@ -56,10 +56,20 @@ const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
 // ── Helper: safe layer existence check ──
 const hasLayer = (map, id) => {
-    try { return !!map.getLayer(id); } catch { return false; }
+    try {
+        if (!map || !map.isStyleLoaded || !map.isStyleLoaded()) return false;
+        return !!map.getLayer(id);
+    } catch {
+        return false;
+    }
 };
 const hasSource = (map, id) => {
-    try { return !!map.getSource(id); } catch { return false; }
+    try {
+        if (!map || !map.isStyleLoaded || !map.isStyleLoaded()) return false;
+        return !!map.getSource(id);
+    } catch {
+        return false;
+    }
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -203,6 +213,7 @@ const FortMap = ({
     // Called on initial load AND after every style change
     // ══════════════════════════════════════════════════════
     const addSourcesAndLayers = useCallback((map) => {
+        if (!map || !map.isStyleLoaded || !map.isStyleLoaded()) return;
         const data = dataRef.current;
         const state = stateRef.current;
 
@@ -382,188 +393,204 @@ const FortMap = ({
         }
 
         // ── Safe Route Source + Layer (Phase 5 Adaptive Routing) ──
-        if (!hasSource(map, "safe-route-source")) {
-            map.addSource("safe-route-source", { type: "geojson", data: data.route || EMPTY_FC });
-        } else {
-            map.getSource("safe-route-source").setData(data.route || EMPTY_FC);
-        }
+        try {
+            if (!hasSource(map, "safe-route-source")) {
+                map.addSource("safe-route-source", { type: "geojson", data: data.route || EMPTY_FC });
+            } else {
+                map.getSource("safe-route-source").setData(data.route || EMPTY_FC);
+            }
 
-        // Safe route glow (wider, semi-transparent backdrop)
-        if (!hasLayer(map, "safe-route-glow")) {
-            map.addLayer({
-                id: "safe-route-glow",
-                type: "line",
-                source: "safe-route-source",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                },
-                paint: {
-                    "line-color": "#22c55e",
-                    "line-width": 10,
-                    "line-opacity": 0.3,
-                },
-            });
-        }
+            // Safe route glow (wider, semi-transparent backdrop)
+            if (!hasLayer(map, "safe-route-glow")) {
+                map.addLayer({
+                    id: "safe-route-glow",
+                    type: "line",
+                    source: "safe-route-source",
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                    },
+                    paint: {
+                        "line-color": "#22c55e",
+                        "line-width": 10,
+                        "line-opacity": 0.3,
+                    },
+                });
+            }
 
-        // Safe route line (bright green, thicker than base trails)
-        if (!hasLayer(map, "safe-route-line")) {
-            map.addLayer({
-                id: "safe-route-line",
-                type: "line",
-                source: "safe-route-source",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                },
-                paint: {
-                    "line-color": "#4ade80",
-                    "line-width": 5,
-                    "line-opacity": 0.95,
-                    "line-dasharray": [2, 1],
-                },
-            });
+            // Safe route line (bright green, thicker than base trails)
+            if (!hasLayer(map, "safe-route-line")) {
+                map.addLayer({
+                    id: "safe-route-line",
+                    type: "line",
+                    source: "safe-route-source",
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                    },
+                    paint: {
+                        "line-color": "#4ade80",
+                        "line-width": 5,
+                        "line-opacity": 0.95,
+                        "line-dasharray": [2, 1],
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing safe route layer:", err);
         }
 
         // ── Severed Trails Source + Layer (Phase 5 Adaptive Routing) ──
-        if (!hasSource(map, "severed-trails-source")) {
-            map.addSource("severed-trails-source", { type: "geojson", data: data.severed || EMPTY_FC });
-        } else {
-            map.getSource("severed-trails-source").setData(data.severed || EMPTY_FC);
-        }
+        try {
+            if (!hasSource(map, "severed-trails-source")) {
+                map.addSource("severed-trails-source", { type: "geojson", data: data.severed || EMPTY_FC });
+            } else {
+                map.getSource("severed-trails-source").setData(data.severed || EMPTY_FC);
+            }
 
-        // Severed trails glow (wide semi-transparent hazard red halo)
-        if (!hasLayer(map, "severed-trails-glow")) {
-            map.addLayer({
-                id: "severed-trails-glow",
-                type: "line",
-                source: "severed-trails-source",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                },
-                paint: {
-                    "line-color": "#ef4444",
-                    "line-width": 14,
-                    "line-opacity": 0.45,
-                },
-            });
-        }
+            // Severed trails glow (wide semi-transparent hazard red halo)
+            if (!hasLayer(map, "severed-trails-glow")) {
+                map.addLayer({
+                    id: "severed-trails-glow",
+                    type: "line",
+                    source: "severed-trails-source",
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                    },
+                    paint: {
+                        "line-color": "#ef4444",
+                        "line-width": 14,
+                        "line-opacity": 0.45,
+                    },
+                });
+            }
 
-        // Severed trails dashed line (high-visibility hazard red dashed line)
-        if (!hasLayer(map, "severed-trails-line")) {
-            map.addLayer({
-                id: "severed-trails-line",
-                type: "line",
-                source: "severed-trails-source",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                },
-                paint: {
-                    "line-color": "#dc2626",
-                    "line-width": 5,
-                    "line-opacity": 1.0,
-                    "line-dasharray": [3, 2],
-                },
-            });
+            // Severed trails dashed line (high-visibility hazard red dashed line)
+            if (!hasLayer(map, "severed-trails-line")) {
+                map.addLayer({
+                    id: "severed-trails-line",
+                    type: "line",
+                    source: "severed-trails-source",
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                    },
+                    paint: {
+                        "line-color": "#dc2626",
+                        "line-width": 5,
+                        "line-opacity": 1.0,
+                        "line-dasharray": [3, 2],
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing severed trails layer:", err);
         }
 
         // ── Diversion Route Source + Layer (Phase 5 Adaptive Routing) ──
-        if (!hasSource(map, "diversion-route-source")) {
-            map.addSource("diversion-route-source", { type: "geojson", data: data.diversion || EMPTY_FC });
-        } else {
-            map.getSource("diversion-route-source").setData(data.diversion || EMPTY_FC);
-        }
+        try {
+            if (!hasSource(map, "diversion-route-source")) {
+                map.addSource("diversion-route-source", { type: "geojson", data: data.diversion || EMPTY_FC });
+            } else {
+                map.getSource("diversion-route-source").setData(data.diversion || EMPTY_FC);
+            }
 
-        // Diversion route glow (pulsing emerald aura)
-        if (!hasLayer(map, "diversion-route-glow")) {
-            map.addLayer({
-                id: "diversion-route-glow",
-                type: "line",
-                source: "diversion-route-source",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                },
-                paint: {
-                    "line-color": "#10b981",
-                    "line-width": 14,
-                    "line-opacity": 0.45,
-                },
-            });
-        }
+            // Diversion route glow (pulsing emerald aura)
+            if (!hasLayer(map, "diversion-route-glow")) {
+                map.addLayer({
+                    id: "diversion-route-glow",
+                    type: "line",
+                    source: "diversion-route-source",
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                    },
+                    paint: {
+                        "line-color": "#10b981",
+                        "line-width": 14,
+                        "line-opacity": 0.45,
+                    },
+                });
+            }
 
-        // Diversion route line (high-visibility neon green line)
-        if (!hasLayer(map, "diversion-route-line")) {
-            map.addLayer({
-                id: "diversion-route-line",
-                type: "line",
-                source: "diversion-route-source",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                },
-                paint: {
-                    "line-color": "#22c55e",
-                    "line-width": 6,
-                    "line-opacity": 0.98,
-                    "line-dasharray": [2, 1],
-                },
-            });
+            // Diversion route line (high-visibility neon green line)
+            if (!hasLayer(map, "diversion-route-line")) {
+                map.addLayer({
+                    id: "diversion-route-line",
+                    type: "line",
+                    source: "diversion-route-source",
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                    },
+                    paint: {
+                        "line-color": "#22c55e",
+                        "line-width": 6,
+                        "line-opacity": 0.98,
+                        "line-dasharray": [2, 1],
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing diversion route layer:", err);
         }
 
         // ── Photo Reports Source + Layers (Phase 6 Crowdsourced Evidence) ──
-        if (!hasSource(map, "reports-source")) {
-            map.addSource("reports-source", { type: "geojson", data: data.reports || EMPTY_FC });
-        } else {
-            map.getSource("reports-source").setData(data.reports || EMPTY_FC);
-        }
+        try {
+            if (!hasSource(map, "reports-source")) {
+                map.addSource("reports-source", { type: "geojson", data: data.reports || EMPTY_FC });
+            } else {
+                map.getSource("reports-source").setData(data.reports || EMPTY_FC);
+            }
 
-        // Photo Reports glow halo
-        if (!hasLayer(map, "reports-glow")) {
-            map.addLayer({
-                id: "reports-glow",
-                type: "circle",
-                source: "reports-source",
-                layout: {
-                    visibility: state.showReports ? "visible" : "none",
-                },
-                paint: {
-                    "circle-radius": [
-                        "interpolate", ["linear"], ["zoom"],
-                        8, 8,
-                        12, 14,
-                        16, 20,
-                    ],
-                    "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
-                    "circle-opacity": 0.35,
-                },
-            });
-        }
+            // Photo Reports glow halo
+            if (!hasLayer(map, "reports-glow")) {
+                map.addLayer({
+                    id: "reports-glow",
+                    type: "circle",
+                    source: "reports-source",
+                    layout: {
+                        visibility: state.showReports ? "visible" : "none",
+                    },
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            8, 8,
+                            12, 14,
+                            16, 20,
+                        ],
+                        "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
+                        "circle-opacity": 0.35,
+                    },
+                });
+            }
 
-        // Photo Reports central circle pin
-        if (!hasLayer(map, "reports-circles")) {
-            map.addLayer({
-                id: "reports-circles",
-                type: "circle",
-                source: "reports-source",
-                layout: {
-                    visibility: state.showReports ? "visible" : "none",
-                },
-                paint: {
-                    "circle-radius": [
-                        "interpolate", ["linear"], ["zoom"],
-                        8, 5,
-                        12, 8,
-                        16, 11,
-                    ],
-                    "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
-                    "circle-stroke-width": 2,
-                    "circle-stroke-color": "#ffffff",
-                    "circle-opacity": 0.95,
-                },
-            });
+            // Photo Reports central circle pin
+            if (!hasLayer(map, "reports-circles")) {
+                map.addLayer({
+                    id: "reports-circles",
+                    type: "circle",
+                    source: "reports-source",
+                    layout: {
+                        visibility: state.showReports ? "visible" : "none",
+                    },
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            8, 5,
+                            12, 8,
+                            16, 11,
+                        ],
+                        "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
+                        "circle-stroke-width": 2,
+                        "circle-stroke-color": "#ffffff",
+                        "circle-opacity": 0.95,
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing photo reports layer:", err);
         }
     }, []);
 
@@ -612,6 +639,13 @@ const FortMap = ({
 
         // ── On style / map loaded ──
         const handleMapReady = () => {
+            if (!map.isStyleLoaded || !map.isStyleLoaded()) {
+                map.once("style.load", () => {
+                    addSourcesAndLayers(map);
+                    setMapReady(true);
+                });
+                return;
+            }
             addSourcesAndLayers(map);
             setMapReady(true);
         };
@@ -792,64 +826,92 @@ const FortMap = ({
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-        if (!hasSource(map, SOURCES.forts) || !hasLayer(map, LAYERS.fortCircles)) {
-            addSourcesAndLayers(map);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            if (!hasSource(map, SOURCES.forts) || !hasLayer(map, LAYERS.fortCircles)) {
+                addSourcesAndLayers(map);
+            }
+            const fortSrc = map.getSource(SOURCES.forts);
+            if (fortSrc) fortSrc.setData(fortsGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating forts GeoJSON:", err);
         }
-        const fortSrc = map.getSource(SOURCES.forts);
-        if (fortSrc) fortSrc.setData(fortsGeoJSON);
     }, [fortsGeoJSON, mapReady, addSourcesAndLayers]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-        if (!hasSource(map, SOURCES.trails) || !hasLayer(map, LAYERS.trailLines)) {
-            addSourcesAndLayers(map);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            if (!hasSource(map, SOURCES.trails) || !hasLayer(map, LAYERS.trailLines)) {
+                addSourcesAndLayers(map);
+            }
+            const trailSrc = map.getSource(SOURCES.trails);
+            if (trailSrc) trailSrc.setData(trailsGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating trails GeoJSON:", err);
         }
-        const trailSrc = map.getSource(SOURCES.trails);
-        if (trailSrc) trailSrc.setData(trailsGeoJSON);
     }, [trailsGeoJSON, mapReady, addSourcesAndLayers]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
-        if (!hasSource(map, SOURCES.cisterns) || !hasLayer(map, LAYERS.cisternCircles)) {
-            addSourcesAndLayers(map);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            if (!hasSource(map, SOURCES.cisterns) || !hasLayer(map, LAYERS.cisternCircles)) {
+                addSourcesAndLayers(map);
+            }
+            const cisternSrc = map.getSource(SOURCES.cisterns);
+            if (cisternSrc) cisternSrc.setData(cisternsGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating cisterns GeoJSON:", err);
         }
-        const cisternSrc = map.getSource(SOURCES.cisterns);
-        if (cisternSrc) cisternSrc.setData(cisternsGeoJSON);
     }, [cisternsGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update safe route source when route changes
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-        const routeSrc = map.getSource("safe-route-source");
-        if (routeSrc) routeSrc.setData(routeGeoJSON);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            const routeSrc = map.getSource("safe-route-source");
+            if (routeSrc) routeSrc.setData(routeGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating safe route:", err);
+        }
     }, [routeGeoJSON, mapReady]);
 
     // Update severed trails source when severed trails change
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-        const severedSrc = map.getSource("severed-trails-source");
-        if (severedSrc) severedSrc.setData(severedGeoJSON);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            const severedSrc = map.getSource("severed-trails-source");
+            if (severedSrc) severedSrc.setData(severedGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating severed trails:", err);
+        }
     }, [severedGeoJSON, mapReady]);
 
     // Update diversion route source when diversion changes
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-        const diversionSrc = map.getSource("diversion-route-source");
-        if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            const diversionSrc = map.getSource("diversion-route-source");
+            if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating diversion route:", err);
+        }
     }, [diversionGeoJSON, mapReady]);
 
     // Update photo reports source when photo reports change
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-        const reportSrc = map.getSource("reports-source");
-        if (reportSrc) reportSrc.setData(reportsGeoJSON);
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            const reportSrc = map.getSource("reports-source");
+            if (reportSrc) reportSrc.setData(reportsGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating reports:", err);
+        }
     }, [reportsGeoJSON, mapReady]);
 
     // ══════════════════════════════════════════════════════
@@ -906,31 +968,40 @@ const FortMap = ({
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-
-        if (hasLayer(map, LAYERS.trailLines)) {
-            map.setLayoutProperty(LAYERS.trailLines, "visibility", showTrails ? "visible" : "none");
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            if (hasLayer(map, LAYERS.trailLines)) {
+                map.setLayoutProperty(LAYERS.trailLines, "visibility", showTrails ? "visible" : "none");
+            }
+        } catch (err) {
+            console.warn("[FortMap] Error setting trail visibility:", err);
         }
     }, [showTrails, mapReady]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-
-        if (hasLayer(map, LAYERS.cisternCircles)) {
-            map.setLayoutProperty(LAYERS.cisternCircles, "visibility", showCisterns ? "visible" : "none");
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            if (hasLayer(map, LAYERS.cisternCircles)) {
+                map.setLayoutProperty(LAYERS.cisternCircles, "visibility", showCisterns ? "visible" : "none");
+            }
+        } catch (err) {
+            console.warn("[FortMap] Error setting cistern visibility:", err);
         }
     }, [showCisterns, mapReady]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
-
-        if (hasLayer(map, "reports-glow")) {
-            map.setLayoutProperty("reports-glow", "visibility", showReports ? "visible" : "none");
-        }
-        if (hasLayer(map, "reports-circles")) {
-            map.setLayoutProperty("reports-circles", "visibility", showReports ? "visible" : "none");
+        if (!map || !mapReady || !map.isStyleLoaded || !map.isStyleLoaded()) return;
+        try {
+            if (hasLayer(map, "reports-glow")) {
+                map.setLayoutProperty("reports-glow", "visibility", showReports ? "visible" : "none");
+            }
+            if (hasLayer(map, "reports-circles")) {
+                map.setLayoutProperty("reports-circles", "visibility", showReports ? "visible" : "none");
+            }
+        } catch (err) {
+            console.warn("[FortMap] Error setting reports visibility:", err);
         }
     }, [showReports, mapReady]);
 

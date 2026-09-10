@@ -27,12 +27,11 @@ export const connectSocket = () => {
         return socket;
     }
 
-    // Determine backend URL: In dev connect to http://localhost:6000 directly for rock-solid WebSocket telemetry
+    // Determine backend URL:
+    // Use relative path ("") so requests go to current origin (localhost:5173 in dev via Vite proxy, avoiding Chrome's ERR_UNSAFE_PORT on port 6000)
     const backendUrl = import.meta.env.VITE_API_BASE_URL
         ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
-        : (typeof window !== "undefined" && window.location.hostname === "localhost"
-            ? "http://localhost:6000"
-            : "");
+        : "";
 
     socket = io(backendUrl, {
         // Send cookies (JWT) with the connection handshake
