@@ -24,16 +24,7 @@ export const getWeather = async (req, res) => {
         return res.status(200).json(result);
     } catch (error) {
         console.error("Error in getWeather controller:", error.message);
-
-        // Distinguish between Open-Meteo API failures and internal errors
-        if (error.message.includes("Open-Meteo")) {
-            return res.status(502).json({
-                message: "Weather service temporarily unavailable",
-                detail: error.message,
-            });
-        }
-
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 

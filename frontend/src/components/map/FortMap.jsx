@@ -227,146 +227,158 @@ const FortMap = ({
         }
 
         // ── Fort Source + Layers ──
-        if (!hasSource(map, SOURCES.forts)) {
-            map.addSource(SOURCES.forts, { type: "geojson", data: data.forts });
-        } else {
-            map.getSource(SOURCES.forts).setData(data.forts);
-        }
+        try {
+            if (!hasSource(map, SOURCES.forts)) {
+                map.addSource(SOURCES.forts, { type: "geojson", data: data.forts });
+            } else {
+                map.getSource(SOURCES.forts).setData(data.forts);
+            }
 
-        // Fort circles (unselected)
-        if (!hasLayer(map, LAYERS.fortCircles)) {
-            map.addLayer({
-                id: LAYERS.fortCircles,
-                type: "circle",
-                source: SOURCES.forts,
-                filter: ["!=", ["get", "isSelected"], true],
-                paint: {
-                    "circle-radius": [
-                        "interpolate", ["linear"], ["zoom"],
-                        6, 6,
-                        10, 9,
-                        14, 13,
-                    ],
-                    "circle-color": [
-                        "case",
-                        ["==", ["get", "isSeaFort"], true], FORT_MARKER.seaFort,
-                        FORT_MARKER.default,
-                    ],
-                    "circle-stroke-width": 2.5,
-                    "circle-stroke-color": FORT_MARKER.border,
-                    "circle-opacity": 0.95,
-                },
-            });
-        }
+            // Fort circles (unselected)
+            if (!hasLayer(map, LAYERS.fortCircles)) {
+                map.addLayer({
+                    id: LAYERS.fortCircles,
+                    type: "circle",
+                    source: SOURCES.forts,
+                    filter: ["!=", ["get", "isSelected"], true],
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            6, 6,
+                            10, 9,
+                            14, 13,
+                        ],
+                        "circle-color": [
+                            "case",
+                            ["==", ["get", "isSeaFort"], true], FORT_MARKER.seaFort,
+                            FORT_MARKER.default,
+                        ],
+                        "circle-stroke-width": 2.5,
+                        "circle-stroke-color": FORT_MARKER.border,
+                        "circle-opacity": 0.95,
+                    },
+                });
+            }
 
-        // Fort labels
-        if (!hasLayer(map, LAYERS.fortLabels)) {
-            map.addLayer({
-                id: LAYERS.fortLabels,
-                type: "symbol",
-                source: SOURCES.forts,
-                layout: {
-                    "text-field": ["get", "name"],
-                    "text-size": [
-                        "interpolate", ["linear"], ["zoom"],
-                        6, 0,
-                        9, 11,
-                        14, 13,
-                    ],
-                    "text-offset": [0, 1.6],
-                    "text-anchor": "top",
-                    "text-optional": true,
-                    "text-allow-overlap": false,
-                },
-                paint: {
-                    "text-color": "#ffffff",
-                    "text-halo-color": "rgba(15, 23, 42, 0.9)",
-                    "text-halo-width": 2,
-                },
-            });
-        }
+            // Fort labels
+            if (!hasLayer(map, LAYERS.fortLabels)) {
+                map.addLayer({
+                    id: LAYERS.fortLabels,
+                    type: "symbol",
+                    source: SOURCES.forts,
+                    layout: {
+                        "text-field": ["get", "name"],
+                        "text-size": [
+                            "interpolate", ["linear"], ["zoom"],
+                            6, 0,
+                            9, 11,
+                            14, 13,
+                        ],
+                        "text-offset": [0, 1.6],
+                        "text-anchor": "top",
+                        "text-optional": true,
+                        "text-allow-overlap": false,
+                    },
+                    paint: {
+                        "text-color": "#ffffff",
+                        "text-halo-color": "rgba(15, 23, 42, 0.9)",
+                        "text-halo-width": 2,
+                    },
+                });
+            }
 
-        // Selected fort circle (larger, amber with white border)
-        if (!hasLayer(map, LAYERS.fortSelected)) {
-            map.addLayer({
-                id: LAYERS.fortSelected,
-                type: "circle",
-                source: SOURCES.forts,
-                filter: ["==", ["get", "isSelected"], true],
-                paint: {
-                    "circle-radius": [
-                        "interpolate", ["linear"], ["zoom"],
-                        6, 9,
-                        10, 13,
-                        14, 18,
-                    ],
-                    "circle-color": FORT_MARKER.selected,
-                    "circle-stroke-width": 3.5,
-                    "circle-stroke-color": "#ffffff",
-                    "circle-opacity": 1,
-                },
-            });
+            // Selected fort circle (larger, amber with white border)
+            if (!hasLayer(map, LAYERS.fortSelected)) {
+                map.addLayer({
+                    id: LAYERS.fortSelected,
+                    type: "circle",
+                    source: SOURCES.forts,
+                    filter: ["==", ["get", "isSelected"], true],
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            6, 9,
+                            10, 13,
+                            14, 18,
+                        ],
+                        "circle-color": FORT_MARKER.selected,
+                        "circle-stroke-width": 3.5,
+                        "circle-stroke-color": "#ffffff",
+                        "circle-opacity": 1,
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing forts layer:", err);
         }
 
         // ── Trail Source + Layers ──
-        if (!hasSource(map, SOURCES.trails)) {
-            map.addSource(SOURCES.trails, { type: "geojson", data: data.trails });
-        } else {
-            map.getSource(SOURCES.trails).setData(data.trails);
-        }
+        try {
+            if (!hasSource(map, SOURCES.trails)) {
+                map.addSource(SOURCES.trails, { type: "geojson", data: data.trails });
+            } else {
+                map.getSource(SOURCES.trails).setData(data.trails);
+            }
 
-        // Trail lines
-        if (!hasLayer(map, LAYERS.trailLines)) {
-            map.addLayer({
-                id: LAYERS.trailLines,
-                type: "line",
-                source: SOURCES.trails,
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round",
-                    visibility: state.showTrails ? "visible" : "none",
-                },
-                paint: {
-                    "line-color": ["coalesce", ["get", "color"], "#22c55e"],
-                    "line-width": [
-                        "interpolate", ["linear"], ["zoom"],
-                        8, 2.5,
-                        12, ["coalesce", ["get", "width"], 4],
-                        16, 6,
-                    ],
-                    "line-opacity": 0.9,
-                },
-            });
+            // Trail lines
+            if (!hasLayer(map, LAYERS.trailLines)) {
+                map.addLayer({
+                    id: LAYERS.trailLines,
+                    type: "line",
+                    source: SOURCES.trails,
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                        visibility: state.showTrails ? "visible" : "none",
+                    },
+                    paint: {
+                        "line-color": ["coalesce", ["get", "color"], "#22c55e"],
+                        "line-width": [
+                            "interpolate", ["linear"], ["zoom"],
+                            8, 3,
+                            12, 5,
+                            16, 7,
+                        ],
+                        "line-opacity": 0.95,
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing trails layer:", err);
         }
 
         // ── Cistern Source + Layers ──
-        if (!hasSource(map, SOURCES.cisterns)) {
-            map.addSource(SOURCES.cisterns, { type: "geojson", data: data.cisterns });
-        } else {
-            map.getSource(SOURCES.cisterns).setData(data.cisterns);
-        }
+        try {
+            if (!hasSource(map, SOURCES.cisterns)) {
+                map.addSource(SOURCES.cisterns, { type: "geojson", data: data.cisterns });
+            } else {
+                map.getSource(SOURCES.cisterns).setData(data.cisterns);
+            }
 
-        // Cistern circles
-        if (!hasLayer(map, LAYERS.cisternCircles)) {
-            map.addLayer({
-                id: LAYERS.cisternCircles,
-                type: "circle",
-                source: SOURCES.cisterns,
-                layout: {
-                    visibility: state.showCisterns ? "visible" : "none",
-                },
-                paint: {
-                    "circle-radius": [
-                        "interpolate", ["linear"], ["zoom"],
-                        10, 5,
-                        14, 8,
-                    ],
-                    "circle-color": ["coalesce", ["get", "fillColor"], "#3b82f6"],
-                    "circle-opacity": 0.9,
-                    "circle-stroke-width": 2,
-                    "circle-stroke-color": "rgba(255,255,255,0.9)",
-                },
-            });
+            // Cistern circles
+            if (!hasLayer(map, LAYERS.cisternCircles)) {
+                map.addLayer({
+                    id: LAYERS.cisternCircles,
+                    type: "circle",
+                    source: SOURCES.cisterns,
+                    layout: {
+                        visibility: state.showCisterns ? "visible" : "none",
+                    },
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            10, 6,
+                            14, 9,
+                        ],
+                        "circle-color": ["coalesce", ["get", "fillColor"], "#3b82f6"],
+                        "circle-opacity": 0.95,
+                        "circle-stroke-width": 2.5,
+                        "circle-stroke-color": "rgba(255,255,255,0.95)",
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing cisterns layer:", err);
         }
 
         // ── Safe Route Source + Layer (Phase 5 Adaptive Routing) ──
@@ -780,24 +792,33 @@ const FortMap = ({
     // ══════════════════════════════════════════════════════
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
+        if (!map) return;
+        if (!hasSource(map, SOURCES.forts) || !hasLayer(map, LAYERS.fortCircles)) {
+            addSourcesAndLayers(map);
+        }
         const fortSrc = map.getSource(SOURCES.forts);
         if (fortSrc) fortSrc.setData(fortsGeoJSON);
-    }, [fortsGeoJSON, mapReady]);
+    }, [fortsGeoJSON, mapReady, addSourcesAndLayers]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
+        if (!map) return;
+        if (!hasSource(map, SOURCES.trails) || !hasLayer(map, LAYERS.trailLines)) {
+            addSourcesAndLayers(map);
+        }
         const trailSrc = map.getSource(SOURCES.trails);
         if (trailSrc) trailSrc.setData(trailsGeoJSON);
-    }, [trailsGeoJSON, mapReady]);
+    }, [trailsGeoJSON, mapReady, addSourcesAndLayers]);
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !mapReady) return;
+        if (!map) return;
+        if (!hasSource(map, SOURCES.cisterns) || !hasLayer(map, LAYERS.cisternCircles)) {
+            addSourcesAndLayers(map);
+        }
         const cisternSrc = map.getSource(SOURCES.cisterns);
         if (cisternSrc) cisternSrc.setData(cisternsGeoJSON);
-    }, [cisternsGeoJSON, mapReady]);
+    }, [cisternsGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update safe route source when route changes
     useEffect(() => {

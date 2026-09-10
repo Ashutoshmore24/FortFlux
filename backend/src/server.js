@@ -89,6 +89,10 @@ if (fs.existsSync(frontendDistPath)) {
     // Handle React SPA client-side routing (Express 5 compatible)
     app.use((req, res, next) => {
         if (req.method === 'GET' && !req.path.startsWith('/api')) {
+            // Do not serve index.html for missing static assets (prevents non-JS MIME type errors on module scripts)
+            if (req.path.startsWith('/assets/') || path.extname(req.path)) {
+                return res.status(404).type('text/plain').send('Asset not found');
+            }
             return res.sendFile(path.join(frontendDistPath, 'index.html'));
         }
         next();
