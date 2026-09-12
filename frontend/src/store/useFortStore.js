@@ -15,41 +15,72 @@ export const useFortStore = create((set, get) => ({
 
     /**
      * Fetch all forts (basic list).
+     * Includes retry logic to handle Render free-tier cold starts
+     * where the backend may take 30–60s to wake up.
      */
     fetchForts: async () => {
         set({ isLoading: true, error: null });
-        try {
-            const res = await axiosInstance.get("/forts");
-            set({ forts: res.data?.forts || [] });
-            return { success: true };
-        } catch (error) {
-            const message = error.response?.data?.message || "Failed to fetch forts";
-            set({ error: message });
-            return { success: false, message };
-        } finally {
-            set({ isLoading: false });
+        const MAX_RETRIES = 3;
+        const RETRY_DELAYS = [3000, 6000, 12000]; // 3s, 6s, 12s backoff
+
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+            try {
+                const res = await axiosInstance.get("/forts", {
+                    timeout: attempt === 0 ? 15000 : 45000, // longer timeout on retries for cold start
+                });
+                set({ forts: res.data?.forts || [], isLoading: false });
+                return { success: true };
+            } catch (error) {
+                const isLastAttempt = attempt === MAX_RETRIES - 1;
+                if (isLastAttempt) {
+                    const message = error.response?.data?.message || "Failed to fetch forts";
+                    set({ error: message, isLoading: false });
+                    return { success: false, message };
+                }
+                console.warn(
+                    `[FortFlux] Fetch forts attempt ${attempt + 1}/${MAX_RETRIES} failed, retrying in ${RETRY_DELAYS[attempt] / 1000}s...`
+                );
+                await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS[attempt]));
+            }
         }
+        set({ isLoading: false });
     },
 
     /**
      * Fetch full fort detail by slug (fort + trails + cisterns).
+     * Includes retry logic for Render cold-start resilience.
      */
     fetchFortDetail: async (slug) => {
         set({ isLoadingDetail: true });
-        try {
-            const res = await axiosInstance.get(`/forts/${slug}`);
-            set({
-                fortDetail: res.data,
-                selectedFort: res.data?.fort || null,
-            });
-            return { success: true, data: res.data };
-        } catch (error) {
-            const message = error.response?.data?.message || "Failed to fetch fort details";
-            console.error("fetchFortDetail error:", message);
-            return { success: false, message };
-        } finally {
-            set({ isLoadingDetail: false });
+        const MAX_RETRIES = 3;
+        const RETRY_DELAYS = [2000, 5000, 10000];
+
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+            try {
+                const res = await axiosInstance.get(`/forts/${slug}`, {
+                    timeout: attempt === 0 ? 15000 : 45000,
+                });
+                set({
+                    fortDetail: res.data,
+                    selectedFort: res.data?.fort || null,
+                    isLoadingDetail: false,
+                });
+                return { success: true, data: res.data };
+            } catch (error) {
+                const isLastAttempt = attempt === MAX_RETRIES - 1;
+                if (isLastAttempt) {
+                    const message = error.response?.data?.message || "Failed to fetch fort details";
+                    console.error("fetchFortDetail error:", message);
+                    set({ isLoadingDetail: false });
+                    return { success: false, message };
+                }
+                console.warn(
+                    `[FortFlux] Fetch fort detail attempt ${attempt + 1}/${MAX_RETRIES} failed, retrying in ${RETRY_DELAYS[attempt] / 1000}s...`
+                );
+                await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS[attempt]));
+            }
         }
+        set({ isLoadingDetail: false });
     },
 
     /**
