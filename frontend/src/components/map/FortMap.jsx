@@ -884,48 +884,60 @@ const FortMap = ({
         const map = mapRef.current;
         if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "safe-route-source")) {
+                addSourcesAndLayers(map);
+            }
             const routeSrc = map.getSource("safe-route-source");
             if (routeSrc) routeSrc.setData(routeGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating safe route:", err);
         }
-    }, [routeGeoJSON, mapReady]);
+    }, [routeGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update severed trails source when severed trails change
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "severed-trails-source")) {
+                addSourcesAndLayers(map);
+            }
             const severedSrc = map.getSource("severed-trails-source");
             if (severedSrc) severedSrc.setData(severedGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating severed trails:", err);
         }
-    }, [severedGeoJSON, mapReady]);
+    }, [severedGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update diversion route source when diversion changes
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "diversion-route-source")) {
+                addSourcesAndLayers(map);
+            }
             const diversionSrc = map.getSource("diversion-route-source");
             if (diversionSrc) diversionSrc.setData(diversionGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating diversion route:", err);
         }
-    }, [diversionGeoJSON, mapReady]);
+    }, [diversionGeoJSON, mapReady, addSourcesAndLayers]);
 
     // Update photo reports source when photo reports change
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady || !isStyleReady(map)) return;
         try {
+            if (!hasSource(map, "reports-source")) {
+                addSourcesAndLayers(map);
+            }
             const reportSrc = map.getSource("reports-source");
             if (reportSrc) reportSrc.setData(reportsGeoJSON);
         } catch (err) {
             console.warn("[FortMap] Error updating reports:", err);
         }
-    }, [reportsGeoJSON, mapReady]);
+    }, [reportsGeoJSON, mapReady, addSourcesAndLayers]);
 
     // ══════════════════════════════════════════════════════
     // Fit bounds to all forts on initial data load (if no fort pre-selected)
