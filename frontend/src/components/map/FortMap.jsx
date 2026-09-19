@@ -55,10 +55,13 @@ import {
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
 // ── Helper: check if map stylesheet is loaded and ready for sources/layers ──
+// map.isStyleLoaded() can return false in production builds even when the style
+// IS ready, so we also check the internal _loaded flag and getStyle() fallback.
 const isStyleReady = (map) => {
     try {
         if (!map) return false;
         if (map.style && map.style._loaded) return true;
+        if (typeof map.isStyleLoaded === "function" && map.isStyleLoaded()) return true;
         return Boolean(typeof map.getStyle === "function" && map.getStyle());
     } catch {
         return false;
@@ -658,7 +661,7 @@ const FortMap = ({
         map.on("load", handleMapReady);
         map.on("style.load", handleMapReady);
 
-        // In case style was already parsed/ready synchronously
+        // In case style was already parsed/ready synchronously before listeners attached
         if (isStyleReady(map)) {
             handleMapReady();
         }
