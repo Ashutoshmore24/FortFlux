@@ -6,6 +6,8 @@ import { getWeatherForCoords } from "./weather.service.js";
 // Risk Calculation Constants
 // ─────────────────────────────────────────────────────────────
 const MAX_RAINFALL_MM = 150; // mm/hr — denominator for soil saturation
+const ANTECEDENT_MAX_MM = 300; // 3-day cumulative mm — denominator for soil saturation memory
+const TERRAIN_FLOOR_CONSTANT = 3.5; // floors steep/difficult trails around 10-15%, easy flat trails near 0%
 
 // Auto-status thresholds
 const THRESHOLD_CAUTION = 30;
@@ -21,32 +23,43 @@ const getStatusFromRisk = (riskScore) => {
 };
 
 /**
- * Computes risk score for a single trail segment using live weather data.
+ * Computes risk score for a single trail segment using live weather data,
+ * terrain floor, and antecedent precipitation memory factor.
  *
  * Formula:
- *   Risk = min(100, baselineDifficulty × soilSaturation × slopeGradient × (footfall / maxSafeFootfall) × 100)
+ *   rawRisk = baselineDifficulty × effectiveSaturation × slopeGradient × (footfall / maxSafeFootfall) × 100
+ *   terrainFloor = baselineDifficulty × slopeGradient × TERRAIN_FLOOR_CONSTANT
+ *   finalRisk = min(100, round(max(rawRisk, terrainFloor)))
  *
  * Where:
- *   soilSaturation = min(precipitation / MAX_RAINFALL_MM, 1.0)
+ *   currentSaturation = min(precipitation / MAX_RAINFALL_MM, 1.0)
+ *   antecedentFactor = min(1.0, precedingRainfallMm / ANTECEDENT_MAX_MM)
+ *   effectiveSaturation = min(1.0, currentSaturation + antecedentFactor × 0.4)
  *
  * @param {Object} trail - Trail document from MongoDB
  * @param {Object} weatherData - Weather data from weather.service.js
  * @param {number} [footfallOverride] - Optional footfall override (for authority simulation)
+ * @param {number} [precedingRainfallMm] - Optional preceding 3-day cumulative rainfall in mm
  * @returns {Object} Risk breakdown for this trail
  */
-const computeTrailRisk = (trail, weatherData, footfallOverride = null) => {
+const computeTrailRisk = (trail, weatherData, footfallOverride = null, precedingRainfallMm = 0) => {
     const precipitation = weatherData?.precipitation ?? 0;
-    const soilSaturation = Math.min(precipitation / MAX_RAINFALL_MM, 1.0);
+    const currentSaturation = Math.min(precipitation / MAX_RAINFALL_MM, 1.0);
+    const antecedentFactor = Math.min(1.0, Math.max(0, precedingRainfallMm) / ANTECEDENT_MAX_MM);
+    const effectiveSaturation = Math.min(1.0, currentSaturation + antecedentFactor * 0.4);
     const footfall = footfallOverride ?? trail.currentFootfall;
 
     const rawRisk =
         trail.baselineDifficulty *
-        soilSaturation *
+        effectiveSaturation *
         trail.slopeGradient *
         (footfall / trail.maxSafeFootfall) *
         100;
 
-    const liveRiskScore = Math.min(100, Math.round(rawRisk));
+    const terrainFloor = (trail.baselineDifficulty || 1.0) * (trail.slopeGradient || 1.0) * TERRAIN_FLOOR_CONSTANT;
+    const combinedRisk = Math.max(rawRisk, terrainFloor);
+
+    const liveRiskScore = Math.min(100, Math.round(combinedRisk));
     const suggestedStatus = getStatusFromRisk(liveRiskScore);
 
     return {
@@ -60,8 +73,12 @@ const computeTrailRisk = (trail, weatherData, footfallOverride = null) => {
         factors: {
             baselineDifficulty: trail.baselineDifficulty,
             slopeGradient: trail.slopeGradient,
-            soilSaturation: parseFloat(soilSaturation.toFixed(3)),
+            soilSaturation: parseFloat(effectiveSaturation.toFixed(3)),
+            currentSaturation: parseFloat(currentSaturation.toFixed(3)),
+            antecedentFactor: parseFloat(antecedentFactor.toFixed(3)),
+            terrainFloor: parseFloat(terrainFloor.toFixed(1)),
             precipitation,
+            precedingRainfallMm,
             footfall,
             maxSafeFootfall: trail.maxSafeFootfall,
         },
@@ -73,9 +90,10 @@ const computeTrailRisk = (trail, weatherData, footfallOverride = null) => {
  *
  * @param {string} fortSlug - Fort slug identifier
  * @param {number} [footfallOverride] - Optional global footfall override
+ * @param {number} [precedingRainfallMm] - Optional 3-day preceding cumulative rainfall in mm
  * @returns {Object|null} Full risk breakdown, or null if fort not found
  */
-const computeFortRisk = async (fortSlug, footfallOverride = null) => {
+const computeFortRisk = async (fortSlug, footfallOverride = null, precedingRainfallMm = 0) => {
     const fort = await Fort.findOne({ slug: fortSlug.toLowerCase() });
     if (!fort) return null;
 
@@ -99,7 +117,7 @@ const computeFortRisk = async (fortSlug, footfallOverride = null) => {
 
     // Compute risk for each trail
     const trailRisks = trails.map((trail) =>
-        computeTrailRisk(trail, weatherData, footfallOverride)
+        computeTrailRisk(trail, weatherData, footfallOverride, precedingRainfallMm)
     );
 
     // Aggregate stats
@@ -123,6 +141,7 @@ const computeFortRisk = async (fortSlug, footfallOverride = null) => {
             weatherIcon: weatherData.weatherIcon,
             monsoonSeverity: weatherData.monsoonSeverity,
             cached: weatherData.cached,
+            precedingRainfallMm,
         },
         trails: trailRisks,
         aggregate: {
@@ -143,10 +162,11 @@ const computeFortRisk = async (fortSlug, footfallOverride = null) => {
  *
  * @param {string} fortSlug - Fort slug identifier
  * @param {number} [footfallOverride] - Optional global footfall override
+ * @param {number} [precedingRainfallMm] - Optional 3-day preceding cumulative rainfall in mm
  * @returns {Object|null} Risk breakdown with applied status, or null if fort not found
  */
-const applyRiskScores = async (fortSlug, footfallOverride = null) => {
-    const result = await computeFortRisk(fortSlug, footfallOverride);
+const applyRiskScores = async (fortSlug, footfallOverride = null, precedingRainfallMm = 0) => {
+    const result = await computeFortRisk(fortSlug, footfallOverride, precedingRainfallMm);
     if (!result || result.trails.length === 0) return result;
 
     // Persist each trail's computed risk score and auto-status

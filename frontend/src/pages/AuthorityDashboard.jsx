@@ -13,6 +13,7 @@ import {
   Sliders,
   Users,
   Droplets,
+  CloudRain,
   CheckCircle2,
   RefreshCw,
   ChevronDown,
@@ -83,6 +84,7 @@ export const AuthorityDashboard = () => {
 
   const [rainfall, setRainfall] = useState(65);
   const [footfall, setFootfall] = useState(450);
+  const [precedingRainfall, setPrecedingRainfall] = useState(40);
   const [updatingTrailId, setUpdatingTrailId] = useState(null);
   const [applySuccess, setApplySuccess] = useState(false);
   const [auditFilter, setAuditFilter] = useState("all");
@@ -117,6 +119,7 @@ export const AuthorityDashboard = () => {
       await toggleSeverTrail(selectedFortSlug, trailId, {
         rainfall,
         footfall,
+        precedingRainfall,
       });
     }
   };
@@ -156,14 +159,14 @@ export const AuthorityDashboard = () => {
   const handleComputeLiveRisk = async () => {
     if (selectedFortSlug) {
       setApplySuccess(false);
-      await fetchRisk(selectedFortSlug);
+      await fetchRisk(selectedFortSlug, { precedingRainfall });
     }
   };
 
   // Apply computed risk to DB + auto-set trail statuses
   const handleApplyRisk = async () => {
     if (selectedFortSlug) {
-      const result = await applyRisk(selectedFortSlug);
+      const result = await applyRisk(selectedFortSlug, null, precedingRainfall);
       if (result.success) {
         setApplySuccess(true);
         await fetchFortDetail(selectedFortSlug);
@@ -184,26 +187,35 @@ export const AuthorityDashboard = () => {
   const cisterns = fortDetail?.cisterns || [];
 
   const maxRainfall = 150;
-  const soilSaturation = Math.min(rainfall / maxRainfall, 1);
+  const ANTECEDENT_MAX_MM = 300;
+  const TERRAIN_FLOOR_CONSTANT = 3.5;
 
-  // Compute per-trail simulated risk scores based on slider values
+  const currentSaturation = Math.min(rainfall / maxRainfall, 1);
+  const antecedentFactor = Math.min(1, Math.max(0, precedingRainfall) / ANTECEDENT_MAX_MM);
+  const effectiveSaturation = Math.min(1, currentSaturation + antecedentFactor * 0.4);
+
+  // Compute per-trail simulated risk scores based on slider values, terrain floor, and antecedent memory
   const riskOverrides = useMemo(() => {
     const overrides = new Map();
     trails.forEach((trail) => {
+      const baseDiff = trail.baselineDifficulty || 1.0;
+      const slope = trail.slopeGradient || 1.0;
+      const maxSafe = trail.maxSafeFootfall || 500;
+      const rawRisk =
+        baseDiff *
+        effectiveSaturation *
+        slope *
+        (footfall / maxSafe) *
+        100;
+      const terrainFloor = baseDiff * slope * TERRAIN_FLOOR_CONSTANT;
       const simRisk = Math.min(
         100,
-        Math.round(
-          trail.baselineDifficulty *
-            soilSaturation *
-            trail.slopeGradient *
-            (footfall / trail.maxSafeFootfall) *
-            100
-        )
+        Math.round(Math.max(rawRisk, terrainFloor))
       );
       overrides.set(trail._id, simRisk);
     });
     return overrides;
-  }, [trails, soilSaturation, footfall]);
+  }, [trails, effectiveSaturation, footfall]);
 
   const aggregateSimRisk =
     trails.length > 0
@@ -240,13 +252,14 @@ export const AuthorityDashboard = () => {
       simulateRouting(selectedFortSlug, {
         rainfall,
         footfall,
+        precedingRainfall,
         riskOverrides: overridesObj,
         severedTrailIds: manuallySeveredIds,
       });
     } else if (severedTrails.length > 0) {
       clearSimulation();
     }
-  }, [selectedFortSlug, rainfall, footfall, riskOverrides, manuallySeveredIds]);
+  }, [selectedFortSlug, rainfall, footfall, precedingRainfall, riskOverrides, manuallySeveredIds]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -399,6 +412,7 @@ export const AuthorityDashboard = () => {
               onClick={() => {
                 setRainfall(65);
                 setFootfall(450);
+                setPrecedingRainfall(40);
               }}
               className="text-xs text-slate-500 hover:text-emerald-700 flex items-center gap-1 transition font-semibold cursor-pointer"
             >
@@ -458,6 +472,39 @@ export const AuthorityDashboard = () => {
                 <span>500 (Max Safe Capacity)</span>
                 <span>1000 (Severe Overcrowding)</span>
               </div>
+            </div>
+
+            {/* Preceding 3-Day Rainfall Slider (Soil Saturation Memory) */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span
+                  className="text-xs font-bold text-slate-800 flex items-center gap-1.5"
+                  title="Simulates soil saturation retained from recent days' rain"
+                >
+                  <CloudRain className="w-4 h-4 text-indigo-600" />
+                  Preceding 3-Day Rainfall (mm)
+                </span>
+                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                  {precedingRainfall} mm
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="300"
+                step="5"
+                value={precedingRainfall}
+                onChange={(e) => setPrecedingRainfall(Number(e.target.value))}
+                className="w-full h-2 bg-[#E2ECE4] rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <div className="flex justify-between text-[10px] text-[#52685E] mt-1 font-medium">
+                <span>0 mm (Bone Dry)</span>
+                <span>150 mm (Monsoon Saturation)</span>
+                <span>300 mm (Waterlogged Basalt)</span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-1 italic">
+                Simulates soil saturation retained from recent days&apos; rain
+              </p>
             </div>
           </div>
         </div>

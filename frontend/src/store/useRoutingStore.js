@@ -54,6 +54,8 @@ export const useRoutingStore = create((set, get) => ({
         const {
             rainfall = null,
             footfall = null,
+            precedingRainfall = null,
+            precedingRainfallMm = null,
             severedTrailIds = null,
             riskOverrides = null,
             start = null,
@@ -70,6 +72,7 @@ export const useRoutingStore = create((set, get) => ({
                 fortSlug,
                 rainfall,
                 footfall,
+                precedingRainfall: precedingRainfallMm ?? precedingRainfall ?? 0,
                 severedTrailIds: effectiveSeveredIds,
                 riskOverrides,
                 start,

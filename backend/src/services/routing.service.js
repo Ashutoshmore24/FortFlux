@@ -30,7 +30,11 @@ export const normalizeNodeName = (name) => {
 
 /**
  * Calculates the risk-aware edge cost for a single trail.
- * cost = distanceKm * (1 + riskScore / 100)
+ * Uses non-linear risk penalty:
+ *   cost = distanceKm * (1 + (max(0, risk) / 40)^2.5)
+ *
+ * This heavily penalizes high-risk trails so that safe bypasses
+ * are prioritized over hazardous shortcuts.
  */
 export const calculateEdgeCost = (trail, explicitRisk = null) => {
     const distanceKm = typeof trail.distanceKm === "number" && trail.distanceKm >= 0
@@ -39,9 +43,11 @@ export const calculateEdgeCost = (trail, explicitRisk = null) => {
 
     const risk = typeof explicitRisk === "number"
         ? explicitRisk
-        : (typeof trail.currentRiskScore === "number" ? trail.currentRiskScore : 0);
+        : (typeof trail.currentRiskScore === "number"
+            ? trail.currentRiskScore
+            : (typeof trail.currentRisk === "number" ? trail.currentRisk : 0));
 
-    return distanceKm * (1 + Math.max(0, risk) / 100);
+    return distanceKm * (1 + Math.pow(Math.max(0, risk) / 40, 2.5));
 };
 
 /**
@@ -264,6 +270,7 @@ export const simulateRouting = ({
     trails = [],
     rainfall = null,
     footfall = null,
+    precedingRainfallMm = 0,
     severedTrailIds = [],
     riskOverrides = null,
     startName = null,
@@ -275,8 +282,15 @@ export const simulateRouting = ({
 
     // Calculate effective simulated risk for each trail
     const maxRainfall = 150;
-    const soilSaturation = rainfall !== null
+    const antecedentMax = 300;
+    const terrainFloorConstant = 3.5;
+
+    const currentSaturation = rainfall !== null
         ? Math.min(Math.max(0, rainfall) / maxRainfall, 1)
+        : null;
+    const antecedentFactor = Math.min(1.0, Math.max(0, precedingRainfallMm) / antecedentMax);
+    const effectiveSaturation = currentSaturation !== null
+        ? Math.min(1.0, currentSaturation + antecedentFactor * 0.4)
         : null;
 
     const trailRisks = new Map();
@@ -292,16 +306,18 @@ export const simulateRouting = ({
             effectiveRisk = riskOverrides.get(trailIdStr);
         } else if (riskOverrides && riskOverrides[trailIdStr] !== undefined) {
             effectiveRisk = riskOverrides[trailIdStr];
-        } else if (soilSaturation !== null && footfall !== null) {
-            // Apply project risk formula
-            const baseDiff = trail.baselineDifficulty || 1.2;
-            const slope = trail.slopeGradient || 1.2;
+        } else if (effectiveSaturation !== null && footfall !== null) {
+            // Apply project risk formula with terrain floor
+            const baseDiff = trail.baselineDifficulty || 1.0;
+            const slope = trail.slopeGradient || 1.0;
             const maxSafe = trail.maxSafeFootfall || 500;
             const footfallRatio = footfall / maxSafe;
 
+            const rawRisk = baseDiff * effectiveSaturation * slope * footfallRatio * 100;
+            const terrainFloor = baseDiff * slope * terrainFloorConstant;
             effectiveRisk = Math.min(
                 100,
-                Math.round(baseDiff * soilSaturation * slope * footfallRatio * 100)
+                Math.round(Math.max(rawRisk, terrainFloor))
             );
         }
 
