@@ -20,6 +20,7 @@ import {
     Hand,
     Maximize2,
     Minimize2,
+    Landmark,
 } from "lucide-react";
 
 const MapControls = ({
@@ -293,16 +294,16 @@ const MapControls = ({
                         <button
                             type="button"
                             onClick={onToggleReports}
-                            aria-label="Toggle photo evidence layer visibility"
-                            title={showReports ? "Hide photo evidence" : "Show photo evidence"}
+                            aria-label="Toggle fort landmarks visibility"
+                            title={showReports ? "Hide fort landmarks" : "Show fort landmarks"}
                             className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[10px] font-medium transition cursor-pointer active:scale-95 ${
                                 showReports
                                     ? "bg-amber-100 text-amber-800 border border-amber-300 font-bold shadow-xs"
                                     : "bg-[#F8FAF8] text-slate-600 border border-[#E2ECE4] hover:text-slate-900 hover:bg-white hover:border-emerald-300"
                             }`}
                         >
-                            <Camera className="w-3 h-3 text-amber-600" />
-                            <span>Photos</span>
+                            <Landmark className="w-3 h-3 text-amber-600" />
+                            <span>Landmarks</span>
                         </button>
                     )}
                 </div>

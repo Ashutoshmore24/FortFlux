@@ -2,8 +2,12 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Map as MapLibreMap, Popup, Marker, NavigationControl, AttributionControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useFortStore } from "../../store/useFortStore";
+import { useWeatherStore } from "../../store/useWeatherStore";
 import { RiskLegend } from "./RiskLegend";
 import MapControls from "./MapControls";
+import MapSearchFilter from "./MapSearchFilter";
+import MapTelemetryHUD from "./MapTelemetryHUD";
+import TrailElevationDrawer from "./TrailElevationDrawer";
 import {
     getFortPopupHTML,
     getTrailTooltipHTML,
@@ -49,6 +53,9 @@ import {
     AlertTriangle,
     Droplets,
     Navigation,
+    TrendingUp,
+    CloudRain,
+    Activity,
 } from "lucide-react";
 
 // ── Empty GeoJSON (used as initial source data) ──
@@ -110,6 +117,8 @@ const FortMap = ({
         clearSelection,
     } = useFortStore();
 
+    const { weatherData, fetchWeather } = useWeatherStore();
+
     // ── Local UI state ──
     const [mapStyle, setMapStyle] = useState("satellite");
     const [showTrails, setShowTrails] = useState(true);
@@ -123,8 +132,15 @@ const FortMap = ({
     // 3D Camera & Rotation state
     const [cameraBearing, setCameraBearing] = useState(INITIAL_BEARING);
     const [cameraPitch, setCameraPitch] = useState(INITIAL_PITCH);
+    const [cameraZoom, setCameraZoom] = useState(INITIAL_ZOOM);
     const [isAutoRotating, setIsAutoRotating] = useState(false);
     const [interactionMode, setInteractionMode] = useState("pan"); // "pan" | "rotate"
+
+    // Phase 1 & 2 states
+    const [activeFilter, setActiveFilter] = useState("all");
+    const [selectedTrailForElevation, setSelectedTrailForElevation] = useState(null);
+    const [cursorCoords, setCursorCoords] = useState(null);
+    const [hoveredTrailPoint, setHoveredTrailPoint] = useState(null);
 
     // ── Refs ──
     const rootContainerRef = useRef(null);
@@ -132,6 +148,7 @@ const FortMap = ({
     const mapRef = useRef(null);
     const popupRef = useRef(null);
     const userMarkerRef = useRef(null);
+    const trailHoverMarkerRef = useRef(null);
     const geoWatchRef = useRef(null);
     const autoRotateAnimRef = useRef(null);
     const isOrbitDraggingRef = useRef(false);
@@ -140,10 +157,22 @@ const FortMap = ({
     const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC, reports: EMPTY_FC });
     const stateRef = useRef({ showTrails: true, showCisterns: true, showReports: true, terrainEnabled: false });
     const onFortSelectRef = useRef(onFortSelect);
+    const fortDetailRef = useRef(fortDetail);
 
     useEffect(() => {
         onFortSelectRef.current = onFortSelect;
     }, [onFortSelect]);
+
+    useEffect(() => {
+        fortDetailRef.current = fortDetail;
+    }, [fortDetail]);
+
+    // Fetch weather for selected fort
+    useEffect(() => {
+        if (selectedFort?.slug) {
+            fetchWeather(selectedFort.slug);
+        }
+    }, [selectedFort?.slug, fetchWeather]);
 
     // Keep stateRef in sync
     useEffect(() => {
@@ -158,10 +187,19 @@ const FortMap = ({
         if (forts.length === 0) fetchForts();
     }, []);
 
+    // Weather map keyed by slug
+    const weatherMap = useMemo(() => {
+        const m = {};
+        if (selectedFort?.slug && weatherData) {
+            m[selectedFort.slug] = weatherData;
+        }
+        return m;
+    }, [selectedFort?.slug, weatherData]);
+
     // ── Memoized GeoJSON ──
     const fortsGeoJSON = useMemo(
-        () => fortsToGeoJSON(forts, selectedFort?.slug),
-        [forts, selectedFort?.slug]
+        () => fortsToGeoJSON(forts, selectedFort?.slug, activeFilter, weatherMap),
+        [forts, selectedFort?.slug, activeFilter, weatherMap]
     );
     const trailsGeoJSON = useMemo(
         () => trailsToGeoJSON(trails, riskOverrides),
@@ -204,10 +242,10 @@ const FortMap = ({
         return diversionRouteToGeoJSON(diversionRoute);
     }, [diversionRoute]);
 
-    // ── Photo Reports GeoJSON (Phase 6 Crowdsourced Evidence) ──
+    // ── Fort Landmarks GeoJSON (from Fort History) ──
     const reportsGeoJSON = useMemo(() => {
-        return reportsToGeoJSON(photoReports || []);
-    }, [photoReports]);
+        return reportsToGeoJSON(photoReports || [], forts, selectedFort?.slug);
+    }, [photoReports, forts, selectedFort?.slug]);
 
     // Store latest GeoJSON in ref for style.load handler
     useEffect(() => {
@@ -259,6 +297,36 @@ const FortMap = ({
                 map.getSource(SOURCES.forts).setData(data.forts);
             }
 
+            // Fort monsoon / rainfall halo (shows pulsing hazard ring around forts with active rain/surge)
+            if (!hasLayer(map, "fort-monsoon-halo")) {
+                map.addLayer({
+                    id: "fort-monsoon-halo",
+                    type: "circle",
+                    source: SOURCES.forts,
+                    filter: ["==", ["get", "hasRain"], true],
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            6, 12,
+                            10, 18,
+                            14, 26,
+                        ],
+                        "circle-color": [
+                            "case",
+                            ["==", ["get", "hasMonsoonSurge"], true], "#ef4444",
+                            "#38bdf8",
+                        ],
+                        "circle-opacity": 0.35,
+                        "circle-stroke-width": 1.5,
+                        "circle-stroke-color": [
+                            "case",
+                            ["==", ["get", "hasMonsoonSurge"], true], "#dc2626",
+                            "#0284c7",
+                        ],
+                    },
+                });
+            }
+
             // Fort circles (unselected)
             if (!hasLayer(map, LAYERS.fortCircles)) {
                 map.addLayer({
@@ -280,7 +348,16 @@ const FortMap = ({
                         ],
                         "circle-stroke-width": 2.5,
                         "circle-stroke-color": FORT_MARKER.border,
-                        "circle-opacity": 0.95,
+                        "circle-opacity": [
+                            "case",
+                            ["==", ["get", "isMatchFilter"], false], 0.25,
+                            0.95,
+                        ],
+                        "circle-stroke-opacity": [
+                            "case",
+                            ["==", ["get", "isMatchFilter"], false], 0.3,
+                            1.0,
+                        ],
                     },
                 });
             }
@@ -308,6 +385,11 @@ const FortMap = ({
                         "text-color": "#ffffff",
                         "text-halo-color": "rgba(15, 23, 42, 0.9)",
                         "text-halo-width": 2,
+                        "text-opacity": [
+                            "case",
+                            ["==", ["get", "isMatchFilter"], false], 0.25,
+                            1.0,
+                        ],
                     },
                 });
             }
@@ -558,7 +640,7 @@ const FortMap = ({
                 map.getSource("reports-source").setData(data.reports || EMPTY_FC);
             }
 
-            // Photo Reports glow halo
+            // Landmarks glow halo (warm heritage aura)
             if (!hasLayer(map, "reports-glow")) {
                 map.addLayer({
                     id: "reports-glow",
@@ -574,13 +656,13 @@ const FortMap = ({
                             12, 14,
                             16, 20,
                         ],
-                        "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
+                        "circle-color": ["coalesce", ["get", "glowColor"], "#fbbf24"],
                         "circle-opacity": 0.35,
                     },
                 });
             }
 
-            // Photo Reports central circle pin
+            // Landmarks central circle pin
             if (!hasLayer(map, "reports-circles")) {
                 map.addLayer({
                     id: "reports-circles",
@@ -596,7 +678,7 @@ const FortMap = ({
                             12, 8,
                             16, 11,
                         ],
-                        "circle-color": ["coalesce", ["get", "severityColor"], "#f59e0b"],
+                        "circle-color": ["coalesce", ["get", "pinColor"], "#f59e0b"],
                         "circle-stroke-width": 2,
                         "circle-stroke-color": "#ffffff",
                         "circle-opacity": 0.95,
@@ -666,14 +748,33 @@ const FortMap = ({
             handleMapReady();
         }
 
-        // ── Camera orientation tracking ──
+        // ── Camera orientation & zoom tracking ──
         const updateCameraState = () => {
             setCameraBearing(map.getBearing());
             setCameraPitch(map.getPitch());
+            setCameraZoom(map.getZoom());
         };
         map.on("rotate", updateCameraState);
         map.on("pitch", updateCameraState);
+        map.on("zoom", updateCameraState);
         map.on("moveend", updateCameraState);
+
+        // ── Canvas mousemove for Telemetry HUD ──
+        const handleCanvasMouseMove = (e) => {
+            const lng = e.lngLat.lng;
+            const lat = e.lngLat.lat;
+            let elev = null;
+            try {
+                if (typeof map.queryTerrainElevation === "function") {
+                    const sampled = map.queryTerrainElevation([lng, lat]);
+                    if (sampled != null && !isNaN(sampled)) elev = Math.round(sampled);
+                }
+            } catch {
+                // ignore
+            }
+            setCursorCoords({ lng, lat, elevation: elev });
+        };
+        map.on("mousemove", handleCanvasMouseMove);
 
         // Interrupt auto-rotate if user manually drags or touches
         const handleUserInterrupt = () => {
@@ -721,6 +822,27 @@ const FortMap = ({
 
         map.on("click", LAYERS.fortCircles, handleFortClick);
         map.on("click", LAYERS.fortSelected, handleFortClick);
+
+        // ── Trail click for Elevation Profile Drawer ──
+        const handleTrailClick = (e) => {
+            if (!e.features?.length) return;
+            const props = e.features[0].properties;
+            const coords = e.features[0].geometry?.coordinates;
+            const trailId = props.id;
+            const trailList = fortDetailRef.current?.trails || [];
+            const matched = trailList.find((t) => t._id === trailId) || {
+                _id: trailId,
+                name: props.name,
+                currentRiskScore: props.riskScore,
+                status: props.status,
+                difficulty: props.difficulty,
+                distanceKm: props.distanceKm,
+                path: coords || [],
+            };
+            setSelectedTrailForElevation(matched);
+        };
+        map.on("click", LAYERS.trailLines, handleTrailClick);
+        map.on("click", "safe-route-line", handleTrailClick);
 
         // ── Trail hover/click for tooltip ──
         map.on("mouseenter", LAYERS.trailLines, (e) => {
@@ -783,8 +905,14 @@ const FortMap = ({
             popupRef.current.remove();
         });
 
-        // ── Photo Reports hover / click for popup ──
+        // ── Fort Landmarks hover / click for popup ──
+        let landmarkLeaveTimer = null;
+
         map.on("mouseenter", "reports-circles", (e) => {
+            if (landmarkLeaveTimer) {
+                clearTimeout(landmarkLeaveTimer);
+                landmarkLeaveTimer = null;
+            }
             map.getCanvas().style.cursor = "pointer";
             if (!e.features?.length) return;
             const props = e.features[0].properties;
@@ -793,12 +921,33 @@ const FortMap = ({
                 .setLngLat(coords)
                 .setHTML(getReportPopupHTML(props))
                 .addTo(map);
+
+            const popupElem = popupRef.current.getElement();
+            if (popupElem) {
+                popupElem.onmouseenter = () => {
+                    if (landmarkLeaveTimer) {
+                        clearTimeout(landmarkLeaveTimer);
+                        landmarkLeaveTimer = null;
+                    }
+                };
+                popupElem.onmouseleave = () => {
+                    popupRef.current.remove();
+                };
+            }
         });
+
         map.on("mouseleave", "reports-circles", () => {
             map.getCanvas().style.cursor = "";
-            popupRef.current.remove();
+            landmarkLeaveTimer = setTimeout(() => {
+                popupRef.current.remove();
+            }, 300);
         });
+
         map.on("click", "reports-circles", (e) => {
+            if (landmarkLeaveTimer) {
+                clearTimeout(landmarkLeaveTimer);
+                landmarkLeaveTimer = null;
+            }
             if (!e.features?.length) return;
             const props = e.features[0].properties;
             const coords = e.features[0].geometry.coordinates.slice();
@@ -829,10 +978,41 @@ const FortMap = ({
             }
             popupRef.current?.remove();
             userMarkerRef.current?.remove();
+            trailHoverMarkerRef.current?.remove();
             map.remove();
             mapRef.current = null;
         };
     }, []);
+
+    // ══════════════════════════════════════════════════════
+    // Synchronized 3D Trail Cursor (Phase 2)
+    // ══════════════════════════════════════════════════════
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        if (!hoveredTrailPoint) {
+            trailHoverMarkerRef.current?.remove();
+            trailHoverMarkerRef.current = null;
+            return;
+        }
+
+        if (!trailHoverMarkerRef.current) {
+            const el = document.createElement("div");
+            el.className = "fortflux-trail-pulse-cursor";
+            el.style.cssText = `
+                width: 16px; height: 16px;
+                background: #0ea5e9;
+                border: 2.5px solid white;
+                border-radius: 50%;
+                box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.4), 0 0 14px rgba(14, 165, 233, 0.9);
+                pointer-events: none;
+            `;
+            trailHoverMarkerRef.current = new Marker({ element: el });
+        }
+
+        trailHoverMarkerRef.current.setLngLat(hoveredTrailPoint).addTo(map);
+    }, [hoveredTrailPoint]);
 
     // ══════════════════════════════════════════════════════
     // Update GeoJSON sources when data changes
@@ -1433,6 +1613,29 @@ const FortMap = ({
                 className="bg-[#EEF5EF]"
             />
 
+            {/* In-Map Search & Filter Bar (Phase 1) */}
+            <MapSearchFilter
+                forts={forts}
+                selectedFort={selectedFort}
+                activeFilter={activeFilter}
+                onFilterChange={(newFilter) => setActiveFilter(newFilter)}
+                onFortSelect={(fort) => {
+                    let coords = fort.location?.coordinates;
+                    if (!coords && fort.coordinates) coords = fort.coordinates;
+                    if (coords && mapRef.current) {
+                        mapRef.current.flyTo({
+                            center: coords,
+                            zoom: FORT_ZOOM,
+                            speed: FORT_FLY_SPEED,
+                            essential: true,
+                        });
+                    }
+                    selectFort(fort);
+                    if (onFortSelectRef.current) onFortSelectRef.current(fort);
+                }}
+                weatherMap={weatherMap}
+            />
+
             {/* Map Controls Overlay */}
             <MapControls
                 mapStyle={mapStyle}
@@ -1463,10 +1666,30 @@ const FortMap = ({
                 onToggleInteractionMode={handleToggleInteractionMode}
             />
 
-            {/* Fort Info Panel (shown when a fort is selected) */}
-            {selectedFort && fortDetail && (
+            {/* Heads-Up Telemetry HUD (Phase 1) */}
+            <MapTelemetryHUD
+                cursorCoords={cursorCoords}
+                bearing={cameraBearing}
+                pitch={cameraPitch}
+                zoom={cameraZoom}
+            />
+
+            {/* Trail Elevation Profile Drawer (Phase 2) */}
+            <TrailElevationDrawer
+                trail={selectedTrailForElevation}
+                fortElevation={selectedFort?.elevation || 1000}
+                map={mapRef.current}
+                onClose={() => {
+                    setSelectedTrailForElevation(null);
+                    setHoveredTrailPoint(null);
+                }}
+                onHoverPoint={(coords) => setHoveredTrailPoint(coords)}
+            />
+
+            {/* Fort Info Panel (shown when a fort is selected and elevation drawer is not taking focus) */}
+            {selectedFort && fortDetail && !selectedTrailForElevation && (
                 <div className="absolute bottom-3 left-3 right-3 z-[10] bg-white/95 backdrop-blur-md border border-[#E2ECE4] rounded-2xl p-4 max-w-md shadow-lg">
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-start justify-between gap-3 mb-2.5">
                         <div>
                             <h3 className="font-bold text-[#132A22] text-sm flex items-center gap-1.5">
                                 🏰 {selectedFort.name}
@@ -1484,6 +1707,27 @@ const FortMap = ({
                         </button>
                     </div>
 
+                    {/* Live Weather Microclimate Pill */}
+                    {weatherData && (
+                        <div className="mb-2.5 px-2.5 py-1.5 bg-[#F5F8F4] border border-[#E2ECE4] rounded-xl flex items-center justify-between text-[11px]">
+                            <div className="flex items-center gap-1.5 font-semibold text-slate-700">
+                                <span>{weatherData.weatherIcon || "☀️"}</span>
+                                <span>{Math.round(weatherData.temperature)}°C</span>
+                                <span className="text-slate-300">·</span>
+                                <span className="text-slate-600 font-normal truncate max-w-[140px]">{weatherData.weatherDescription || "Sahyadri Climate"}</span>
+                            </div>
+                            {weatherData.precipitation > 0 ? (
+                                <span className="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 text-[10px]">
+                                    🌧️ {weatherData.precipitation} mm/h
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    ✅ Fair Weather
+                                </span>
+                            )}
+                        </div>
+                    )}
+
                     {isLocating && userLocation && selectedFort?.location?.coordinates && (
                         <div className="mb-3">
                             <a
@@ -1498,7 +1742,7 @@ const FortMap = ({
                         </div>
                     )}
 
-                    {/* Trail summary */}
+                    {/* Trail summary with quick Elevation Profile launcher */}
                     {trails.length > 0 && (
                         <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                             {trails.map((trail) => {
@@ -1516,6 +1760,16 @@ const FortMap = ({
                                             <div className="text-slate-500 text-[10px]">{trail.distanceKm} km · {trail.difficulty}</div>
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedTrailForElevation(trail)}
+                                                title="View Trail Elevation Profile"
+                                                aria-label={`View elevation profile for ${trail.name}`}
+                                                className="flex items-center gap-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-md transition cursor-pointer"
+                                            >
+                                                <TrendingUp className="w-3 h-3" />
+                                                <span>Profile</span>
+                                            </button>
                                             <span className="font-bold text-[10px]" style={{ color }}>
                                                 Risk {Math.round(effectiveRisk)}%
                                             </span>
