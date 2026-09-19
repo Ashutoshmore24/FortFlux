@@ -14,13 +14,22 @@ export const useRiskStore = create((set, get) => ({
 
     /**
      * Fetch live-computed risk scores for a fort (read-only, does not persist).
+     * Optionally pass query options ({ footfall, precedingRainfall }).
      */
-    fetchRisk: async (fortSlug) => {
+    fetchRisk: async (fortSlug, options = {}) => {
         if (!fortSlug) return { success: false, message: "No fort slug provided" };
 
         set({ isLoading: true, error: null });
         try {
-            const res = await axiosInstance.get(`/risk/${fortSlug}`);
+            const params = {};
+            if (options.footfall !== undefined && options.footfall !== null) {
+                params.footfall = options.footfall;
+            }
+            if (options.precedingRainfall !== undefined && options.precedingRainfall !== null) {
+                params.precedingRainfall = options.precedingRainfall;
+            }
+
+            const res = await axiosInstance.get(`/risk/${fortSlug}`, { params });
             set({
                 riskData: res.data,
                 lastComputed: Date.now(),
@@ -38,16 +47,27 @@ export const useRiskStore = create((set, get) => ({
 
     /**
      * Compute + persist risk scores to DB (authority action).
-     * Optionally pass a footfall override for simulation.
+     * Optionally pass footfallOverride and precedingRainfallMm.
      */
-    applyRisk: async (fortSlug, footfallOverride = null) => {
+    applyRisk: async (fortSlug, footfallOverride = null, precedingRainfallMm = 0) => {
         if (!fortSlug) return { success: false, message: "No fort slug provided" };
 
         set({ isApplying: true, error: null });
         try {
             const body = {};
-            if (footfallOverride !== null) {
-                body.footfallOverride = footfallOverride;
+            if (typeof footfallOverride === "object" && footfallOverride !== null) {
+                // If caller passed an options object
+                if (footfallOverride.footfallOverride !== undefined) body.footfallOverride = footfallOverride.footfallOverride;
+                if (footfallOverride.footfall !== undefined) body.footfallOverride = footfallOverride.footfall;
+                if (footfallOverride.precedingRainfallMm !== undefined) body.precedingRainfallMm = footfallOverride.precedingRainfallMm;
+                if (footfallOverride.precedingRainfall !== undefined) body.precedingRainfallMm = footfallOverride.precedingRainfall;
+            } else {
+                if (footfallOverride !== null) {
+                    body.footfallOverride = footfallOverride;
+                }
+                if (precedingRainfallMm) {
+                    body.precedingRainfallMm = precedingRainfallMm;
+                }
             }
 
             const res = await axiosInstance.post(`/risk/${fortSlug}/apply`, body);

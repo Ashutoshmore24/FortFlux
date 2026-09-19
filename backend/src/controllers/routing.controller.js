@@ -95,6 +95,8 @@ export const simulateRoute = async (req, res) => {
             fortSlug,
             rainfall,
             footfall,
+            precedingRainfall = 0,
+            precedingRainfallMm = 0,
             severedTrailIds = [],
             riskOverrides = null,
             start,
@@ -123,10 +125,15 @@ export const simulateRoute = async (req, res) => {
             });
         }
 
+        const effectivePrecedingRainfall = typeof precedingRainfallMm === "number" && precedingRainfallMm > 0
+            ? precedingRainfallMm
+            : (typeof precedingRainfall === "number" ? precedingRainfall : 0);
+
         const simulationResult = simulateRouting({
             trails,
             rainfall: typeof rainfall === "number" ? rainfall : null,
             footfall: typeof footfall === "number" ? footfall : null,
+            precedingRainfallMm: effectivePrecedingRainfall,
             severedTrailIds: Array.isArray(severedTrailIds) ? severedTrailIds : [],
             riskOverrides,
             startName: start || null,

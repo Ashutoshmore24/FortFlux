@@ -20,7 +20,12 @@ export const getRisk = async (req, res) => {
             ? Number(req.query.footfall)
             : null;
 
-        const result = await computeFortRisk(fortSlug, footfallOverride);
+        // Optional preceding 3-day rainfall (mm) from query param
+        const precedingRainfall = req.query.precedingRainfall || req.query.precedingRainfallMm
+            ? Number(req.query.precedingRainfall || req.query.precedingRainfallMm)
+            : 0;
+
+        const result = await computeFortRisk(fortSlug, footfallOverride, precedingRainfall);
 
         if (!result) {
             return res.status(404).json({
@@ -62,7 +67,12 @@ export const applyRisk = async (req, res) => {
             ? Number(req.body.footfallOverride)
             : null;
 
-        const result = await applyRiskScores(fortSlug, footfallOverride);
+        // Optional preceding 3-day rainfall (mm) from request body
+        const precedingRainfallMm = req.body.precedingRainfallMm || req.body.precedingRainfall
+            ? Number(req.body.precedingRainfallMm || req.body.precedingRainfall)
+            : 0;
+
+        const result = await applyRiskScores(fortSlug, footfallOverride, precedingRainfallMm);
 
         if (!result) {
             return res.status(404).json({
