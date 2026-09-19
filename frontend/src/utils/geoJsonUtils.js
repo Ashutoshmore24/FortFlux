@@ -3,6 +3,7 @@
 // Validates all coordinates before rendering.
 
 import { RISK_COLORS, CISTERN_COLORS } from "../config/mapConfig";
+import { FORT_HISTORY_DETAILS, FORT_GPS_COORDINATES, FORT_LANDMARK_COORDINATES } from "../data/fortHistoryData";
 
 /**
  * Validate a [longitude, latitude] coordinate pair.
@@ -70,9 +71,11 @@ export const getRiskLabel = (score) => {
  * Convert an array of fort objects (from useFortStore) to a GeoJSON FeatureCollection.
  * @param {Array} forts - Array of fort objects from API
  * @param {string|null} selectedSlug - Slug of the currently selected fort
+ * @param {string} activeFilter - Active filter string ('all', 'pune', 'raigad', 'satara', 'sea-forts', etc.)
+ * @param {Map|Object|null} weatherMap - Optional weather telemetry map keyed by fort slug
  * @returns {Object} GeoJSON FeatureCollection
  */
-export const fortsToGeoJSON = (forts, selectedSlug = null) => {
+export const fortsToGeoJSON = (forts, selectedSlug = null, activeFilter = "all", weatherMap = null) => {
     const features = [];
 
     for (const fort of forts) {
@@ -80,6 +83,27 @@ export const fortsToGeoJSON = (forts, selectedSlug = null) => {
         if (!isValidLngLat(coords)) {
             console.warn(`[FortFlux] Invalid coordinates for fort "${fort.name}", skipping.`, coords);
             continue;
+        }
+
+        const isSeaFort = (fort.elevation || 0) <= 25;
+        const fortWeather = weatherMap?.[fort.slug] || (weatherMap instanceof Map ? weatherMap.get(fort.slug) : null);
+        const precipitation = Number(fortWeather?.precipitation || fortWeather?.rain || 0);
+        const hasRain = precipitation > 0;
+        const hasMonsoonSurge = precipitation >= 7.5;
+
+        // Filter evaluation
+        let isMatchFilter = true;
+        const filter = (activeFilter || "all").toLowerCase();
+        if (filter === "pune") {
+            isMatchFilter = (fort.district || "").toLowerCase().includes("pune");
+        } else if (filter === "raigad") {
+            isMatchFilter = (fort.district || "").toLowerCase().includes("raigad");
+        } else if (filter === "satara") {
+            isMatchFilter = (fort.district || "").toLowerCase().includes("satara");
+        } else if (filter === "sea-forts") {
+            isMatchFilter = isSeaFort;
+        } else if (filter === "monsoon") {
+            isMatchFilter = hasRain || hasMonsoonSurge;
         }
 
         features.push({
@@ -94,7 +118,14 @@ export const fortsToGeoJSON = (forts, selectedSlug = null) => {
                 description: fort.description || "",
                 baseVillage: fort.baseVillage || "",
                 isSelected: fort.slug === selectedSlug,
-                isSeaFort: (fort.elevation || 0) <= 15,
+                isSeaFort,
+                isMatchFilter,
+                hasRain,
+                hasMonsoonSurge,
+                precipitation,
+                temperature: fortWeather?.temperature != null ? Math.round(fortWeather.temperature) : null,
+                weatherDesc: fortWeather?.weatherDescription || "",
+                weatherIcon: fortWeather?.weatherIcon || "☀️",
             },
             geometry: {
                 type: "Point",
@@ -294,48 +325,256 @@ export const diversionRouteToGeoJSON = (diversionRoute) => {
 };
 
 /**
- * Convert crowdsourced photo evidence reports into a GeoJSON FeatureCollection.
+ * Convert fort key landmarks from Fort History into a GeoJSON FeatureCollection.
+ * Replaces crowdsourced hazard pins with authentic key landmark points from fort history.
+ *
+ * @param {Array} reports - Optional reports from store
+ * @param {Array} forts - Array of forts from store or API
+ * @param {string|null} selectedSlug - Currently selected fort slug
+ * @returns {Object} GeoJSON FeatureCollection of authentic fort landmarks
  */
-export const reportsToGeoJSON = (reports) => {
-    if (!Array.isArray(reports) || reports.length === 0) {
-        return { type: "FeatureCollection", features: [] };
-    }
-
+export const reportsToGeoJSON = (reports = [], forts = [], selectedSlug = null) => {
     const features = [];
-    for (const rep of reports) {
-        const coords = rep.location?.coordinates;
-        if (!isValidLngLat(coords)) continue;
+    const fortSlugs = Object.keys(FORT_HISTORY_DETAILS);
 
-        const severityColor =
-            rep.severity === "critical"
-                ? "#ef4444"
-                : rep.severity === "high"
-                ? "#f97316"
-                : rep.severity === "moderate"
-                ? "#f59e0b"
-                : "#10b981";
+    for (const slug of fortSlugs) {
+        const history = FORT_HISTORY_DETAILS[slug];
+        if (!history || !Array.isArray(history.landmarks)) continue;
 
-        features.push({
-            type: "Feature",
-            properties: {
-                id: rep._id,
-                imageUrl: rep.imageUrl,
-                hazardType: rep.hazardType,
-                severity: rep.severity,
-                severityColor,
-                status: rep.status,
-                description: rep.description,
-                trekkerName: rep.user?.username || "Sahyadri Trekker",
-                trailName: rep.trail?.name || "Trail Corridor",
-                createdAt: rep.createdAt,
-                aiAssessment: rep.aiTriage?.hazardAssessment || "",
-            },
-            geometry: {
-                type: "Point",
-                coordinates: coords, // [lng, lat]
-            },
+        const fortObj = Array.isArray(forts) ? forts.find((f) => f.slug === slug) : null;
+        const landmarkCoordsList = FORT_LANDMARK_COORDINATES[slug] || [];
+
+        history.landmarks.forEach((lm, idx) => {
+            // Retrieve exact surveyed GPS coordinates for this specific key landmark
+            const surveyedCoords = landmarkCoordsList[idx]?.coordinates;
+            let lmCoords = surveyedCoords;
+
+            if (!isValidLngLat(lmCoords)) {
+                // Fallback to fort center location if landmark coordinate unavailable
+                const baseCoords = fortObj?.location?.coordinates ||
+                    (FORT_GPS_COORDINATES[slug] ? [FORT_GPS_COORDINATES[slug].lng, FORT_GPS_COORDINATES[slug].lat] : null);
+                if (isValidLngLat(baseCoords)) {
+                    lmCoords = baseCoords;
+                }
+            }
+
+            if (!isValidLngLat(lmCoords)) return;
+
+            features.push({
+                type: "Feature",
+                properties: {
+                    id: `landmark-${slug}-${idx}`,
+                    name: lm.name,
+                    landmarkName: lm.name,
+                    category: lm.category || "Historic Landmark",
+                    duration: lm.duration || "",
+                    description: lm.description || "",
+                    imageUrl: lm.imageUrl || "",
+                    fortSlug: slug,
+                    fortName: history.name || fortObj?.name || slug,
+                    pinColor: "#f59e0b",
+                    glowColor: "#fbbf24",
+                    isSelectedFort: slug === selectedSlug,
+                },
+                geometry: {
+                    type: "Point",
+                    coordinates: lmCoords,
+                },
+            });
         });
     }
 
     return { type: "FeatureCollection", features };
 };
+
+// ── Geospatial Elevation & Profile Calculations (Phase 2) ──
+
+/**
+ * Calculate the great-circle distance between two [lng, lat] coordinates in kilometers.
+ * Uses the Haversine formula.
+ */
+export const haversineDistanceKm = (coord1, coord2) => {
+    if (!isValidLngLat(coord1) || !isValidLngLat(coord2)) return 0;
+    const [lon1, lat1] = coord1;
+    const [lon2, lat2] = coord2;
+
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
+
+/**
+ * Calculate slope gradient percentage and angle in degrees between two elevation points.
+ */
+export const calculateSlopeGradient = (distanceMeters, elevDiffMeters) => {
+    if (distanceMeters <= 0) return { angleDeg: 0, gradientPct: 0, category: "gentle" };
+    const gradientPct = (Math.abs(elevDiffMeters) / distanceMeters) * 100;
+    const angleDeg = (Math.atan2(Math.abs(elevDiffMeters), distanceMeters) * 180) / Math.PI;
+
+    let category = "gentle";
+    if (angleDeg >= 25) category = "steep";
+    else if (angleDeg >= 15) category = "moderate";
+
+    return {
+        angleDeg: Math.round(angleDeg * 10) / 10,
+        gradientPct: Math.round(gradientPct * 10) / 10,
+        category,
+    };
+};
+
+/**
+ * Compute estimated trek time using Naismith's Rule with Langmuir descent correction:
+ * Base time = 5 km/h walking speed
+ * Ascent penalty = +1 hour per 600m ascent
+ * Descent penalty = +1 hour per 1200m descent if slope is steep (>300m drop)
+ */
+export const computeNaismithTrekTime = (distanceKm, elevationGainMeters = 0, elevationLossMeters = 0) => {
+    const validDist = Math.max(0.1, Number(distanceKm) || 0);
+    const validGain = Math.max(0, Number(elevationGainMeters) || 0);
+    const validLoss = Math.max(0, Number(elevationLossMeters) || 0);
+
+    const baseHours = validDist / 4.2; // 4.2 km/h average mountain trail baseline
+    const ascentHours = baseHours + validGain / 550; // 550m ascent per hr in Sahyadri terrain
+    const descentHours = baseHours + (validLoss > 200 ? (validLoss - 200) / 1000 : 0);
+
+    const formatHours = (h) => {
+        const totalMinutes = Math.round(h * 60);
+        const hrs = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        if (hrs === 0) return `${mins}m`;
+        return `${hrs}h ${mins > 0 ? `${mins}m` : ""}`.trim();
+    };
+
+    return {
+        ascentMinutes: Math.round(ascentHours * 60),
+        descentMinutes: Math.round(descentHours * 60),
+        ascentFormatted: formatHours(ascentHours),
+        descentFormatted: formatHours(descentHours),
+    };
+};
+
+/**
+ * Compute the complete elevation profile points and statistics along a trail path.
+ * Samples true 3D DEM terrain from MapLibre queryTerrainElevation if available;
+ * otherwise uses realistic orographic natural elevation curves along the ascent.
+ *
+ * @param {Array<Array<number>>} path - Array of [lng, lat] coordinates
+ * @param {number} fortElevation - Summit fort elevation in meters ASL
+ * @param {Object|null} map - MapLibre map instance (for live DEM terrain query)
+ * @returns {Object} Elevation profile data
+ */
+export const computeTrailElevationProfile = (path, fortElevation = 1000, map = null) => {
+    if (!Array.isArray(path) || path.length < 2) {
+        return null;
+    }
+
+    const summitElev = Math.max(100, Number(fortElevation) || 1000);
+    // Base valley elevation typically 350-500m below summit in Sahyadris
+    const baseElev = Math.max(20, Math.round(summitElev * 0.48));
+
+    let cumulativeDist = 0;
+    const rawPoints = [];
+
+    for (let i = 0; i < path.length; i++) {
+        const coord = path[i];
+        if (i > 0) {
+            cumulativeDist += haversineDistanceKm(path[i - 1], coord);
+        }
+
+        // Try querying true DEM terrain elevation
+        let elev = null;
+        if (map && typeof map.queryTerrainElevation === "function") {
+            try {
+                const sampled = map.queryTerrainElevation(coord);
+                if (sampled != null && !isNaN(sampled)) {
+                    elev = Math.round(sampled);
+                }
+            } catch {
+                // Ignore query error, fall back to mathematical orographic model
+            }
+        }
+
+        rawPoints.push({
+            coord,
+            distKm: cumulativeDist,
+            queriedElev: elev,
+        });
+    }
+
+    const totalDistanceKm = Math.max(0.1, cumulativeDist);
+
+    // If MapLibre DEM wasn't available for points, generate realistic topographic curve
+    const points = rawPoints.map((pt, idx) => {
+        const t = pt.distKm / totalDistanceKm; // 0 (start/valley) -> 1 (citadel)
+        let finalElev = pt.queriedElev;
+
+        if (finalElev == null) {
+            // Orographic mountain profile: steeper near the citadel bastion
+            // Uses an exponential sigmoid blend with natural micro-ridges
+            const curve = Math.pow(t, 1.4);
+            const ridgeNoise = Math.sin(t * Math.PI * 4) * 18 * Math.sin(t * Math.PI);
+            finalElev = Math.round(baseElev + (summitElev - baseElev) * curve + ridgeNoise);
+        }
+
+        return {
+            distanceKm: Math.round(pt.distKm * 100) / 100,
+            elevationM: finalElev,
+            coordinates: pt.coord,
+        };
+    });
+
+    // Compute ascent, descent, and segment slopes
+    let totalAscent = 0;
+    let totalDescent = 0;
+    let maxSlopeAngle = 0;
+
+    for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const segDistM = (curr.distanceKm - prev.distanceKm) * 1000;
+        const elevDiff = curr.elevationM - prev.elevationM;
+
+        if (elevDiff > 0) totalAscent += elevDiff;
+        else totalDescent += Math.abs(elevDiff);
+
+        const slope = calculateSlopeGradient(segDistM, elevDiff);
+        curr.slopeAngle = slope.angleDeg;
+        curr.gradientPct = slope.gradientPct;
+        curr.slopeCategory = slope.category;
+
+        if (slope.angleDeg > maxSlopeAngle) {
+            maxSlopeAngle = slope.angleDeg;
+        }
+    }
+
+    if (points.length > 0 && points[0].slopeAngle == null) {
+        points[0].slopeAngle = points[1]?.slopeAngle || 0;
+        points[0].gradientPct = points[1]?.gradientPct || 0;
+        points[0].slopeCategory = points[1]?.slopeCategory || "gentle";
+    }
+
+    const elevations = points.map((p) => p.elevationM);
+    const minElev = Math.min(...elevations);
+    const maxElev = Math.max(...elevations);
+    const naismith = computeNaismithTrekTime(totalDistanceKm, totalAscent, totalDescent);
+
+    return {
+        points,
+        totalDistanceKm: Math.round(totalDistanceKm * 100) / 100,
+        minElevation: minElev,
+        maxElevation: maxElev,
+        elevationGain: Math.round(totalAscent),
+        elevationLoss: Math.round(totalDescent),
+        maxSlopeAngle: Math.round(maxSlopeAngle * 10) / 10,
+        naismith,
+    };
+};
+

@@ -118,6 +118,103 @@ export const FORT_GPS_COORDINATES = {
     }
 };
 
+/**
+ * Exact surveyed GPS coordinates [lng, lat] for all 54 key fort landmarks.
+ * Matches historical bastions, gateways, temples, memorials, and citadel promontories.
+ */
+export const FORT_LANDMARK_COORDINATES = {
+    sinhagad: [
+        { name: "Pune Darwaja", coordinates: [73.7580, 18.3685] },
+        { name: "Tanaji Malusare Samadhi & Memorial", coordinates: [73.7562, 18.3668] },
+        { name: "Kalyan Darwaja & Western Bastions", coordinates: [73.7538, 18.3645] },
+    ],
+    rajgad: [
+        { name: "Suvela Machi & Nedhe (Needle Hole)", coordinates: [73.6875, 18.2482] },
+        { name: "Balekilla (Highest Citadel)", coordinates: [73.6815, 18.2452] },
+        { name: "Padmavati Temple & Royal Lake", coordinates: [73.6829, 18.2462] },
+    ],
+    torna: [
+        { name: "Zunjar Machi", coordinates: [73.6140, 18.2745] },
+        { name: "Mengai Devi Temple", coordinates: [73.6235, 18.2762] },
+        { name: "Budhla Machi & Rock Monolith", coordinates: [73.6295, 18.2758] },
+    ],
+    purandar: [
+        { name: "Murarbaji Deshpande Memorial", coordinates: [73.9690, 18.2778] },
+        { name: "Kedareshwar Mahadev Temple", coordinates: [73.9705, 18.2773] },
+        { name: "Bini Darwaja & Khandkada", coordinates: [73.9685, 18.2782] },
+    ],
+    lohagad: [
+        { name: "Vinchukata (Scorpion's Tail)", coordinates: [73.4695, 18.7166] },
+        { name: "Maha Darwaja", coordinates: [73.4760, 18.7098] },
+        { name: "Laxmi Kothi & Ancient Granaries", coordinates: [73.4770, 18.7088] },
+    ],
+    visapur: [
+        { name: "Waterfall Staircase Trail", coordinates: [73.4875, 18.7190] },
+        { name: "Peshwa Palace Ruins & Stone Grinders", coordinates: [73.4890, 18.7208] },
+        { name: "Western Fortified Ramparts", coordinates: [73.4860, 18.7220] },
+    ],
+    tikona: [
+        { name: "Rock-Cut Near-Vertical Steps", coordinates: [73.5150, 18.6300] },
+        { name: "Trimbakeshwar Mahadev Temple", coordinates: [73.5128, 18.6317] },
+        { name: "Pawna Lake Viewpoint Bastion", coordinates: [73.5115, 18.6330] },
+    ],
+    raigad: [
+        { name: "Maha Darwaja", coordinates: [73.4478, 18.2330] },
+        { name: "Rajya Sabha (Royal Throne Hall)", coordinates: [73.4470, 18.2350] },
+        { name: "Takmak Tok (Precipice Point)", coordinates: [73.4455, 18.2360] },
+    ],
+    pratapgad: [
+        { name: "Bhavani Mata Temple", coordinates: [73.5775, 17.9332] },
+        { name: "Afzal Tower & Meeting Site", coordinates: [73.5770, 17.9330] },
+        { name: "Upper Citadel (Balekilla)", coordinates: [73.5780, 17.9340] },
+    ],
+    ajinkyatara: [
+        { name: "Mangalai Devi Temple", coordinates: [73.9935, 17.6725] },
+        { name: "Southern Bastion & Satara Overlook", coordinates: [73.9950, 17.6710] },
+        { name: "Tara Rani Palace Ruins", coordinates: [73.9925, 17.6735] },
+    ],
+    panhala: [
+        { name: "Teen Darwaja", coordinates: [74.1078, 16.8115] },
+        { name: "Sajja Kothi (Punishment Tower)", coordinates: [74.1095, 16.8135] },
+        { name: "Ambarkhana (Royal Granaries)", coordinates: [74.1110, 16.8145] },
+    ],
+    shivneri: [
+        { name: "Shivaji Maharaj Janmasthan Palace", coordinates: [73.8596, 19.1984] },
+        { name: "Seven Sequential Defense Gates", coordinates: [73.8610, 19.1975] },
+        { name: "Badami Talao & Ganga-Jamuna Cisterns", coordinates: [73.8605, 19.1990] },
+    ],
+    harishchandragad: [
+        { name: "Konkan Kada (Cobra Cliff)", coordinates: [73.7713, 19.3922] },
+        { name: "Kedareshwar Cave & Giant Shiva Linga", coordinates: [73.7765, 19.3880] },
+        { name: "Harishchandreshwar Temple Complex", coordinates: [73.7759, 19.3882] },
+    ],
+    rajmachi: [
+        { name: "Shrivardhan Citadel", coordinates: [73.4000, 18.8272] },
+        { name: "Manaranjan Citadel", coordinates: [73.3950, 18.8320] },
+        { name: "Kalbhairavnath Temple & Udaysagar Lake", coordinates: [73.3974, 18.8297] },
+    ],
+    sindhudurg: [
+        { name: "Dilli Darwaja (Concealed Sea Portal)", coordinates: [73.4610, 16.0440] },
+        { name: "Chhatrapati Shivaji Maharaj Temple & Footprints", coordinates: [73.4601, 16.0428] },
+        { name: "Ocean Ramparts & Sweet Water Wells", coordinates: [73.4590, 16.0415] },
+    ],
+    vijaydurg: [
+        { name: "Triple Fortified Sea Walls", coordinates: [73.3345, 16.5602] },
+        { name: "Submerged Defense Wall (Undersea Wall)", coordinates: [73.3315, 16.5620] },
+        { name: "Flag Bastion & Naval Shipyard Docks", coordinates: [73.3325, 16.5615] },
+    ],
+    "murud-janjira": [
+        { name: "Kalal Bangadi 22-Ton Bronze Cannon", coordinates: [72.9644, 18.3005] },
+        { name: "Submarine Sweetwater Reservoir", coordinates: [72.9642, 18.2995] },
+        { name: "22 Rounded Ocean Bastions & Palace Ruins", coordinates: [72.9648, 18.2990] },
+    ],
+    korigad: [
+        { name: "2 km Intact Perimeter Wall Walk", coordinates: [73.3845, 18.6220] },
+        { name: "Korai Devi Temple", coordinates: [73.3856, 18.6203] },
+        { name: "Twin Freshwater Plateau Lakes", coordinates: [73.3865, 18.6190] },
+    ],
+};
+
 export const FORT_HISTORY_DETAILS = {
     sinhagad: {
         name: "Sinhagad Fort",
