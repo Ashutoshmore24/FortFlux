@@ -21,6 +21,9 @@ import {
     Maximize2,
     Minimize2,
     Landmark,
+    Radio,
+    DownloadCloud,
+    WifiOff,
 } from "lucide-react";
 
 const MapControls = ({
@@ -32,6 +35,10 @@ const MapControls = ({
     onToggleCisterns,
     showReports = true,
     onToggleReports,
+    showCellularZones = true,
+    onToggleCellularZones,
+    onOpenOfflineModal,
+    isOfflineActive = false,
     terrainEnabled,
     onToggleTerrain,
     onResetView,
@@ -259,7 +266,7 @@ const MapControls = ({
                     </div>
                 </div>
 
-                <div className={`grid ${onToggleReports ? "grid-cols-3" : "grid-cols-2"} gap-1`}>
+                <div className="grid grid-cols-2 gap-1">
                     <button
                         type="button"
                         onClick={onToggleTrails}
@@ -306,7 +313,46 @@ const MapControls = ({
                             <span>Landmarks</span>
                         </button>
                     )}
+
+                    {onToggleCellularZones && (
+                        <button
+                            type="button"
+                            onClick={onToggleCellularZones}
+                            aria-label="Toggle cellular dead zones visibility"
+                            title={showCellularZones ? "Hide dead zones" : "Show cellular dead zones & 4G hotspots"}
+                            className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[10px] font-medium transition cursor-pointer active:scale-95 ${
+                                showCellularZones
+                                    ? "bg-red-100 text-red-800 border border-red-300 font-bold shadow-xs"
+                                    : "bg-[#F8FAF8] text-slate-600 border border-[#E2ECE4] hover:text-slate-900 hover:bg-white hover:border-red-300"
+                            }`}
+                        >
+                            <Radio className={`w-3 h-3 ${showCellularZones ? "text-red-600 animate-pulse" : "text-slate-500"}`} />
+                            <span>Dead Zones</span>
+                        </button>
+                    )}
                 </div>
+
+                {/* Quick Offline Map Download Trigger */}
+                {onOpenOfflineModal && (
+                    <button
+                        type="button"
+                        onClick={onOpenOfflineModal}
+                        title="Download offline fort maps & emergency kit"
+                        aria-label="Open offline map manager"
+                        className={`w-full mt-0.5 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95 ${
+                            isOfflineActive
+                                ? "bg-amber-500 text-white shadow-xs"
+                                : "bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100"
+                        }`}
+                    >
+                        {isOfflineActive ? (
+                            <WifiOff className="w-3.5 h-3.5 text-white animate-pulse" />
+                        ) : (
+                            <DownloadCloud className="w-3.5 h-3.5 text-emerald-700" />
+                        )}
+                        <span>{isOfflineActive ? "Offline Mode (Cached)" : "Offline Maps"}</span>
+                    </button>
+                )}
             </div>
 
             {/* 4. Utility Row: Fullscreen, Reset View, Locate Me */}
