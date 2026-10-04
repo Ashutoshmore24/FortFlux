@@ -222,3 +222,94 @@ export const getReportPopupHTML = (properties) => {
         </div>
     `;
 };
+
+/**
+ * Generate HTML content for a Mountain Cellular Coverage & Dead Zone popup.
+ */
+export const getCellularZonePopupHTML = (properties) => {
+    const {
+        name,
+        type,
+        severity,
+        terrainBlocker,
+        safetyAdvisory,
+        carrierJio,
+        carrierAirtel,
+        carrierVi,
+        carrierBsnl,
+        nearestHotspotName,
+        nearestHotspotDist,
+        nearestHotspotBearing,
+        nearestHotspotCarrier,
+    } = properties;
+
+    const isDeadZone = type === "dead_zone";
+    const isHotspot = type === "emergency_hotspot";
+    const isFringe = type === "fringe";
+
+    const badgeBg = isDeadZone ? "#fef2f2" : isHotspot ? "#f0fdf4" : "#fffbeb";
+    const badgeBorder = isDeadZone ? "#fecaca" : isHotspot ? "#bbf7d0" : "#fef3c7";
+    const badgeColor = isDeadZone ? "#dc2626" : isHotspot ? "#16a34a" : "#d97706";
+    const badgeText = isDeadZone
+        ? "📵 ZERO CELLULAR (BLACKOUT)"
+        : isHotspot
+        ? "📶 HIGH-GROUND 4G HOTSPOT"
+        : "⚠️ FRINGE RECEPTION (UNSTABLE)";
+
+    const signalBars = isDeadZone ? 0 : isFringe ? 1 : 4;
+
+    return `
+        <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 240px; max-width: 290px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${badgeBg}; border: 1px solid ${badgeBorder}; border-radius: 999px; font-size: 10px; font-weight: 800; color: ${badgeColor};">
+                    ${badgeText}
+                </span>
+                <div style="display: flex; align-items: flex-end; gap: 2px; height: 14px;" title="Signal Strength: ${signalBars}/4">
+                    <span style="width: 3px; height: 4px; border-radius: 1px; background: ${signalBars >= 1 ? badgeColor : "#cbd5e1"};"></span>
+                    <span style="width: 3px; height: 7px; border-radius: 1px; background: ${signalBars >= 2 ? badgeColor : "#cbd5e1"};"></span>
+                    <span style="width: 3px; height: 10px; border-radius: 1px; background: ${signalBars >= 3 ? badgeColor : "#cbd5e1"};"></span>
+                    <span style="width: 3px; height: 14px; border-radius: 1px; background: ${signalBars >= 4 ? badgeColor : "#cbd5e1"};"></span>
+                </div>
+            </div>
+
+            <h4 style="margin: 0 0 6px; font-size: 13px; font-weight: 800; color: #1e293b; line-height: 1.3;">
+                ${name || "Mountain Coverage Zone"}
+            </h4>
+
+            <!-- Carrier breakdown table -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px;">
+                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                    Carrier Signal Report
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
+                    <div style="color: #334155;"><strong>Jio:</strong> <span style="color: ${carrierJio?.includes("No Service") ? "#dc2626" : "#16a34a"};">${carrierJio || "N/A"}</span></div>
+                    <div style="color: #334155;"><strong>Airtel:</strong> <span style="color: ${carrierAirtel?.includes("No Service") ? "#dc2626" : "#16a34a"};">${carrierAirtel || "N/A"}</span></div>
+                    <div style="color: #334155;"><strong>Vi:</strong> <span style="color: ${carrierVi?.includes("No Service") ? "#dc2626" : "#16a34a"};">${carrierVi || "N/A"}</span></div>
+                    <div style="color: #334155;"><strong>BSNL:</strong> <span style="color: ${carrierBsnl?.includes("No Service") ? "#dc2626" : "#16a34a"};">${carrierBsnl || "No Service"}</span></div>
+                </div>
+            </div>
+
+            ${terrainBlocker ? `
+                <div style="font-size: 10px; color: #475569; margin-bottom: 6px; line-height: 1.4;">
+                    ⛰️ <strong>Terrain Shadow:</strong> ${terrainBlocker}
+                </div>
+            ` : ""}
+
+            ${nearestHotspotName && nearestHotspotName !== "None" ? `
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; font-size: 10px; color: #065f46;">
+                    📶 <strong>Nearest 4G Hotspot:</strong> ${nearestHotspotName}
+                    <div style="font-size: 9px; color: #047857; margin-top: 2px;">
+                        ${nearestHotspotDist}m away · Bearing ${nearestHotspotBearing} · (${nearestHotspotCarrier || "Jio/Airtel 4G"})
+                    </div>
+                </div>
+            ` : ""}
+
+            ${safetyAdvisory ? `
+                <div style="padding: 6px 8px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 4px; font-size: 10px; color: #92400e; line-height: 1.35;">
+                    💡 <strong>Safety:</strong> ${safetyAdvisory}
+                </div>
+            ` : ""}
+        </div>
+    `;
+};
+

@@ -6,6 +6,7 @@ import { useFortStore } from "../store/useFortStore";
 import { useRiskStore } from "../store/useRiskStore";
 import { useRoutingStore } from "../store/useRoutingStore";
 import { useReportStore } from "../store/useReportStore";
+import { useOfflineStore } from "../store/useOfflineStore";
 import FortMap from "../components/map/FortMap";
 import PhotoUploadModal from "../components/PhotoUploadModal";
 import { FORT_LOCAL_IMAGES } from "../data/fortHistoryData";
@@ -39,6 +40,8 @@ import {
   Sparkles,
   Radio,
   Zap,
+  DownloadCloud,
+  WifiOff,
 } from "lucide-react";
 
 export const TrekkerDashboard = () => {
@@ -80,6 +83,13 @@ export const TrekkerDashboard = () => {
     fetchFortReports,
     isLoadingReports,
   } = useReportStore();
+
+  const {
+    openModal: openOfflineModal,
+    downloadedPacks,
+    isOnline,
+    isSimulatingOffline,
+  } = useOfflineStore();
 
   const [startWaypoint, setStartWaypoint] = useState("");
   const [destWaypoint, setDestWaypoint] = useState("");
@@ -629,9 +639,32 @@ export const TrekkerDashboard = () => {
             <span className="text-slate-400">—</span>
             <span className="text-sky-800 font-bold">Interactive Topographic Map</span>
           </h2>
-          <span className="text-[11px] bg-sky-50 text-sky-900 font-bold px-3 py-1.5 rounded-full border border-sky-200 shadow-xs">
-            🗺️ 18 Forts · Konkan & Deccan
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openOfflineModal}
+              title="Manage offline map downloads and field emergency kit"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition cursor-pointer active:scale-95 shadow-2xs border ${
+                !isOnline || isSimulatingOffline
+                  ? "bg-amber-100 text-amber-900 border-amber-300"
+                  : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300"
+              }`}
+            >
+              {!isOnline || isSimulatingOffline ? (
+                <WifiOff className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+              ) : (
+                <DownloadCloud className="w-3.5 h-3.5 text-emerald-600" />
+              )}
+              <span>
+                {!isOnline || isSimulatingOffline
+                  ? "Offline Mode Active"
+                  : `Offline Packs (${downloadedPacks.length})`}
+              </span>
+            </button>
+            <span className="hidden sm:inline-flex text-[11px] bg-sky-50 text-sky-900 font-bold px-3 py-1.5 rounded-full border border-sky-200 shadow-xs">
+              🗺️ 18 Forts · Konkan & Deccan
+            </span>
+          </div>
         </div>
         <div className="rounded-2xl border border-[#E2ECE4] overflow-hidden shadow-sm transition-all duration-300 bg-white">
           <FortMap

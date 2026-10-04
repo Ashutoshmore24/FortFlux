@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { subscribeToEvent } from "../lib/socket";
+import { getOfflinePack, getAllOfflinePacks } from "../utils/offlineMapManager";
 
 export const useFortStore = create((set, get) => ({
     forts: [],
@@ -16,7 +17,7 @@ export const useFortStore = create((set, get) => ({
     /**
      * Fetch all forts (basic list).
      * Includes retry logic to handle Render free-tier cold starts
-     * where the backend may take 30–60s to wake up.
+     * where the backend may take 30–60s to wake up, plus offline cache fallback.
      */
     fetchForts: async () => {
         set({ isLoading: true, error: null });
@@ -33,6 +34,20 @@ export const useFortStore = create((set, get) => ({
             } catch (error) {
                 const isLastAttempt = attempt === MAX_RETRIES - 1;
                 if (isLastAttempt) {
+                    // Check if we have cached offline packs in IndexedDB
+                    try {
+                        const cachedPacks = await getAllOfflinePacks();
+                        if (cachedPacks && cachedPacks.length > 0) {
+                            const cachedForts = cachedPacks.map((p) => p.fort).filter(Boolean);
+                            if (cachedForts.length > 0) {
+                                set({ forts: cachedForts, isLoading: false, error: null });
+                                return { success: true, fromOfflineCache: true };
+                            }
+                        }
+                    } catch (idbErr) {
+                        console.warn("[FortFlux] Offline fallback error:", idbErr);
+                    }
+
                     const message = error.response?.data?.message || "Failed to fetch forts";
                     set({ error: message, isLoading: false });
                     return { success: false, message };
@@ -48,10 +63,34 @@ export const useFortStore = create((set, get) => ({
 
     /**
      * Fetch full fort detail by slug (fort + trails + cisterns).
-     * Includes retry logic for Render cold-start resilience.
+     * Includes offline IndexedDB fallback for zero-network conditions.
      */
     fetchFortDetail: async (slug) => {
         set({ isLoadingDetail: true });
+
+        // Check if offline first or attempt API fetch
+        const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+        if (isOffline) {
+            try {
+                const cached = await getOfflinePack(slug);
+                if (cached) {
+                    const offlineDetail = {
+                        fort: cached.fort,
+                        trails: cached.trails || [],
+                        cisterns: cached.cisterns || [],
+                    };
+                    set({
+                        fortDetail: offlineDetail,
+                        selectedFort: cached.fort || null,
+                        isLoadingDetail: false,
+                    });
+                    return { success: true, data: offlineDetail, fromOfflineCache: true };
+                }
+            } catch (err) {
+                console.warn("[FortFlux] Error reading offline pack:", err);
+            }
+        }
+
         const MAX_RETRIES = 3;
         const RETRY_DELAYS = [2000, 5000, 10000];
 
@@ -69,6 +108,26 @@ export const useFortStore = create((set, get) => ({
             } catch (error) {
                 const isLastAttempt = attempt === MAX_RETRIES - 1;
                 if (isLastAttempt) {
+                    // Fall back to offline cached pack if network failed
+                    try {
+                        const cached = await getOfflinePack(slug);
+                        if (cached) {
+                            const offlineDetail = {
+                                fort: cached.fort,
+                                trails: cached.trails || [],
+                                cisterns: cached.cisterns || [],
+                            };
+                            set({
+                                fortDetail: offlineDetail,
+                                selectedFort: cached.fort || null,
+                                isLoadingDetail: false,
+                            });
+                            return { success: true, data: offlineDetail, fromOfflineCache: true };
+                        }
+                    } catch (idbErr) {
+                        console.warn("[FortFlux] Error loading cached pack on failure:", idbErr);
+                    }
+
                     const message = error.response?.data?.message || "Failed to fetch fort details";
                     console.error("fetchFortDetail error:", message);
                     set({ isLoadingDetail: false });

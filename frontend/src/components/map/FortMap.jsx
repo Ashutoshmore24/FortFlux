@@ -15,6 +15,7 @@ import {
     getSeveredTrailTooltipHTML,
     getDiversionTooltipHTML,
     getReportPopupHTML,
+    getCellularZonePopupHTML,
 } from "./MapPopup";
 import {
     fortsToGeoJSON,
@@ -26,6 +27,14 @@ import {
     diversionRouteToGeoJSON,
     reportsToGeoJSON,
 } from "../../utils/geoJsonUtils";
+import {
+    CELLULAR_ZONES,
+    cellularCoverageToGeoJSON,
+    findNearestHotspot,
+} from "../../data/cellularCoverageData";
+import { useOfflineStore } from "../../store/useOfflineStore";
+import OfflineFieldBanner from "../offline/OfflineFieldBanner";
+import OfflineMapDownloadModal from "../offline/OfflineMapDownloadModal";
 import {
     MAPTILER_KEY,
     MAP_STYLES,
@@ -119,11 +128,22 @@ const FortMap = ({
 
     const { weatherData, fetchWeather } = useWeatherStore();
 
+    // ── Offline Store & Mountain Blackout Engine ──
+    const {
+        isOnline,
+        isSimulatingOffline,
+        openModal: openOfflineModal,
+        activeOfflinePack,
+        loadActivePack,
+        initOfflineStore,
+    } = useOfflineStore();
+
     // ── Local UI state ──
     const [mapStyle, setMapStyle] = useState("satellite");
     const [showTrails, setShowTrails] = useState(true);
     const [showCisterns, setShowCisterns] = useState(true);
     const [showReports, setShowReports] = useState(true);
+    const [showCellularZones, setShowCellularZones] = useState(true);
     const [terrainEnabled, setTerrainEnabled] = useState(false);
     const [mapReady, setMapReady] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
@@ -154,10 +174,22 @@ const FortMap = ({
     const isOrbitDraggingRef = useRef(false);
     const orbitDragStartRef = useRef({ x: 0, y: 0, bearing: 0, pitch: 0 });
     // Store current data for re-adding after style changes
-    const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC, reports: EMPTY_FC });
-    const stateRef = useRef({ showTrails: true, showCisterns: true, showReports: true, terrainEnabled: false });
+    const dataRef = useRef({ forts: EMPTY_FC, trails: EMPTY_FC, cisterns: EMPTY_FC, route: EMPTY_FC, reports: EMPTY_FC, cellular: EMPTY_FC });
+    const stateRef = useRef({ showTrails: true, showCisterns: true, showReports: true, showCellularZones: true, terrainEnabled: false });
     const onFortSelectRef = useRef(onFortSelect);
     const fortDetailRef = useRef(fortDetail);
+
+    // Initialize offline cache listener
+    useEffect(() => {
+        initOfflineStore();
+    }, [initOfflineStore]);
+
+    // When offline or simulated offline, hydrate pack for currently selected fort
+    useEffect(() => {
+        if ((!isOnline || isSimulatingOffline) && selectedFort?.slug) {
+            loadActivePack(selectedFort.slug);
+        }
+    }, [isOnline, isSimulatingOffline, selectedFort?.slug, loadActivePack]);
 
     useEffect(() => {
         onFortSelectRef.current = onFortSelect;
@@ -176,11 +208,17 @@ const FortMap = ({
 
     // Keep stateRef in sync
     useEffect(() => {
-        stateRef.current = { showTrails, showCisterns, showReports, terrainEnabled };
-    }, [showTrails, showCisterns, showReports, terrainEnabled]);
+        stateRef.current = { showTrails, showCisterns, showReports, showCellularZones, terrainEnabled };
+    }, [showTrails, showCisterns, showReports, showCellularZones, terrainEnabled]);
 
-    const trails = fortDetail?.trails || [];
-    const cisterns = fortDetail?.cisterns || [];
+    // If offline, seamlessly fall back to cached trails & cisterns
+    const trails = (fortDetail?.trails && fortDetail.trails.length > 0)
+        ? fortDetail.trails
+        : (activeOfflinePack?.fortSlug === selectedFort?.slug ? (activeOfflinePack.trails || []) : []);
+
+    const cisterns = (fortDetail?.cisterns && fortDetail.cisterns.length > 0)
+        ? fortDetail.cisterns
+        : (activeOfflinePack?.fortSlug === selectedFort?.slug ? (activeOfflinePack.cisterns || []) : []);
 
     // ── Fetch forts on mount ──
     useEffect(() => {
@@ -195,6 +233,21 @@ const FortMap = ({
         }
         return m;
     }, [selectedFort?.slug, weatherData]);
+
+    // ── Cellular Coverage & Dead Zones GeoJSON ──
+    const cellularGeoJSON = useMemo(() => {
+        const slug = selectedFort?.slug || null;
+        return cellularCoverageToGeoJSON(slug);
+    }, [selectedFort?.slug]);
+
+    // ── Nearest Emergency Cellular Hotspot ──
+    const nearestHotspot = useMemo(() => {
+        let coords = userLocation;
+        if (!coords && selectedFort?.location?.coordinates) {
+            coords = selectedFort.location.coordinates;
+        }
+        return findNearestHotspot(coords, selectedFort?.slug);
+    }, [userLocation, selectedFort]);
 
     // ── Memoized GeoJSON ──
     const fortsGeoJSON = useMemo(
@@ -257,8 +310,9 @@ const FortMap = ({
             severed: severedGeoJSON,
             diversion: diversionGeoJSON,
             reports: reportsGeoJSON,
+            cellular: cellularGeoJSON,
         };
-    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON, severedGeoJSON, diversionGeoJSON, reportsGeoJSON]);
+    }, [fortsGeoJSON, trailsGeoJSON, cisternsGeoJSON, routeGeoJSON, severedGeoJSON, diversionGeoJSON, reportsGeoJSON, cellularGeoJSON]);
 
     // ══════════════════════════════════════════════════════
     // Add GeoJSON sources + layers to the map
@@ -688,6 +742,120 @@ const FortMap = ({
         } catch (err) {
             console.warn("[FortFlux] Error initializing photo reports layer:", err);
         }
+
+        // ── Mountain Cellular Dead Zones & Hotspots (Zero Cellular Safety) ──
+        try {
+            if (!hasSource(map, "cellular-coverage-source")) {
+                map.addSource("cellular-coverage-source", { type: "geojson", data: data.cellular || EMPTY_FC });
+            } else {
+                map.getSource("cellular-coverage-source").setData(data.cellular || EMPTY_FC);
+            }
+
+            // 1. Cellular Dead Zone & Hotspot Polygon Fill
+            if (!hasLayer(map, "cellular-zones-fill")) {
+                map.addLayer({
+                    id: "cellular-zones-fill",
+                    type: "fill",
+                    source: "cellular-coverage-source",
+                    filter: ["==", "$type", "Polygon"],
+                    layout: {
+                        visibility: state.showCellularZones ? "visible" : "none",
+                    },
+                    paint: {
+                        "fill-color": [
+                            "case",
+                            ["==", ["get", "type"], "dead_zone"], "#ef4444",
+                            ["==", ["get", "type"], "emergency_hotspot"], "#10b981",
+                            "#f59e0b"
+                        ],
+                        "fill-opacity": [
+                            "case",
+                            ["==", ["get", "type"], "dead_zone"], 0.28,
+                            ["==", ["get", "type"], "emergency_hotspot"], 0.22,
+                            0.18
+                        ],
+                    },
+                });
+            }
+
+            // 2. Cellular Boundary Dashed Line
+            if (!hasLayer(map, "cellular-zones-line")) {
+                map.addLayer({
+                    id: "cellular-zones-line",
+                    type: "line",
+                    source: "cellular-coverage-source",
+                    filter: ["==", "$type", "Polygon"],
+                    layout: {
+                        "line-cap": "round",
+                        "line-join": "round",
+                        visibility: state.showCellularZones ? "visible" : "none",
+                    },
+                    paint: {
+                        "line-color": [
+                            "case",
+                            ["==", ["get", "type"], "dead_zone"], "#dc2626",
+                            ["==", ["get", "type"], "emergency_hotspot"], "#059669",
+                            "#d97706"
+                        ],
+                        "line-width": 2.5,
+                        "line-dasharray": [3, 2],
+                        "line-opacity": 0.9,
+                    },
+                });
+            }
+
+            // 3. Cellular Hotspots Circle Marker
+            if (!hasLayer(map, "cellular-hotspots-circle")) {
+                map.addLayer({
+                    id: "cellular-hotspots-circle",
+                    type: "circle",
+                    source: "cellular-coverage-source",
+                    filter: ["all", ["==", "$type", "Point"], ["==", ["get", "type"], "emergency_hotspot"]],
+                    layout: {
+                        visibility: state.showCellularZones ? "visible" : "none",
+                    },
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            8, 5,
+                            12, 8,
+                            16, 12,
+                        ],
+                        "circle-color": "#10b981",
+                        "circle-stroke-width": 2.5,
+                        "circle-stroke-color": "#ffffff",
+                        "circle-opacity": 0.95,
+                    },
+                });
+            }
+
+            // 4. Cellular Dead Zone Center Warning Marker
+            if (!hasLayer(map, "cellular-deadzone-circle")) {
+                map.addLayer({
+                    id: "cellular-deadzone-circle",
+                    type: "circle",
+                    source: "cellular-coverage-source",
+                    filter: ["all", ["==", "$type", "Point"], ["==", ["get", "type"], "dead_zone"]],
+                    layout: {
+                        visibility: state.showCellularZones ? "visible" : "none",
+                    },
+                    paint: {
+                        "circle-radius": [
+                            "interpolate", ["linear"], ["zoom"],
+                            8, 4,
+                            12, 7,
+                            16, 10,
+                        ],
+                        "circle-color": "#ef4444",
+                        "circle-stroke-width": 2,
+                        "circle-stroke-color": "#ffffff",
+                        "circle-opacity": 0.95,
+                    },
+                });
+            }
+        } catch (err) {
+            console.warn("[FortFlux] Error initializing cellular coverage layers:", err);
+        }
     }, []);
 
     // ══════════════════════════════════════════════════════
@@ -957,6 +1125,28 @@ const FortMap = ({
                 .addTo(map);
         });
 
+        // ── Mountain Cellular Dead Zones & Hotspots Popups ──
+        const showCellularPopup = (e) => {
+            if (!e.features?.length) return;
+            map.getCanvas().style.cursor = "pointer";
+            const props = e.features[0].properties;
+            popupRef.current
+                .setLngLat(e.lngLat)
+                .setHTML(getCellularZonePopupHTML(props))
+                .addTo(map);
+        };
+
+        const hideCellularPopup = () => {
+            map.getCanvas().style.cursor = "";
+            popupRef.current.remove();
+        };
+
+        ["cellular-zones-fill", "cellular-hotspots-circle", "cellular-deadzone-circle"].forEach((layerId) => {
+            map.on("mouseenter", layerId, showCellularPopup);
+            map.on("mouseleave", layerId, hideCellularPopup);
+            map.on("click", layerId, showCellularPopup);
+        });
+
         // ── Fort hover cursor ──
         const setPointer = () => { map.getCanvas().style.cursor = "pointer"; };
         const resetPointer = () => { map.getCanvas().style.cursor = ""; };
@@ -1119,6 +1309,21 @@ const FortMap = ({
         }
     }, [reportsGeoJSON, mapReady, addSourcesAndLayers]);
 
+    // Update cellular coverage source when cellular data changes
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady || !isStyleReady(map)) return;
+        try {
+            if (!hasSource(map, "cellular-coverage-source")) {
+                addSourcesAndLayers(map);
+            }
+            const cellSrc = map.getSource("cellular-coverage-source");
+            if (cellSrc) cellSrc.setData(cellularGeoJSON);
+        } catch (err) {
+            console.warn("[FortMap] Error updating cellular coverage:", err);
+        }
+    }, [cellularGeoJSON, mapReady, addSourcesAndLayers]);
+
     // ══════════════════════════════════════════════════════
     // Fit bounds to all forts on initial data load (if no fort pre-selected)
     // ══════════════════════════════════════════════════════
@@ -1209,6 +1414,20 @@ const FortMap = ({
             console.warn("[FortMap] Error setting reports visibility:", err);
         }
     }, [showReports, mapReady]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady || !isStyleReady(map)) return;
+        try {
+            ["cellular-zones-fill", "cellular-zones-line", "cellular-hotspots-circle", "cellular-deadzone-circle"].forEach((l) => {
+                if (hasLayer(map, l)) {
+                    map.setLayoutProperty(l, "visibility", showCellularZones ? "visible" : "none");
+                }
+            });
+        } catch (err) {
+            console.warn("[FortMap] Error setting cellular visibility:", err);
+        }
+    }, [showCellularZones, mapReady]);
 
     // ══════════════════════════════════════════════════════
     // Style Change Handler
@@ -1613,6 +1832,14 @@ const FortMap = ({
                 className="bg-[#EEF5EF]"
             />
 
+            {/* Mountain Network Blackout / Field Survival Banner */}
+            <OfflineFieldBanner
+                selectedFortSlug={selectedFort?.slug}
+                fortName={selectedFort?.name}
+                currentCoords={userLocation || selectedFort?.location?.coordinates}
+                nearestHotspot={nearestHotspot}
+            />
+
             {/* In-Map Search & Filter Bar (Phase 1) */}
             <MapSearchFilter
                 forts={forts}
@@ -1646,6 +1873,10 @@ const FortMap = ({
                 onToggleCisterns={() => setShowCisterns(!showCisterns)}
                 showReports={showReports}
                 onToggleReports={() => setShowReports(!showReports)}
+                showCellularZones={showCellularZones}
+                onToggleCellularZones={() => setShowCellularZones(!showCellularZones)}
+                onOpenOfflineModal={openOfflineModal}
+                isOfflineActive={!isOnline || isSimulatingOffline}
                 terrainEnabled={terrainEnabled}
                 onToggleTerrain={handleToggleTerrain}
                 onResetView={handleResetView}
@@ -1811,6 +2042,16 @@ const FortMap = ({
                     </div>
                 </div>
             )}
+
+            {/* Offline Map Download & Storage Manager Modal */}
+            <OfflineMapDownloadModal
+                availableForts={forts}
+                selectedFortSlug={selectedFort?.slug || "rajgad"}
+                onSelectFort={(slug) => {
+                    selectFort(slug);
+                    if (onFortSelectRef.current) onFortSelectRef.current(slug);
+                }}
+            />
         </div>
     );
 };
