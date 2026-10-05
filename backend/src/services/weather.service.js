@@ -166,6 +166,22 @@ const getFallbackWeatherData = (latitude, longitude, elevation = 1000) => {
     };
     const monsoon = getMonsoonSeverity(precipitation);
 
+    // Estimate visibility in meters based on Sahyadri weather conditions
+    let visibility = 15000;
+    if (weatherCode === 45 || weatherCode === 48) {
+        visibility = 450; // Dense fog / rime
+    } else if (precipitation > 35) {
+        visibility = 120; // Extreme cloudburst deluge
+    } else if (precipitation > 7.5) {
+        visibility = 650; // Heavy rainfall
+    } else if (precipitation > 2) {
+        visibility = 2800; // Moderate rain & mist
+    } else if (humidity > 90) {
+        visibility = 2200; // Humid ghat cloud
+    } else if (humidity > 75) {
+        visibility = 8500; // Light moisture haze
+    }
+
     const baseWeatherData = {
         temperature: roundedTemp,
         apparentTemperature: apparentTemp,
@@ -179,6 +195,7 @@ const getFallbackWeatherData = (latitude, longitude, elevation = 1000) => {
         weatherSeverity: weatherInfo.severity,
         weatherIcon: weatherInfo.icon,
         monsoonSeverity: monsoon,
+        visibility,
     };
 
     const recommendation = generateTrekRecommendations(baseWeatherData);
@@ -191,6 +208,7 @@ const getFallbackWeatherData = (latitude, longitude, elevation = 1000) => {
             humidity: "%",
             precipitation: "mm",
             windSpeed: "km/h",
+            visibility: "m",
         },
         fetchedAt: new Date().toISOString(),
         cached: true,
@@ -226,6 +244,7 @@ const getWeatherForCoords = async (latitude, longitude, elevation = 1000) => {
                 "wind_speed_10m",
                 "wind_gusts_10m",
                 "apparent_temperature",
+                "visibility",
             ].join(","),
             timezone: "Asia/Kolkata",
             forecast_days: "1",
@@ -272,6 +291,7 @@ const getWeatherForCoords = async (latitude, longitude, elevation = 1000) => {
             weatherSeverity: weatherInfo.severity,
             weatherIcon: weatherInfo.icon,
             monsoonSeverity: monsoon,
+            visibility: current.visibility != null ? Math.round(current.visibility) : 10000,
         };
 
         const recommendation = generateTrekRecommendations(baseWeatherData);
@@ -284,6 +304,7 @@ const getWeatherForCoords = async (latitude, longitude, elevation = 1000) => {
                 humidity: "%",
                 precipitation: "mm",
                 windSpeed: "km/h",
+                visibility: "m",
             },
             fetchedAt: new Date().toISOString(),
             cached: false,

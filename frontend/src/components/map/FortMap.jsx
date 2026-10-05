@@ -212,13 +212,19 @@ const FortMap = ({
     }, [showTrails, showCisterns, showReports, showCellularZones, terrainEnabled]);
 
     // If offline, seamlessly fall back to cached trails & cisterns
+    const hasMatchingPack = Boolean(
+        selectedFort?.slug &&
+        activeOfflinePack?.fortSlug &&
+        activeOfflinePack.fortSlug.toLowerCase() === selectedFort.slug.toLowerCase()
+    );
+
     const trails = (fortDetail?.trails && fortDetail.trails.length > 0)
         ? fortDetail.trails
-        : (activeOfflinePack?.fortSlug === selectedFort?.slug ? (activeOfflinePack.trails || []) : []);
+        : (hasMatchingPack ? (activeOfflinePack?.trails || []) : []);
 
     const cisterns = (fortDetail?.cisterns && fortDetail.cisterns.length > 0)
         ? fortDetail.cisterns
-        : (activeOfflinePack?.fortSlug === selectedFort?.slug ? (activeOfflinePack.cisterns || []) : []);
+        : (hasMatchingPack ? (activeOfflinePack?.cisterns || []) : []);
 
     // ── Fetch forts on mount ──
     useEffect(() => {
@@ -320,8 +326,8 @@ const FortMap = ({
     // ══════════════════════════════════════════════════════
     const addSourcesAndLayers = useCallback((map) => {
         if (!map || !isStyleReady(map)) return;
-        const data = dataRef.current;
-        const state = stateRef.current;
+        const data = dataRef.current || {};
+        const state = stateRef.current || {};
 
         // ── Terrain source (always add for 3D elevation support) ──
         if (!hasSource(map, TERRAIN_SOURCE.id)) {
@@ -346,9 +352,9 @@ const FortMap = ({
         // ── Fort Source + Layers ──
         try {
             if (!hasSource(map, SOURCES.forts)) {
-                map.addSource(SOURCES.forts, { type: "geojson", data: data.forts });
+                map.addSource(SOURCES.forts, { type: "geojson", data: data.forts || EMPTY_FC });
             } else {
-                map.getSource(SOURCES.forts).setData(data.forts);
+                map.getSource(SOURCES.forts).setData(data.forts || EMPTY_FC);
             }
 
             // Fort monsoon / rainfall halo (shows pulsing hazard ring around forts with active rain/surge)
@@ -476,9 +482,9 @@ const FortMap = ({
         // ── Trail Source + Layers ──
         try {
             if (!hasSource(map, SOURCES.trails)) {
-                map.addSource(SOURCES.trails, { type: "geojson", data: data.trails });
+                map.addSource(SOURCES.trails, { type: "geojson", data: data.trails || EMPTY_FC });
             } else {
-                map.getSource(SOURCES.trails).setData(data.trails);
+                map.getSource(SOURCES.trails).setData(data.trails || EMPTY_FC);
             }
 
             // Trail lines
@@ -511,9 +517,9 @@ const FortMap = ({
         // ── Cistern Source + Layers ──
         try {
             if (!hasSource(map, SOURCES.cisterns)) {
-                map.addSource(SOURCES.cisterns, { type: "geojson", data: data.cisterns });
+                map.addSource(SOURCES.cisterns, { type: "geojson", data: data.cisterns || EMPTY_FC });
             } else {
-                map.getSource(SOURCES.cisterns).setData(data.cisterns);
+                map.getSource(SOURCES.cisterns).setData(data.cisterns || EMPTY_FC);
             }
 
             // Cistern circles

@@ -9,8 +9,10 @@ import { useReportStore } from "../store/useReportStore";
 import { useOfflineStore } from "../store/useOfflineStore";
 import FortMap from "../components/map/FortMap";
 import PhotoUploadModal from "../components/PhotoUploadModal";
+import VisibilitySimulationModal from "../components/VisibilitySimulationModal";
 import { FORT_LOCAL_IMAGES } from "../data/fortHistoryData";
 import {
+  Eye,
   Compass,
   CloudRain,
   AlertTriangle,
@@ -94,6 +96,7 @@ export const TrekkerDashboard = () => {
   const [startWaypoint, setStartWaypoint] = useState("");
   const [destWaypoint, setDestWaypoint] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const fortParam = searchParams.get("fort");
 
@@ -492,11 +495,22 @@ export const TrekkerDashboard = () => {
                   <span>History & Satellite</span>
                 </Link>
               )}
+
+              {/* Sight Simulator Button */}
+              <button
+                type="button"
+                onClick={() => setIsVisibilityModalOpen(true)}
+                className="px-3.5 py-2 bg-cyan-50 hover:bg-cyan-100 border border-cyan-300 rounded-xl text-cyan-900 text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-xs cursor-pointer"
+                title="Launch Interactive Visibility & Optical Range Simulator"
+              >
+                <Eye className="w-3.5 h-3.5 text-cyan-700" />
+                <span>Simulate Sight</span>
+              </button>
             </div>
           </div>
 
           {/* Weather Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {/* Temperature */}
             <div className="bg-orange-50/70 border border-orange-200/80 rounded-xl p-4 hover-lift animate-fade-in-up delay-100">
               <div className="flex items-center gap-2 mb-2">
@@ -545,6 +559,47 @@ export const TrekkerDashboard = () => {
               </div>
               <div className="text-2xl font-black text-[#132A22]">{weather.windSpeed}<span className="text-sm text-emerald-700 ml-1">km/h</span></div>
               <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">Gusts {weather.windGusts} km/h</div>
+            </div>
+
+            {/* Visibility & Sight Limit Simulator Card */}
+            <div
+              onClick={() => setIsVisibilityModalOpen(true)}
+              className="col-span-2 sm:col-span-1 bg-cyan-50/70 border border-cyan-200/80 hover:border-cyan-400 rounded-xl p-4 hover-lift animate-fade-in-up delay-500 cursor-pointer shadow-xs group transition-all"
+              title="Click to launch interactive Sight Limit Simulator"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-cyan-100 text-cyan-700 rounded-lg group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                    <Eye className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] text-[#52685E] font-medium">Visibility</span>
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-cyan-100/90 text-cyan-800 border border-cyan-300 group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-600 transition-colors">
+                  Simulate ⚡
+                </span>
+              </div>
+              <div className="text-2xl font-black text-[#132A22]">
+                {weather.visibility != null
+                  ? weather.visibility >= 1000
+                    ? `${(weather.visibility / 1000).toFixed(1)}`
+                    : `${weather.visibility}`
+                  : "10"}
+                <span className="text-sm text-cyan-700 ml-1 font-bold">
+                  {weather.visibility != null && weather.visibility < 1000 ? "m" : "km"}
+                </span>
+              </div>
+              <div className="text-[10px] text-cyan-800 font-semibold mt-0.5 flex items-center justify-between">
+                <span className="truncate">
+                  {weather.visibility != null && weather.visibility < 300
+                    ? "Monsoon whiteout"
+                    : weather.visibility != null && weather.visibility < 1000
+                    ? "Dense fog"
+                    : weather.visibility != null && weather.visibility < 4000
+                    ? "Valley mist"
+                    : "Clear sight"}
+                </span>
+                <span className="text-[10px] text-cyan-600 group-hover:underline font-bold shrink-0 ml-1">Launch →</span>
+              </div>
             </div>
           </div>
 
@@ -1042,6 +1097,14 @@ export const TrekkerDashboard = () => {
         defaultFortSlug={selectedFortSlug}
         fortName={fortInfo?.name || "Fort"}
         trails={liveTrails}
+      />
+
+      {/* Interactive Visibility & Optical Range Simulator Modal */}
+      <VisibilitySimulationModal
+        isOpen={isVisibilityModalOpen}
+        onClose={() => setIsVisibilityModalOpen(false)}
+        initialMeters={weather?.visibility || 8600}
+        fortName={fortInfo?.name || "Sahyadri Fort"}
       />
     </div>
   );
