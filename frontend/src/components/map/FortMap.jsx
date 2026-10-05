@@ -235,7 +235,7 @@ const FortMap = ({
     const weatherMap = useMemo(() => {
         const m = {};
         if (selectedFort?.slug && weatherData) {
-            m[selectedFort.slug] = weatherData;
+            m[selectedFort.slug] = weatherData?.weather || weatherData;
         }
         return m;
     }, [selectedFort?.slug, weatherData]);
@@ -763,7 +763,7 @@ const FortMap = ({
                     id: "cellular-zones-fill",
                     type: "fill",
                     source: "cellular-coverage-source",
-                    filter: ["==", "$type", "Polygon"],
+                    filter: ["==", ["geometry-type"], "Polygon"],
                     layout: {
                         visibility: state.showCellularZones ? "visible" : "none",
                     },
@@ -790,7 +790,7 @@ const FortMap = ({
                     id: "cellular-zones-line",
                     type: "line",
                     source: "cellular-coverage-source",
-                    filter: ["==", "$type", "Polygon"],
+                    filter: ["==", ["geometry-type"], "Polygon"],
                     layout: {
                         "line-cap": "round",
                         "line-join": "round",
@@ -816,7 +816,7 @@ const FortMap = ({
                     id: "cellular-hotspots-circle",
                     type: "circle",
                     source: "cellular-coverage-source",
-                    filter: ["all", ["==", "$type", "Point"], ["==", ["get", "type"], "emergency_hotspot"]],
+                    filter: ["all", ["==", ["geometry-type"], "Point"], ["==", ["get", "type"], "emergency_hotspot"]],
                     layout: {
                         visibility: state.showCellularZones ? "visible" : "none",
                     },
@@ -841,7 +841,7 @@ const FortMap = ({
                     id: "cellular-deadzone-circle",
                     type: "circle",
                     source: "cellular-coverage-source",
-                    filter: ["all", ["==", "$type", "Point"], ["==", ["get", "type"], "dead_zone"]],
+                    filter: ["all", ["==", ["geometry-type"], "Point"], ["==", ["get", "type"], "dead_zone"]],
                     layout: {
                         visibility: state.showCellularZones ? "visible" : "none",
                     },
@@ -1945,25 +1945,32 @@ const FortMap = ({
                     </div>
 
                     {/* Live Weather Microclimate Pill */}
-                    {weatherData && (
-                        <div className="mb-2.5 px-2.5 py-1.5 bg-[#F5F8F4] border border-[#E2ECE4] rounded-xl flex items-center justify-between text-[11px]">
-                            <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-                                <span>{weatherData.weatherIcon || "☀️"}</span>
-                                <span>{Math.round(weatherData.temperature)}°C</span>
-                                <span className="text-slate-300">·</span>
-                                <span className="text-slate-600 font-normal truncate max-w-[140px]">{weatherData.weatherDescription || "Sahyadri Climate"}</span>
+                    {weatherData && (() => {
+                        const curWeather = weatherData?.weather || weatherData;
+                        const temp = curWeather?.temperature != null && !isNaN(curWeather.temperature)
+                            ? Math.round(curWeather.temperature)
+                            : null;
+                        const precip = Number(curWeather?.precipitation || curWeather?.rain || 0);
+                        return (
+                            <div className="mb-2.5 px-2.5 py-1.5 bg-[#F5F8F4] border border-[#E2ECE4] rounded-xl flex items-center justify-between text-[11px]">
+                                <div className="flex items-center gap-1.5 font-semibold text-slate-700">
+                                    <span>{curWeather?.weatherIcon || "☀️"}</span>
+                                    <span>{temp !== null ? `${temp}°C` : "--°C"}</span>
+                                    <span className="text-slate-300">·</span>
+                                    <span className="text-slate-600 font-normal truncate max-w-[140px]">{curWeather?.weatherDescription || "Sahyadri Climate"}</span>
+                                </div>
+                                {precip > 0 ? (
+                                    <span className="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 text-[10px]">
+                                        🌧️ {precip} mm/h
+                                    </span>
+                                ) : (
+                                    <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                        ✅ Fair Weather
+                                    </span>
+                                )}
                             </div>
-                            {weatherData.precipitation > 0 ? (
-                                <span className="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 text-[10px]">
-                                    🌧️ {weatherData.precipitation} mm/h
-                                </span>
-                            ) : (
-                                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                    ✅ Fair Weather
-                                </span>
-                            )}
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {isLocating && userLocation && selectedFort?.location?.coordinates && (
                         <div className="mb-3">
